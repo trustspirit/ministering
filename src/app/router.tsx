@@ -7,6 +7,7 @@ import PlaceholderPage from '@/pages/PlaceholderPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import MembersPage from '@/pages/MembersPage';
 import HouseholdsPage from '@/pages/HouseholdsPage';
+import AssignmentWorkspacePage from '@/pages/AssignmentWorkspacePage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -18,8 +19,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/', element: <DashboardPage /> },
           { path: '/assignments', element: <Navigate to="/assignments/rs" replace /> },
-          { path: '/assignments/rs', element: <PlaceholderPage title="RS 편성" /> },
-          { path: '/assignments/eq', element: <PlaceholderPage title="EQ 편성" /> },
+          { path: '/assignments/:org', element: <AssignmentWorkspacePage /> },
           { path: '/members', element: <MembersPage /> },
           { path: '/households', element: <HouseholdsPage /> },
           { path: '/settings', element: <PlaceholderPage title="설정" /> },
