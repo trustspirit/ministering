@@ -107,5 +107,40 @@ export function useAssignmentActions(org: Organization) {
         return { ok: false, reason: err instanceof Error ? err.message : '알 수 없는 오류' };
       }
     },
+
+    addHouseholdRecipientsToMinistry: async (
+      ministry: Ministry,
+      households: { id: string }[],
+      context: { companionMemberIds: string[]; companionHouseholdIds: string[] },
+    ): Promise<ActionResult> => {
+      for (const h of households) {
+        const res = validateRecipient(
+          ministry,
+          { type: 'household', household: h },
+          context,
+        );
+        if (!res.ok) return { ok: false, reason: res.message };
+      }
+
+      try {
+        for (const h of households) {
+          await ministryRepository.addHouseholdRecipient(ministry.id, h.id);
+        }
+        invalidate(ministry.id);
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, reason: err instanceof Error ? err.message : '알 수 없는 오류' };
+      }
+    },
+
+    removeHouseholdRecipient: async (ministryId: string, householdId: string): Promise<ActionResult> => {
+      try {
+        await ministryRepository.removeHouseholdRecipient(ministryId, householdId);
+        invalidate(ministryId);
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, reason: err instanceof Error ? err.message : '알 수 없는 오류' };
+      }
+    },
   };
 }
