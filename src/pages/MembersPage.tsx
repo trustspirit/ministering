@@ -8,6 +8,8 @@ import type { Member } from '@/features/members/types';
 import { CsvImportModal } from '@/features/members/ui/CsvImportModal';
 import { exportMembersCsv } from '@/features/members/domain/exportMembersCsv';
 import { useHouseholds } from '@/features/households/hooks/useHouseholds';
+import { MapView } from '@/features/map/ui/MapView';
+import { SelectionBar } from '@/features/map/ui/SelectionBar';
 
 type ModalState =
   | { open: false }
@@ -21,6 +23,7 @@ export default function MembersPage() {
   const { data: households = [] } = useHouseholds();
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [csvOpen, setCsvOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'map'>('table');
 
   const filtered = useMemo(
     () => filterMembers(members, filters),
@@ -49,6 +52,20 @@ export default function MembersPage() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">회원 관리</h2>
         <div className="flex gap-2">
+          <div className="inline-flex rounded border overflow-hidden text-sm mr-2">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-1.5 ${viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700'}`}
+            >
+              목록
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`px-3 py-1.5 ${viewMode === 'map' ? 'bg-blue-600 text-white' : 'bg-white text-slate-700'}`}
+            >
+              지도
+            </button>
+          </div>
           <button
             onClick={onExport}
             disabled={filtered.length === 0}
@@ -107,13 +124,15 @@ export default function MembersPage() {
 
       {isLoading ? (
         <div className="py-12 text-center text-slate-500">불러오는 중...</div>
-      ) : (
+      ) : viewMode === 'table' ? (
         <MembersTable
           members={filtered}
           onRowClick={(m) => {
             if (perm.canEditMembers) setModal({ open: true, mode: 'edit', member: m });
           }}
         />
+      ) : (
+        <MapView members={filtered} />
       )}
 
       <MemberFormModal
@@ -127,6 +146,8 @@ export default function MembersPage() {
       />
 
       <CsvImportModal open={csvOpen} onClose={() => setCsvOpen(false)} />
+
+      <SelectionBar allMembers={members} />
     </div>
   );
 }
