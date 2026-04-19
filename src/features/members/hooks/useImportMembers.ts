@@ -18,6 +18,7 @@ export interface ImportReport {
   updated: number;
   failed: Array<{ row: ParsedMemberRow; reason: string }>;
   householdsCreated: number;
+  householdsFailed: Array<{ name: string; reason: string }>;
 }
 
 export interface ImportMembersOptions {
@@ -37,6 +38,7 @@ export function useImportMembers() {
         updated: 0,
         failed: [],
         householdsCreated: 0,
+        householdsFailed: [],
       };
 
       const existingHouseholds = await householdRepository.list();
@@ -60,13 +62,12 @@ export function useImportMembers() {
           plan.existingNameToId[h.name] = created.id;
           report.householdsCreated++;
         } catch (err) {
-          console.error(`Household "${h.name}" creation failed:`, err);
+          report.householdsFailed.push({
+            name: h.name,
+            reason: err instanceof Error ? err.message : String(err),
+          });
         }
-        onProgress?.({
-          total: plan.toCreate.length + rows.length,
-          completed: i + 1,
-          phase: 'households',
-        });
+        onProgress?.({ total: plan.toCreate.length + rows.length, completed: i + 1, phase: 'households' });
       }
 
       const throttle = pThrottle({ limit: 3, interval: 1000 });

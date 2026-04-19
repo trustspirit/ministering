@@ -150,12 +150,25 @@ export function CsvImportModal({ open, onClose }: CsvImportModalProps) {
             {state.report.failed.length > 0 && (
               <li className="text-red-700">실패: {state.report.failed.length}건</li>
             )}
+            {state.report.householdsFailed.length > 0 && (
+              <li className="text-red-700">가정 생성 실패: {state.report.householdsFailed.length}건</li>
+            )}
           </ul>
           {state.report.failed.length > 0 && (
             <div className="max-h-48 overflow-y-auto border rounded text-xs">
               {state.report.failed.map((f, i) => (
                 <div key={i} className="border-t px-2 py-1">
                   <span className="font-medium">{f.row.full_name}</span>: {f.reason}
+                </div>
+              ))}
+            </div>
+          )}
+          {state.report.householdsFailed.length > 0 && (
+            <div className="max-h-48 overflow-y-auto border rounded text-xs">
+              <div className="px-2 py-1 bg-slate-100 text-slate-600 text-[11px]">가정 생성 실패</div>
+              {state.report.householdsFailed.map((f, i) => (
+                <div key={i} className="border-t px-2 py-1">
+                  <span className="font-medium">{f.name}</span>: {f.reason}
                 </div>
               ))}
             </div>
