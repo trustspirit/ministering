@@ -3,11 +3,11 @@ import LoginPage from '@/features/auth/LoginPage';
 import RequireAuth from '@/features/auth/RequireAuth';
 import Layout from '@/shared/ui/Layout';
 import DashboardPage from '@/pages/DashboardPage';
-import PlaceholderPage from '@/pages/PlaceholderPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import MembersPage from '@/pages/MembersPage';
 import HouseholdsPage from '@/pages/HouseholdsPage';
 import AssignmentWorkspacePage from '@/pages/AssignmentWorkspacePage';
+import SettingsPage from '@/pages/SettingsPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -22,7 +22,7 @@ export const router = createBrowserRouter([
           { path: '/assignments/:org', element: <AssignmentWorkspacePage /> },
           { path: '/members', element: <MembersPage /> },
           { path: '/households', element: <HouseholdsPage /> },
-          { path: '/settings', element: <PlaceholderPage title="설정" /> },
+          { path: '/settings', element: <SettingsPage /> },
         ],
       },
     ],
