@@ -1,90 +1,146 @@
 import { useState } from 'react';
 import { useSelectionStore } from '@/features/map/store';
+import { useHouseholdSelectionStore } from '@/features/map/householdSelectionStore';
 import { useMinistries } from '../hooks/useMinistries';
 import { useMinistryDetails } from '../hooks/useMinistryDetails';
 import { useAssignmentActions } from '../hooks/useAssignmentActions';
 import type { Organization, Ministry } from '../types';
 import type { Member } from '@/features/members/types';
+import type { Household } from '@/features/households/types';
 
 export interface AssignmentActionBarProps {
   organization: Organization;
   allMembers: Member[];
+  allHouseholds?: Household[];
   canEdit: boolean;
 }
 
-export function AssignmentActionBar({ organization, allMembers, canEdit }: AssignmentActionBarProps) {
-  const { selectedIds, clear } = useSelectionStore();
+export function AssignmentActionBar({ organization, allMembers, allHouseholds = [], canEdit }: AssignmentActionBarProps) {
+  const memberStore = useSelectionStore();
+  const householdStore = useHouseholdSelectionStore();
   const { data: ministries = [] } = useMinistries(organization);
   const actions = useAssignmentActions(organization);
-  const [pickerMode, setPickerMode] = useState<'companion' | 'recipient' | null>(null);
+
+  const [pickerMode, setPickerMode] = useState<
+    | null
+    | { type: 'member-companion' }
+    | { type: 'member-recipient' }
+    | { type: 'household-recipient' }
+  >(null);
   const [busy, setBusy] = useState(false);
 
-  if (selectedIds.size === 0) return null;
+  const selectedMembers = allMembers.filter((m) => memberStore.selectedIds.has(m.id));
+  const selectedHouseholds = allHouseholds.filter((h) => householdStore.selectedHouseholdIds.has(h.id));
 
-  const selectedMembers = allMembers.filter((m) => selectedIds.has(m.id));
+  const memberCount = selectedMembers.length;
+  const householdCount = selectedHouseholds.length;
+  const total = memberCount + householdCount;
+  if (total === 0) return null;
+
+  const clearAll = () => {
+    memberStore.clear();
+    householdStore.clear();
+  };
 
   if (!canEdit) {
     return (
       <FloatingBar>
-        <Badge>{selectedIds.size}명 선택</Badge>
+        <Badge>{total}개 선택</Badge>
         <span className="text-xs text-slate-400 italic">읽기 전용</span>
-        <CancelButton onClick={clear} />
+        <CancelButton onClick={clearAll} />
       </FloatingBar>
     );
   }
 
-  const onCreateNew = async () => {
-    setBusy(true);
-    const res = await actions.createMinistryFromCompanions(selectedMembers);
-    setBusy(false);
-    if (res.ok) {
-      clear();
-    } else {
-      alert(`조 생성 실패: ${res.reason}`);
-    }
-  };
+  if (memberCount > 0 && householdCount > 0) {
+    return (
+      <FloatingBar>
+        <Badge>회원 {memberCount} · 가정 {householdCount}</Badge>
+        <span className="text-xs text-yellow-300">회원과 가정은 동시에 선택할 수 없습니다</span>
+        <CancelButton onClick={clearAll} />
+      </FloatingBar>
+    );
+  }
+
+  if (memberCount > 0) {
+    const onCreateNew = async () => {
+      setBusy(true);
+      const res = await actions.createMinistryFromCompanions(selectedMembers);
+      setBusy(false);
+      if (res.ok) memberStore.clear();
+      else alert(`조 생성 실패: ${res.reason}`);
+    };
+
+    return (
+      <>
+        <FloatingBar>
+          <Badge>{memberCount}명 선택</Badge>
+          <span className="text-xs text-slate-300 truncate max-w-xs">
+            {selectedMembers.map((m) => m.full_name).join(', ')}
+          </span>
+          <button onClick={onCreateNew} disabled={busy}
+            className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded disabled:opacity-60">
+            새 조 만들기
+          </button>
+          <button onClick={() => setPickerMode({ type: 'member-companion' })}
+            disabled={busy || ministries.length === 0}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded disabled:opacity-60">
+            조에 동반자로 추가
+          </button>
+          {organization === 'RS' && (
+            <button onClick={() => setPickerMode({ type: 'member-recipient' })}
+              disabled={busy || ministries.length === 0}
+              className="bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-1 rounded disabled:opacity-60">
+              조에 조원으로 추가
+            </button>
+          )}
+          <CancelButton onClick={clearAll} />
+        </FloatingBar>
+
+        {pickerMode && (pickerMode.type === 'member-companion' || pickerMode.type === 'member-recipient') && (
+          <MemberPicker
+            mode={pickerMode.type === 'member-companion' ? 'companion' : 'recipient'}
+            ministries={ministries}
+            selectedMembers={selectedMembers}
+            allMembers={allMembers}
+            onClose={() => setPickerMode(null)}
+            onSuccess={() => {
+              setPickerMode(null);
+              memberStore.clear();
+            }}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <>
       <FloatingBar>
-        <Badge>{selectedIds.size}명 선택</Badge>
+        <Badge>가정 {householdCount}개</Badge>
         <span className="text-xs text-slate-300 truncate max-w-xs">
-          {selectedMembers.map((m) => m.full_name).join(', ')}
+          {selectedHouseholds.map((h) => h.name).join(', ')}
         </span>
-        <button
-          onClick={onCreateNew}
-          disabled={busy}
-          className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded disabled:opacity-60"
-        >
-          새 조 만들기
-        </button>
-        <button
-          onClick={() => setPickerMode('companion')}
-          disabled={busy || ministries.length === 0}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded disabled:opacity-60"
-        >
-          조에 동반자로 추가
-        </button>
-        <button
-          onClick={() => setPickerMode('recipient')}
-          disabled={busy || ministries.length === 0}
-          className="bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-1 rounded disabled:opacity-60"
-        >
-          조에 조원으로 추가
-        </button>
-        <CancelButton onClick={clear} />
+        {organization === 'EQ' ? (
+          <button onClick={() => setPickerMode({ type: 'household-recipient' })}
+            disabled={busy || ministries.length === 0}
+            className="bg-orange-600 hover:bg-orange-700 text-white text-xs px-3 py-1 rounded disabled:opacity-60">
+            조에 조원으로 추가
+          </button>
+        ) : (
+          <span className="text-xs text-yellow-300">RS 에서는 가정 단위 조원 불가</span>
+        )}
+        <CancelButton onClick={clearAll} />
       </FloatingBar>
 
-      {pickerMode && (
-        <MinistryPicker
-          mode={pickerMode}
+      {pickerMode?.type === 'household-recipient' && (
+        <HouseholdPicker
           ministries={ministries}
-          selectedMembers={selectedMembers}
-          allMembers={allMembers}
+          selectedHouseholds={selectedHouseholds}
           onClose={() => setPickerMode(null)}
           onSuccess={() => {
             setPickerMode(null);
-            clear();
+            householdStore.clear();
           }}
         />
       )}
@@ -119,7 +175,7 @@ function CancelButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-interface MinistryPickerProps {
+interface MemberPickerProps {
   mode: 'companion' | 'recipient';
   ministries: Ministry[];
   selectedMembers: Member[];
@@ -128,34 +184,24 @@ interface MinistryPickerProps {
   onSuccess: () => void;
 }
 
-function MinistryPicker({ mode, ministries, selectedMembers, allMembers, onClose, onSuccess }: MinistryPickerProps) {
+function MemberPicker({ mode, ministries, selectedMembers, allMembers, onClose, onSuccess }: MemberPickerProps) {
   return (
-    <div onClick={onClose} className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-lg shadow-xl w-full max-w-sm p-5 space-y-3">
-        <h3 className="font-semibold">
-          {mode === 'companion' ? '동반자로 추가할 조 선택' : '조원으로 추가할 조 선택'}
-        </h3>
-        <div className="space-y-1 max-h-80 overflow-y-auto">
-          {ministries.map((m) => (
-            <MinistryPickerItem
-              key={m.id}
-              ministry={m}
-              mode={mode}
-              selectedMembers={selectedMembers}
-              allMembers={allMembers}
-              onSuccess={onSuccess}
-            />
-          ))}
-        </div>
-        <div className="flex justify-end">
-          <button onClick={onClose} className="text-slate-600 px-3 py-1.5 text-sm">취소</button>
-        </div>
-      </div>
-    </div>
+    <PickerModal title={mode === 'companion' ? '동반자로 추가할 조 선택' : '조원으로 추가할 조 선택'} onClose={onClose}>
+      {ministries.map((m) => (
+        <MemberPickerItem
+          key={m.id}
+          ministry={m}
+          mode={mode}
+          selectedMembers={selectedMembers}
+          allMembers={allMembers}
+          onSuccess={onSuccess}
+        />
+      ))}
+    </PickerModal>
   );
 }
 
-function MinistryPickerItem({
+function MemberPickerItem({
   ministry,
   mode,
   selectedMembers,
@@ -188,13 +234,88 @@ function MinistryPickerItem({
     }
     setBusy(false);
 
-    if (res.ok) {
-      onSuccess();
-    } else {
-      alert(res.reason);
-    }
+    if (res.ok) onSuccess();
+    else alert(res.reason);
   };
 
+  return <PickerItem ministry={ministry} details={details} busy={busy} onClick={onClick} />;
+}
+
+interface HouseholdPickerProps {
+  ministries: Ministry[];
+  selectedHouseholds: Household[];
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function HouseholdPicker({ ministries, selectedHouseholds, onClose, onSuccess }: HouseholdPickerProps) {
+  return (
+    <PickerModal title="가정 조원으로 추가할 조 선택" onClose={onClose}>
+      {ministries.map((m) => (
+        <HouseholdPickerItem
+          key={m.id}
+          ministry={m}
+          selectedHouseholds={selectedHouseholds}
+          onSuccess={onSuccess}
+        />
+      ))}
+    </PickerModal>
+  );
+}
+
+function HouseholdPickerItem({
+  ministry,
+  selectedHouseholds,
+  onSuccess,
+}: {
+  ministry: Ministry;
+  selectedHouseholds: Household[];
+  onSuccess: () => void;
+}) {
+  const { data: details } = useMinistryDetails(ministry.id);
+  const actions = useAssignmentActions(ministry.organization);
+  const [busy, setBusy] = useState(false);
+
+  const onClick = async () => {
+    setBusy(true);
+    const res = await actions.addHouseholdRecipientsToMinistry(ministry, selectedHouseholds, {
+      companionMemberIds: details?.companionIds ?? [],
+      companionHouseholdIds: details?.householdRecipientIds ?? [],
+    });
+    setBusy(false);
+
+    if (res.ok) onSuccess();
+    else alert(res.reason);
+  };
+
+  return <PickerItem ministry={ministry} details={details} busy={busy} onClick={onClick} />;
+}
+
+function PickerModal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div onClick={onClose} className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-lg shadow-xl w-full max-w-sm p-5 space-y-3">
+        <h3 className="font-semibold">{title}</h3>
+        <div className="space-y-1 max-h-80 overflow-y-auto">{children}</div>
+        <div className="flex justify-end">
+          <button onClick={onClose} className="text-slate-600 px-3 py-1.5 text-sm">취소</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PickerItem({
+  ministry,
+  details,
+  busy,
+  onClick,
+}: {
+  ministry: Ministry;
+  details?: { companionIds: string[] };
+  busy: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
