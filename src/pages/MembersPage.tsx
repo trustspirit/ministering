@@ -139,6 +139,7 @@ export default function MembersPage() {
       )}
 
       <MemberFormModal
+        key={modal.open && modal.mode === 'edit' ? modal.member.id : 'create'}
         open={modal.open}
         config={
           modal.open
