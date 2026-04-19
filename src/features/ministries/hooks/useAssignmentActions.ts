@@ -27,20 +27,35 @@ export function useAssignmentActions(org: Organization) {
       const validation = validateCompanions(members);
       if (!validation.ok) return { ok: false, reason: validation.message };
 
-      try {
-        const numbers = await ministryRepository.getExistingNumbers(org);
-        const ministry = await ministryRepository.create({
-          organization: org,
-          number: nextMinistryNumber(numbers),
-        });
-        for (const m of members) {
-          await ministryRepository.addCompanion(ministry.id, m.id);
+      const maxRetries = 3;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const numbers = await ministryRepository.getExistingNumbers(org);
+          const ministry = await ministryRepository.create({
+            organization: org,
+            number: nextMinistryNumber(numbers),
+          });
+          try {
+            for (const m of members) {
+              await ministryRepository.addCompanion(ministry.id, m.id);
+            }
+            invalidate(ministry.id);
+            return { ok: true };
+          } catch (err) {
+            // 동반자 추가 실패 → ministry 롤백 (best effort)
+            try { await ministryRepository.remove(ministry.id); } catch { /* ignore */ }
+            return { ok: false, reason: err instanceof Error ? err.message : '동반자 추가 실패' };
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          // UNIQUE 위반 (동시 생성) 이면 재시도
+          if ((msg.includes('duplicate key') || msg.includes('unique')) && attempt < maxRetries) {
+            continue;
+          }
+          return { ok: false, reason: attempt === maxRetries ? `재시도 실패: ${msg}` : msg };
         }
-        invalidate(ministry.id);
-        return { ok: true };
-      } catch (err) {
-        return { ok: false, reason: err instanceof Error ? err.message : '알 수 없는 오류' };
       }
+      return { ok: false, reason: '알 수 없는 오류' };
     },
 
     addCompanionsToMinistry: async (
@@ -52,13 +67,20 @@ export function useAssignmentActions(org: Organization) {
       const validation = validateCompanions(combined);
       if (!validation.ok) return { ok: false, reason: validation.message };
 
+      const applied: string[] = [];
       try {
         for (const m of newMembers) {
           await ministryRepository.addCompanion(ministry.id, m.id);
+          applied.push(m.id);
         }
         invalidate(ministry.id);
         return { ok: true };
       } catch (err) {
+        // 롤백: 이미 추가된 것들 제거
+        for (const id of applied) {
+          try { await ministryRepository.removeCompanion(ministry.id, id); } catch { /* ignore */ }
+        }
+        invalidate(ministry.id);
         return { ok: false, reason: err instanceof Error ? err.message : '알 수 없는 오류' };
       }
     },
@@ -69,21 +91,23 @@ export function useAssignmentActions(org: Organization) {
       context: { companionMemberIds: string[]; companionHouseholdIds: string[] },
     ): Promise<ActionResult> => {
       for (const m of members) {
-        const res = validateRecipient(
-          ministry,
-          { type: 'member', member: m },
-          context,
-        );
+        const res = validateRecipient(ministry, { type: 'member', member: m }, context);
         if (!res.ok) return { ok: false, reason: `${m.full_name}: ${res.message}` };
       }
 
+      const applied: string[] = [];
       try {
         for (const m of members) {
           await ministryRepository.addMemberRecipient(ministry.id, m.id);
+          applied.push(m.id);
         }
         invalidate(ministry.id);
         return { ok: true };
       } catch (err) {
+        for (const id of applied) {
+          try { await ministryRepository.removeMemberRecipient(ministry.id, id); } catch { /* ignore */ }
+        }
+        invalidate(ministry.id);
         return { ok: false, reason: err instanceof Error ? err.message : '알 수 없는 오류' };
       }
     },
@@ -114,21 +138,23 @@ export function useAssignmentActions(org: Organization) {
       context: { companionMemberIds: string[]; companionHouseholdIds: string[] },
     ): Promise<ActionResult> => {
       for (const h of households) {
-        const res = validateRecipient(
-          ministry,
-          { type: 'household', household: h },
-          context,
-        );
+        const res = validateRecipient(ministry, { type: 'household', household: h }, context);
         if (!res.ok) return { ok: false, reason: res.message };
       }
 
+      const applied: string[] = [];
       try {
         for (const h of households) {
           await ministryRepository.addHouseholdRecipient(ministry.id, h.id);
+          applied.push(h.id);
         }
         invalidate(ministry.id);
         return { ok: true };
       } catch (err) {
+        for (const id of applied) {
+          try { await ministryRepository.removeHouseholdRecipient(ministry.id, id); } catch { /* ignore */ }
+        }
+        invalidate(ministry.id);
         return { ok: false, reason: err instanceof Error ? err.message : '알 수 없는 오류' };
       }
     },
