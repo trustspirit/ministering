@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMembers } from '@/features/members/hooks/useMembers';
+import { useHouseholds } from '@/features/households/hooks/useHouseholds';
 import { useMemberFilterStore, filterMembers } from '@/features/members/store';
 import { useAssignmentIndex } from '@/features/ministries/hooks/useAssignmentIndex';
 import { AssignmentMemberListWithAssignment } from '@/features/ministries/ui/AssignmentMemberListWithAssignment';
@@ -15,6 +16,7 @@ export default function AssignmentWorkspacePage() {
   const organization: Organization = orgParam === 'eq' ? 'EQ' : 'RS';
 
   const { data: allMembers = [] } = useMembers();
+  const { data: allHouseholds = [] } = useHouseholds();
   const filters = useMemberFilterStore();
   const perm = usePermission();
   const { data: assignmentIndex } = useAssignmentIndex(organization);
@@ -30,15 +32,7 @@ export default function AssignmentWorkspacePage() {
   );
 
   const canEdit = organization === 'RS' ? perm.canEditRS : perm.canEditEQ;
-
-  if (organization === 'EQ') {
-    return (
-      <div className="py-12 text-center text-slate-500">
-        EQ 편성 작업공간은 <strong>Plan 7</strong> 에서 구현됩니다.<br />
-        현재는 RS 편성만 동작합니다.
-      </div>
-    );
-  }
+  const genderLabel = organization === 'RS' ? '자매' : '형제';
 
   return (
     <>
@@ -53,7 +47,7 @@ export default function AssignmentWorkspacePage() {
             />
           </div>
           <div className="text-xs text-slate-500 mb-2">
-            자매 {filtered.length} / {orgFilteredMembers.length} · 선택 가능
+            {genderLabel} {filtered.length} / {orgFilteredMembers.length} · 동반자 후보
           </div>
           <AssignmentMemberListWithAssignment
             members={filtered}
@@ -64,6 +58,8 @@ export default function AssignmentWorkspacePage() {
         <div className="border rounded overflow-hidden">
           <AssignmentMapView
             members={filtered}
+            households={organization === 'EQ' ? allHouseholds : undefined}
+            showHouseholds={organization === 'EQ'}
             assignmentIndex={assignmentIndex ?? { byMember: {}, byHousehold: {} }}
           />
         </div>
@@ -72,6 +68,7 @@ export default function AssignmentWorkspacePage() {
           <MinistryPanel
             organization={organization}
             allMembers={allMembers}
+            allHouseholds={organization === 'EQ' ? allHouseholds : undefined}
             canEdit={canEdit}
           />
         </div>
@@ -80,6 +77,7 @@ export default function AssignmentWorkspacePage() {
       <AssignmentActionBar
         organization={organization}
         allMembers={allMembers}
+        allHouseholds={allHouseholds}
         canEdit={canEdit}
       />
     </>
