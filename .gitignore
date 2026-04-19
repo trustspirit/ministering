@@ -23,6 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
+# Env
+.env.local
+.env.*.local
+
+# Supabase
+supabase/.temp
+
+# Superpowers
 .superpowers/
 
 # Docs (per user preference — design/spec/plans not tracked)
