@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/useAuth';
 import { useDashboardData } from '@/features/dashboard/hooks/useDashboardData';
+import { useRealtimeSync } from '@/shared/hooks/useRealtimeSync';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
   const { metrics, loading } = useDashboardData();
+
+  useRealtimeSync(
+    ['members', 'households', 'ministries', 'ministry_companions', 'ministry_member_recipients', 'ministry_household_recipients'],
+    'dashboard',
+  );
 
   return (
     <div className="space-y-6">

@@ -9,11 +9,17 @@ import { AssignmentMapView } from '@/features/map/ui/AssignmentMapView';
 import { MinistryPanel } from '@/features/ministries/ui/MinistryPanel';
 import { AssignmentActionBar } from '@/features/ministries/ui/AssignmentActionBar';
 import { usePermission } from '@/shared/auth/usePermission';
+import { useRealtimeSync } from '@/shared/hooks/useRealtimeSync';
 import type { Organization } from '@/features/ministries/types';
 
 export default function AssignmentWorkspacePage() {
   const { org: orgParam } = useParams<{ org: string }>();
   const organization: Organization = orgParam === 'eq' ? 'EQ' : 'RS';
+
+  useRealtimeSync(
+    ['ministries', 'ministry_companions', 'ministry_member_recipients', 'ministry_household_recipients', 'members', 'households'],
+    `assignments-${organization}`,
+  );
 
   const { data: allMembers = [] } = useMembers();
   const { data: allHouseholds = [] } = useHouseholds();

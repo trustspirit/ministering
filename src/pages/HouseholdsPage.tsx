@@ -4,6 +4,7 @@ import { useMembers } from '@/features/members/hooks/useMembers';
 import { HouseholdFormModal } from '@/features/households/ui/HouseholdFormModal';
 import { Badge } from '@/shared/ui/Badge';
 import { usePermission } from '@/shared/auth/usePermission';
+import { useRealtimeSync } from '@/shared/hooks/useRealtimeSync';
 import type { Household } from '@/features/households/types';
 
 export default function HouseholdsPage() {
@@ -11,6 +12,8 @@ export default function HouseholdsPage() {
   const { data: members = [] } = useMembers();
   const perm = usePermission();
   const [editing, setEditing] = useState<Household | null>(null);
+
+  useRealtimeSync(['households', 'members'], 'households-page');
 
   const membersByHouseholdId = useMemo(() => {
     const map: Record<string, string[]> = {};

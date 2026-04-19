@@ -4,6 +4,7 @@ import { useMemberFilterStore, filterMembers } from '@/features/members/store';
 import { MembersTable } from '@/features/members/ui/MembersTable';
 import { MemberFormModal } from '@/features/members/ui/MemberFormModal';
 import { usePermission } from '@/shared/auth/usePermission';
+import { useRealtimeSync } from '@/shared/hooks/useRealtimeSync';
 import type { Member } from '@/features/members/types';
 import { CsvImportModal } from '@/features/members/ui/CsvImportModal';
 import { exportMembersCsv } from '@/features/members/domain/exportMembersCsv';
@@ -24,6 +25,8 @@ export default function MembersPage() {
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [csvOpen, setCsvOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'map'>('table');
+
+  useRealtimeSync(['members', 'households'], 'members-page');
 
   const filtered = useMemo(
     () => filterMembers(members, filters),
