@@ -5,6 +5,9 @@ import { MembersTable } from '@/features/members/ui/MembersTable';
 import { MemberFormModal } from '@/features/members/ui/MemberFormModal';
 import { usePermission } from '@/shared/auth/usePermission';
 import type { Member } from '@/features/members/types';
+import { CsvImportModal } from '@/features/members/ui/CsvImportModal';
+import { exportMembersCsv } from '@/features/members/domain/exportMembersCsv';
+import { useHouseholds } from '@/features/households/hooks/useHouseholds';
 
 type ModalState =
   | { open: false }
@@ -15,25 +18,61 @@ export default function MembersPage() {
   const { data: members = [], isLoading } = useMembers();
   const filters = useMemberFilterStore();
   const perm = usePermission();
+  const { data: households = [] } = useHouseholds();
   const [modal, setModal] = useState<ModalState>({ open: false });
+  const [csvOpen, setCsvOpen] = useState(false);
 
   const filtered = useMemo(
     () => filterMembers(members, filters),
     [members, filters.search, filters.gender, filters.activeStatus, filters.personality],
   );
 
+  const householdIdToName = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const h of households) map[h.id] = h.name;
+    return map;
+  }, [households]);
+
+  const onExport = () => {
+    const csv = exportMembersCsv(filtered, householdIdToName);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `members-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">회원 관리</h2>
-        {perm.canEditMembers && (
+        <div className="flex gap-2">
           <button
-            onClick={() => setModal({ open: true, mode: 'create' })}
-            className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm"
+            onClick={onExport}
+            disabled={filtered.length === 0}
+            className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded text-sm hover:bg-slate-200 disabled:opacity-50"
           >
-            + 회원 추가
+            CSV 내보내기 ({filtered.length})
           </button>
-        )}
+          {perm.canEditMembers && (
+            <>
+              <button
+                onClick={() => setCsvOpen(true)}
+                className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded text-sm hover:bg-slate-200"
+              >
+                CSV 업로드
+              </button>
+              <button
+                onClick={() => setModal({ open: true, mode: 'create' })}
+                className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm"
+              >
+                + 회원 추가
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-2 mb-4 text-sm flex-wrap">
@@ -86,6 +125,8 @@ export default function MembersPage() {
         }
         onClose={() => setModal({ open: false })}
       />
+
+      <CsvImportModal open={csvOpen} onClose={() => setCsvOpen(false)} />
     </div>
   );
 }
