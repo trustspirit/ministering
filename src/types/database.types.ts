@@ -276,6 +276,16 @@ export type Database = {
     }
     Functions: {
       current_user_role: { Args: never; Returns: string }
+      get_app_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       active_status: "active" | "less_active"
