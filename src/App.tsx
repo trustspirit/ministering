@@ -1,3 +1,7 @@
 export default function App() {
-  return <div>Ministering App</div>;
+  return (
+    <div className="p-8 bg-blue-500 text-white">
+      Ministering App — Tailwind OK
+    </div>
+  );
 }
