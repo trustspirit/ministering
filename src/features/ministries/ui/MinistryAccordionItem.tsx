@@ -3,21 +3,26 @@ import { useMinistryDetails } from '../hooks/useMinistryDetails';
 import { ministryDisplayName } from '../domain/ministryDisplayName';
 import type { Ministry } from '../types';
 import type { Member } from '@/features/members/types';
+import type { Household } from '@/features/households/types';
 
 export interface MinistryAccordionItemProps {
   ministry: Ministry;
   allMembers: Member[];
+  allHouseholds?: Household[];
   canEdit: boolean;
   onRemoveCompanion: (memberId: string) => void;
   onRemoveMemberRecipient: (memberId: string) => void;
+  onRemoveHouseholdRecipient?: (householdId: string) => void;
 }
 
 export function MinistryAccordionItem({
   ministry,
   allMembers,
+  allHouseholds,
   canEdit,
   onRemoveCompanion,
   onRemoveMemberRecipient,
+  onRemoveHouseholdRecipient,
 }: MinistryAccordionItemProps) {
   const [open, setOpen] = useState(true);
   const { data: details } = useMinistryDetails(ministry.id);
@@ -85,6 +90,38 @@ export function MinistryAccordionItem({
               </ul>
             )}
           </div>
+
+          {allHouseholds && onRemoveHouseholdRecipient && (
+            <div>
+              <div className="text-xs text-slate-500 mb-1">가정 조원</div>
+              {(() => {
+                const householdById = new Map(allHouseholds.map((h) => [h.id, h]));
+                const households = (details?.householdRecipientIds ?? [])
+                  .map((id) => householdById.get(id))
+                  .filter(Boolean) as Household[];
+                if (households.length === 0) {
+                  return <div className="text-xs text-slate-400 italic">없음</div>;
+                }
+                return (
+                  <ul className="space-y-1">
+                    {households.map((h) => (
+                      <li key={h.id} className="flex justify-between items-center text-xs bg-orange-50 px-2 py-1 rounded">
+                        <span>{h.name}</span>
+                        {canEdit && (
+                          <button
+                            onClick={() => onRemoveHouseholdRecipient(h.id)}
+                            className="text-red-600 hover:underline"
+                          >
+                            제거
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </div>
+          )}
         </div>
       )}
     </div>
