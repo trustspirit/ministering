@@ -31,3 +31,43 @@ describe('computePinStyle', () => {
     expect(s.ring).toBe(true);
   });
 });
+
+describe('computePinStyle — assignment status', () => {
+  it('동반자 배정 → 초록 테두리 + "동" 배지', () => {
+    const s = computePinStyle(
+      { gender: 'M', active_status: 'active' },
+      false,
+      { role: 'companion', ministryNumber: 3 },
+    );
+    expect(s.borderColor).toBe('#10b981');
+    expect(s.badge).toEqual({ text: '동', background: '#10b981' });
+  });
+
+  it('조원 배정 → 주황 테두리 + "조" 배지', () => {
+    const s = computePinStyle(
+      { gender: 'F', active_status: 'active' },
+      false,
+      { role: 'recipient', ministryNumber: 2 },
+    );
+    expect(s.borderColor).toBe('#f59e0b');
+    expect(s.badge).toEqual({ text: '조', background: '#f59e0b' });
+  });
+
+  it('미배정 → badge undefined', () => {
+    const s = computePinStyle(
+      { gender: 'M', active_status: 'active' },
+      false,
+    );
+    expect(s.badge).toBeUndefined();
+  });
+
+  it('배정 + 선택 → ring + 테두리 모두', () => {
+    const s = computePinStyle(
+      { gender: 'M', active_status: 'active' },
+      true,
+      { role: 'companion', ministryNumber: 1 },
+    );
+    expect(s.ring).toBe(true);
+    expect(s.borderColor).toBe('#10b981');
+  });
+});
