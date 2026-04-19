@@ -1,7 +1,14 @@
+import { RouterProvider } from 'react-router-dom';
+import { AuthProvider } from '@/features/auth/AuthContext';
+import QueryProvider from '@/app/providers/QueryProvider';
+import { router } from '@/app/router';
+
 export default function App() {
   return (
-    <div className="p-8 bg-blue-500 text-white">
-      Ministering App — Tailwind OK
-    </div>
+    <AuthProvider>
+      <QueryProvider>
+        <RouterProvider router={router} />
+      </QueryProvider>
+    </AuthProvider>
   );
 }
