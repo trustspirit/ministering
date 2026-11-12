@@ -65,10 +65,8 @@ export const memberRepository: MemberRepository = {
   },
 
   async softDelete(id) {
-    const { error } = await supabase
-      .from('members')
-      .update({ is_deleted: true })
-      .eq('id', id);
+    // A plain UPDATE of is_deleted is rejected by row-level security; the role check lives in this function.
+    const { error } = await supabase.rpc('soft_delete_member', { p_member_id: id });
     if (error) throw error;
   },
 

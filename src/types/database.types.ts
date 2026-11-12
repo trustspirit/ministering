@@ -308,6 +308,7 @@ export type Database = {
         Args: { p_ministry_id: string; p_token: string }
         Returns: undefined
       }
+      soft_delete_member: { Args: { p_member_id: string }; Returns: undefined }
     }
     Enums: {
       active_status: "active" | "less_active" | "new_member"
