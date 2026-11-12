@@ -42,7 +42,6 @@ export const T = {
   },
   drop: {
     notFound: '대상을 찾을 수 없습니다',
-    needZoneEq: '가정은 성역 동반자 제목이나 조원 칸에 놓아 주세요',
     needZoneRs: '자매 성역자 칸이나 지명된 자매 칸에 놓아 주세요',
     eqCompanionOnly: '장로 정원회 회원만 성역자가 될 수 있습니다',
     rsCompanionOnly: '상호부조회 회원만 성역자가 될 수 있습니다',

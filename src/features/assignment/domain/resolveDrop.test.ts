@@ -166,4 +166,53 @@ describe('resolveDrop', () => {
       ops: [{ type: 'add', role: 'companion', ministryId: 'A', targetId: 'm1' }],
     });
   });
+
+  it('14. EQ ignores the zone and routes by kind', () => {
+    const board = eq([ministry({ id: 'A', number: 1 })]);
+    expect(run(board, hh('h9'), at('A', 'companion'))).toEqual({
+      ok: true,
+      ops: [{ type: 'add', role: 'recipient', ministryId: 'A', targetId: 'h9' }],
+    });
+    expect(run(board, mem('m1'), at('A', 'recipient'))).toEqual({
+      ok: true,
+      ops: [{ type: 'add', role: 'companion', ministryId: 'A', targetId: 'm1' }],
+    });
+  });
+
+  it('15. RS pin onto new becomes a companion; pin onto existing ministry is rejected', () => {
+    const board = rs([ministry({ id: 'A', number: 1 })]);
+    expect(run(board, mem('f30'), { type: 'new' })).toEqual({
+      ok: true,
+      ops: [
+        { type: 'createMinistry' },
+        { type: 'add', role: 'companion', ministryId: NEW_MINISTRY, targetId: 'f30' },
+      ],
+    });
+    expect(run(board, mem('f30'), at('A'))).toEqual({
+      ok: false,
+      message: '자매 성역자 칸이나 지명된 자매 칸에 놓아 주세요',
+    });
+  });
+
+  it('16. RS pool drop with from null removes every role held', () => {
+    const board = rs([
+      ministry({ id: 'A', number: 1, companionIds: ['f30'] }),
+      ministry({ id: 'B', number: 2, recipientIds: ['f30'] }),
+    ]);
+    expect(run(board, mem('f30'), { type: 'pool' })).toEqual({
+      ok: true,
+      ops: [
+        { type: 'remove', role: 'companion', ministryId: 'A', targetId: 'f30' },
+        { type: 'remove', role: 'recipient', ministryId: 'B', targetId: 'f30' },
+      ],
+    });
+  });
+
+  it('17. unknown member id is rejected', () => {
+    const board = eq([ministry({ id: 'A', number: 1 })]);
+    expect(run(board, mem('nope'), at('A', 'companion'))).toEqual({
+      ok: false,
+      message: '대상을 찾을 수 없습니다',
+    });
+  });
 });

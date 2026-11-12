@@ -119,11 +119,10 @@ export function resolveDrop(a: {
   let role: AssignRole | null;
   if (isEq) {
     role = item.kind === 'member' ? 'companion' : 'recipient';
-    if (target.type === 'ministry' && target.zone && target.zone !== role) {
-      return reject(T.drop.eqHouseholdUnit);
-    }
+  } else if (target.type === 'new') {
+    role = item.from ?? 'companion';
   } else {
-    role = (target.type === 'ministry' ? target.zone : null) ?? item.from;
+    role = target.zone ?? item.from;
     if (!role) return reject(T.drop.needZoneRs);
   }
 
