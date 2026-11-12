@@ -156,6 +156,8 @@ export function parseMemberCsv(csv: string): ParseResult {
     header: true,
     skipEmptyLines: true,
     transformHeader: (h) => h.trim(),
+    // Undo the apostrophe the CSV export puts before cells that would read as spreadsheet formulas.
+    transform: (v) => (/^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v),
   });
 
   const valid: ParsedMemberRow[] = [];

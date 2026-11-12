@@ -32,5 +32,6 @@ export function exportMembersCsv(
     household_role: m.household_role,
   }));
 
-  return Papa.unparse({ fields: HEADERS, data: rows });
+  // escapeFormulae prefixes cells starting with = + - @ tab CR with ' so spreadsheets do not run them.
+  return Papa.unparse({ fields: HEADERS, data: rows }, { escapeFormulae: true });
 }

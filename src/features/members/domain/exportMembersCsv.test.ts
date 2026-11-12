@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import Papa from 'papaparse';
 import { exportMembersCsv } from './exportMembersCsv';
 import { parseMemberCsv } from './parseMemberCsv';
 import type { Member } from '../types';
@@ -83,6 +84,35 @@ describe('exportMembersCsv', () => {
       phone: '010-1111-2222',
       household_name: '새 가정',
       household_role: 'wife',
+    });
+  });
+
+  it('neutralizes spreadsheet formulas and round-trips the original values', () => {
+    const csv = exportMembersCsv(
+      [
+        member({
+          full_name: '@관리자',
+          memo: '=HYPERLINK("http://x","y")',
+          phone: '+82-10-1234-5678',
+          address: '-1 거리',
+          household_id: 'h1',
+        }),
+      ],
+      { h1: '=가정' },
+    );
+    const parsed = Papa.parse<Record<string, string>>(csv, { header: true });
+    const cells = Object.values(parsed.data[0]);
+    expect(cells.some((c) => /^[=+\-@\t\r]/.test(c))).toBe(false);
+    expect(parsed.data[0]['연락처']).toBe("'+82-10-1234-5678");
+
+    const res = parseMemberCsv(csv.replace('full_name', 'full_name'));
+    expect(res.errors).toEqual([]);
+    expect(res.valid[0]).toMatchObject({
+      full_name: '@관리자',
+      memo: '=HYPERLINK("http://x","y")',
+      phone: '+82-10-1234-5678',
+      address: '-1 거리',
+      household_name: '=가정',
     });
   });
 

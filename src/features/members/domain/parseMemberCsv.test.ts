@@ -44,6 +44,13 @@ describe('parseMemberCsv', () => {
     ]);
   });
 
+  it('strips the export\'s protective apostrophe only before a formula character', () => {
+    const csv = "full_name,gender,birth_date,memo,연락처\n'@kim,M,1990-01-01,'=SUM(A1),'+82-10-1\nO'Neil,M,1990-01-02,'plain,'x";
+    const res = parseMemberCsv(csv);
+    expect(res.valid[0]).toMatchObject({ full_name: '@kim', memo: '=SUM(A1)', phone: '+82-10-1' });
+    expect(res.valid[1]).toMatchObject({ full_name: "O'Neil", memo: "'plain", phone: "'x" });
+  });
+
   it('연락처 열이 있으면 phone으로, 없어도 통과(phone은 비워 둠)', () => {
     const withCol = parseMemberCsv('full_name,gender,birth_date,연락처\nA,M,1990-01-01,010-1234-5678');
     expect(withCol.errors).toEqual([]);
