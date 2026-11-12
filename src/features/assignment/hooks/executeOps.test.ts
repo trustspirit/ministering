@@ -114,4 +114,49 @@ describe('executeOps', () => {
       ['create', { organization: 'EQ', number: 4 }],
     ]);
   });
+  it('rejects when create keeps failing with a unique violation for 3 attempts', async () => {
+    const err = { code: '23505' };
+    const { repo, calls } = fakeRepo({ createFailures: [err, err, err, err] });
+    await expect(executeOps([{ type: 'createMinistry' }], 'EQ', repo)).rejects.toBe(err);
+    expect(calls.filter((c) => c[0] === 'create')).toHaveLength(3);
+  });
+
+  it('does not retry create on a non-unique error', async () => {
+    const err = new Error('network');
+    const { repo, calls } = fakeRepo({ createFailures: [err] });
+    await expect(executeOps([{ type: 'createMinistry' }], 'EQ', repo)).rejects.toBe(err);
+    expect(calls.filter((c) => c[0] === 'create')).toHaveLength(1);
+  });
+
+  it('throws without calling the repo when NEW_MINISTRY has no preceding create', async () => {
+    const { repo, calls } = fakeRepo();
+    await expect(
+      executeOps(
+        [{ type: 'add', role: 'recipient', ministryId: NEW_MINISTRY, targetId: 'h' }],
+        'EQ',
+        repo,
+      ),
+    ).rejects.toThrow();
+    expect(calls).toEqual([]);
+  });
+
+  it('removes EQ recipients as household recipients', async () => {
+    const { repo, calls } = fakeRepo();
+    await executeOps(
+      [{ type: 'remove', role: 'recipient', ministryId: 'M', targetId: 'h' }],
+      'EQ',
+      repo,
+    );
+    expect(calls).toEqual([['removeHouseholdRecipient', 'M', 'h']]);
+  });
+
+  it('removes RS recipients as member recipients', async () => {
+    const { repo, calls } = fakeRepo();
+    await executeOps(
+      [{ type: 'remove', role: 'recipient', ministryId: 'M', targetId: 'm1' }],
+      'RS',
+      repo,
+    );
+    expect(calls).toEqual([['removeMemberRecipient', 'M', 'm1']]);
+  });
 });

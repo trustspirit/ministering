@@ -3,75 +3,82 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from 'trust-ui-react';
 import { ministryRepository } from '@/repositories/MinistryRepository';
 import type { Organization } from '@/features/ministries/types';
+import { nextMinistryNumber } from '@/features/ministries/domain/nextMinistryNumber';
 import { T } from '@/shared/copy';
 import type { Board } from '../domain/board';
 import { applyOps } from '../domain/applyOps';
 import type { Op } from '../domain/resolveDrop';
 import { executeOps } from './executeOps';
+import { createSerialQueue } from './serialQueue';
 import { assignmentBoardKey } from './useAssignmentBoard';
 
-export function useBoardActions(org: Organization) {
+const TMP_PREFIX = 'tmp-';
+
+export interface BoardActions {
+  /** Resolves (never rejects) after a handled failure: the board is restored, a toast shown and the board refetched. */
+  perform(ops: Op[]): Promise<void>;
+  renameMinistry(id: string, name: string | null): Promise<void>;
+  deleteMinistry(id: string): Promise<void>;
+  pending: boolean;
+}
+
+export function useBoardActions(org: Organization): BoardActions {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [pendingCount, setPendingCount] = useState(0);
   const seq = useRef(0);
+  const queueRef = useRef<ReturnType<typeof createSerialQueue>>();
+  queueRef.current ??= createSerialQueue();
+  const queue = queueRef.current;
   const key = assignmentBoardKey(org);
 
-  const track = async <R,>(fn: () => Promise<R>): Promise<R> => {
+  const enqueue = (job: () => Promise<void>): Promise<void> => {
     setPendingCount((n) => n + 1);
-    try {
-      return await fn();
-    } finally {
-      setPendingCount((n) => n - 1);
-    }
+    return queue(job).finally(() => setPendingCount((n) => n - 1));
   };
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: key });
+  // Awaits the refetch so the cache has converged to server truth before the next job runs.
+  const refetch = () => qc.invalidateQueries({ queryKey: key });
 
-  const perform = async (ops: Op[]): Promise<void> => {
-    if (ops.length === 0) return;
-    await track(async () => {
+  const perform = (ops: Op[]): Promise<void> => {
+    if (ops.length === 0) return Promise.resolve();
+    return enqueue(async () => {
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData<Board>(key);
       if (previous) {
-        const nextNumber =
-          previous.ministries.reduce((max, m) => Math.max(max, m.number), 0) + 1;
-        const tmpId = `tmp-${Date.now()}-${seq.current++}`;
-        qc.setQueryData<Board>(key, applyOps(previous, ops, { id: tmpId, number: nextNumber }));
+        const tmpId = `${TMP_PREFIX}${Date.now()}-${seq.current++}`;
+        const number = nextMinistryNumber(previous.ministries.map((m) => m.number));
+        qc.setQueryData<Board>(key, applyOps(previous, ops, { id: tmpId, number }));
       }
       try {
+        if (ops.some((op) => op.type !== 'createMinistry' && op.ministryId.startsWith(TMP_PREFIX))) {
+          throw new Error('Op references an unsaved ministry');
+        }
         await executeOps(ops, org, ministryRepository);
       } catch {
         qc.setQueryData(key, previous);
         toast({ variant: 'danger', message: T.saveFailed });
-      } finally {
-        await invalidate();
       }
+      await refetch();
     });
   };
 
-  const renameMinistry = (id: string, name: string | null): Promise<void> =>
-    track(async () => {
-      const trimmed = name?.trim();
+  const simple = (run: () => Promise<unknown>): Promise<void> =>
+    enqueue(async () => {
       try {
-        await ministryRepository.update(id, { name: trimmed ? trimmed : null });
+        await run();
       } catch {
         toast({ variant: 'danger', message: T.saveFailed });
-      } finally {
-        await invalidate();
       }
+      await refetch();
     });
 
-  const deleteMinistry = (id: string): Promise<void> =>
-    track(async () => {
-      try {
-        await ministryRepository.remove(id);
-      } catch {
-        toast({ variant: 'danger', message: T.saveFailed });
-      } finally {
-        await invalidate();
-      }
-    });
+  const renameMinistry = (id: string, name: string | null) => {
+    const trimmed = name?.trim();
+    return simple(() => ministryRepository.update(id, { name: trimmed ? trimmed : null }));
+  };
+
+  const deleteMinistry = (id: string) => simple(() => ministryRepository.remove(id));
 
   return { perform, renameMinistry, deleteMinistry, pending: pendingCount > 0 };
 }
