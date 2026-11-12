@@ -1,9 +1,13 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button, Dialog, EmptyState, Select, Spinner, TextField, useToast } from 'trust-ui-react';
 import { useAuth } from '@/features/auth/useAuth';
+import { adminErrorMessage } from '@/features/settings/adminErrorMessage';
+import { useAdminUsers } from '@/features/settings/hooks/useAdminUsers';
 import { useAppUsers, type AppUser } from '@/features/settings/hooks/useAppUsers';
 import { useUpdateDisplayName, useUpdateProfileRole } from '@/features/settings/hooks/useProfileMutations';
+import { AddUserDialog } from '@/features/settings/ui/AddUserDialog';
+import { UserLinkDialog } from '@/features/settings/ui/UserLinkDialog';
 import { usePermission } from '@/shared/auth/usePermission';
 import { T } from '@/shared/copy';
 import '@/shared/ui/subbar.css';
@@ -22,9 +26,25 @@ export default function SettingsPage() {
   const usersQuery = useAppUsers();
   const updateRole = useUpdateProfileRole();
   const updateName = useUpdateDisplayName();
+  const { deleteUser } = useAdminUsers();
 
   const [pendingRole, setPendingRole] = useState<{ user: AppUser; role: Role } | null>(null);
   const [editing, setEditing] = useState<{ userId: string; draft: string } | null>(null);
+  // Each opening mounts a fresh dialog (empty form, no link from the previous time). The key changes only on
+  // opening, so a closing dialog stays mounted and the native <dialog> can hand focus back to its opener.
+  const [addOpen, setAddOpen] = useState(false);
+  const [linkFor, setLinkFor] = useState<AppUser | null>(null);
+  const [dialogKey, setDialogKey] = useState(0);
+  const openAdd = () => {
+    setDialogKey((k) => k + 1);
+    setAddOpen(true);
+  };
+  const openLink = (u: AppUser) => {
+    setDialogKey((k) => k + 1);
+    setLinkFor(u);
+  };
+  const [pendingDelete, setPendingDelete] = useState<AppUser | null>(null);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
 
   // After a reload the profile arrives a moment after the session; deciding earlier would send a bishopric home.
   if (!profileLoaded) {
@@ -63,6 +83,21 @@ export default function SettingsPage() {
   };
 
   const nameOf = (u: AppUser) => u.display_name ?? S.noName;
+
+  const confirmDelete = async () => {
+    if (!pendingDelete || deleteUser.isPending) return;
+    const target = pendingDelete;
+    try {
+      await deleteUser.mutateAsync({ userId: target.user_id });
+      toast({ variant: 'success', message: S.deleted });
+      setPendingDelete(null);
+      // The row (and the button that opened the confirmation) is gone; keep keyboard focus on the page.
+      setTimeout(() => addButtonRef.current?.focus(), 0);
+    } catch (err) {
+      toast({ variant: 'danger', message: adminErrorMessage(err) });
+      setPendingDelete(null);
+    }
+  };
 
   let body;
   if (!users) {
@@ -113,6 +148,11 @@ export default function SettingsPage() {
                   <>
                     <b className="st-name">{nameOf(u)}</b>
                     {u.user_id === user?.id && <span className="st-me">{S.me}</span>}
+                    {!u.has_password && (
+                      <span className="st-nopw" title={S.noPasswordHint}>
+                        {S.noPassword}
+                      </span>
+                    )}
                   </>
                 )}
               </div>
@@ -132,7 +172,6 @@ export default function SettingsPage() {
                   }}
                 />
               </div>
-              {/* Row actions live here; Task 14 adds its per-row buttons next to this one. */}
               <div role="cell" className="st-c-act">
                 {!isEditing && (
                   <button
@@ -142,6 +181,24 @@ export default function SettingsPage() {
                     onClick={() => setEditing({ userId: u.user_id, draft: u.display_name ?? '' })}
                   >
                     {S.editName}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="st-link"
+                  aria-label={S.resetLinkOf(nameOf(u))}
+                  onClick={() => openLink(u)}
+                >
+                  {S.resetLink}
+                </button>
+                {u.user_id !== user?.id && (
+                  <button
+                    type="button"
+                    className="st-link st-link--danger"
+                    aria-label={S.deleteOf(nameOf(u))}
+                    onClick={() => setPendingDelete(u)}
+                  >
+                    {S.delete}
                   </button>
                 )}
               </div>
@@ -164,8 +221,11 @@ export default function SettingsPage() {
 
       <div className="st-tools" role="group" aria-label={S.toolsLabel}>
         <p className="st-hint">{S.ownRoleWarning}</p>
-        {/* Toolbar actions (Task 14: ＋ 사용자 추가) go at the right end, like the roster's .ro-acts. */}
-        <div className="st-acts" />
+        <div className="st-acts">
+          <Button ref={addButtonRef} size="sm" shape="square" onClick={openAdd}>
+            {S.addUser}
+          </Button>
+        </div>
       </div>
 
       <div className="st-scroll">{body}</div>
@@ -187,6 +247,39 @@ export default function SettingsPage() {
           </Button>
           <Button size="sm" shape="square" onClick={() => void confirmRole()}>
             {S.roleChange}
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
+
+      <AddUserDialog key={`add-${dialogKey}`} open={addOpen} onClose={() => setAddOpen(false)} />
+      <UserLinkDialog key={`link-${dialogKey}`} user={linkFor} onClose={() => setLinkFor(null)} />
+
+      <Dialog open={pendingDelete !== null} onClose={() => !deleteUser.isPending && setPendingDelete(null)} size="sm">
+        <Dialog.Title onClose={() => !deleteUser.isPending && setPendingDelete(null)}>{S.deleteTitle}</Dialog.Title>
+        <Dialog.Content>
+          {pendingDelete && (
+            <p className="st-dialog-text">{S.deleteConfirm(nameOf(pendingDelete), pendingDelete.email)}</p>
+          )}
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            variant="ghost"
+            size="sm"
+            shape="square"
+            disabled={deleteUser.isPending}
+            onClick={() => setPendingDelete(null)}
+          >
+            {S.cancel}
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            shape="square"
+            loading={deleteUser.isPending}
+            disabled={deleteUser.isPending}
+            onClick={() => void confirmDelete()}
+          >
+            {deleteUser.isPending ? S.deleting : S.delete}
           </Button>
         </Dialog.Actions>
       </Dialog>

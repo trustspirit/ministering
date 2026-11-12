@@ -8,11 +8,14 @@ import RosterPage from '@/pages/RosterPage';
 import AssignmentPage from '@/pages/AssignmentPage';
 import SettingsPage from '@/pages/SettingsPage';
 import SharePage from '@/pages/SharePage';
+import SetPasswordPage from '@/pages/SetPasswordPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   // Public, token-gated: outside RequireAuth and Layout (no app chrome).
   { path: '/s/:token', element: <SharePage /> },
+  // Public, one-time password link from the bishopric (also signed-out, no app chrome).
+  { path: '/set-password', element: <SetPasswordPage /> },
   {
     element: <RequireAuth />,
     children: [

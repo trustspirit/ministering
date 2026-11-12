@@ -8,6 +8,8 @@ export interface AppUser {
   role: Database['public']['Enums']['user_role'];
   display_name: string | null;
   created_at: string;
+  /** False until the person has set a password through their link (never the hash itself). */
+  has_password: boolean;
 }
 
 export const appUsersKey = ['app-users'] as const;

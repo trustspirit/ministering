@@ -1,0 +1,19 @@
+/* Settings dialogs (portalled outside .st, so scoped by their own classes). */
+.su-text { margin: 0; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.su-form { display: flex; flex-direction: column; gap: 10px; }
+.su-form .su-help { margin: 0 0 2px; color: var(--app-mute); font-size: 12px; line-height: 1.55; }
+/* Every single-line control is 36px tall (trust-ui's small step); see roster.css. */
+.su-form input { height: calc(var(--tui-control-sm) - 2px); }
+.su-url { margin-top: 12px; }
+.su-url input { font-size: 12px; }
+.su-note { margin: 10px 0 0; font-size: 12px; color: var(--app-mute); line-height: 1.55; }
+.su-warn {
+  margin: 8px 0 0;
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--app-warn-ink);
+  background: var(--app-warn-bg);
+  border: 1px solid var(--app-warn-line);
+}
+.su-error { margin: 10px 0 0; color: var(--app-bad-ink); background: var(--app-bad-bg); border: 1px solid var(--app-bad-line); padding: 4px 10px; font-size: 12.5px; }

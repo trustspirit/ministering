@@ -295,6 +295,7 @@ export type Database = {
           created_at: string
           display_name: string
           email: string
+          has_password: boolean
           role: Database["public"]["Enums"]["user_role"]
           user_id: string
         }[]

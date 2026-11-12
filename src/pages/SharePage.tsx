@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment } from 'react';
 import { useParams } from 'react-router-dom';
 import { Skeleton, Spinner } from 'trust-ui-react';
 import { isShareTokenShape } from '@/features/share/shareToken';
@@ -8,28 +8,13 @@ import {
   type SharePhone,
 } from '@/features/share/useMinistryShare';
 import { GENDER_LABEL, ORG_LABEL, T, UNIT_NAME } from '@/shared/copy';
+import { usePrivateDocument } from '@/shared/hooks/usePrivateDocument';
 import './SharePage.css';
 
 const S = T.share.page;
 
 function formatToday(d = new Date()): string {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
-}
-
-/** Keeps the link's token out of Referer headers while this page is open. */
-function usePrivateDocument() {
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.title = S.documentTitle;
-    const meta = document.createElement('meta');
-    meta.name = 'referrer';
-    meta.content = 'no-referrer';
-    document.head.appendChild(meta);
-    return () => {
-      document.title = previousTitle;
-      meta.remove();
-    };
-  }, []);
 }
 
 function Phone({ phone }: { phone: string | null }) {
@@ -96,7 +81,7 @@ function Recipients({ share }: { share: MinistryShare }) {
 }
 
 export default function SharePage() {
-  usePrivateDocument();
+  usePrivateDocument(S.documentTitle);
   const { token } = useParams<{ token: string }>();
   const query = useMinistryShare(token);
   const share = query.data;

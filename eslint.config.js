@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // Edge Function entry points run on Deno (Deno globals, npm: imports); their logic lives in linted handler files.
+  globalIgnores(['dist', 'supabase/functions/*/index.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
