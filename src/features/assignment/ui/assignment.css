@@ -1,0 +1,291 @@
+/* Desktop assignment workspace — ported from the approved mockup (full-layout-v6.html). */
+
+.aw {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  color: var(--app-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+/* Reset only the workspace's own bare buttons; trust-ui Buttons (e.g. in dialogs) keep their styles. */
+.aw-x,
+.aw-shr,
+.aw-menu,
+.aw-seg button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+.aw h3 { font-family: inherit; margin: 0; color: var(--app-navy); }
+.aw-status-msg { padding: 24px 18px; color: var(--app-mute); }
+
+/* summary bar */
+.aw-sub {
+  flex: none;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 18px;
+  background: var(--app-soft);
+  border-bottom: 1px solid var(--app-rule);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.aw-unit {
+  border: 1px solid var(--app-navy);
+  color: var(--app-navy);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 0 8px;
+  line-height: 18px;
+}
+.aw-sum { display: flex; align-items: center; gap: 14px; }
+.aw-sum b { font-weight: 700; }
+.aw-wr {
+  background: var(--app-warn-bg);
+  color: var(--app-warn-ink);
+  border: 1px solid var(--app-warn-line);
+  padding: 0 8px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.aw-wr--bad {
+  background: var(--app-bad-bg);
+  color: var(--app-bad-ink);
+  border-color: var(--app-bad-line);
+  font-weight: 700;
+}
+.aw-legend { margin-left: auto; display: flex; gap: 12px; color: var(--app-mute); list-style: none; padding: 0; margin-top: 0; margin-bottom: 0; }
+.aw-seg { display: flex; border: 1px solid var(--app-rule); background: #fff; }
+.aw .aw-seg button { padding: 1px 10px; font-size: 11.5px; color: var(--app-mute); }
+.aw .aw-seg button[aria-pressed='true'] { background: var(--app-navy); color: #fff; }
+
+/* status marks */
+.aw-st {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--app-ok);
+  margin-right: 4px;
+  vertical-align: 1px;
+}
+.aw-st--less_active { background: var(--app-less-active); }
+.aw-st--new_member { background: var(--app-accent); }
+.aw-stx { font-style: normal; font-size: 10.5px; margin-left: 3px; }
+.aw-stx--less_active { color: var(--app-less-active); }
+.aw-stx--new_member { color: var(--app-accent); }
+
+/* workspace grid */
+.aw-work {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 286px minmax(300px, 1fr) 7px var(--side, 45vw);
+}
+
+/* pool */
+.aw-pool {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--app-rule);
+  background: var(--app-soft);
+}
+.aw-pool--over { background: var(--app-tint); }
+.aw-search { flex: none; padding: 10px 12px 8px; }
+/* trust-ui TextField, flattened to the mockup's single 1px rule (wrapper > input; footer hidden) */
+.aw-search > div > div:first-child {
+  height: auto;
+  min-height: 0;
+  border: 1px solid var(--app-rule);
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+.aw-search > div > div:first-child:focus-within { border-color: var(--app-accent); }
+.aw-search > div > div:not(:first-child) { display: none; }
+.aw .aw-search input {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  height: auto;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--app-ink);
+}
+.aw .aw-search input::placeholder { color: #757575; }
+.aw-plist { min-height: 0; overflow: auto; padding: 0 12px 10px; }
+.aw-plist--cand { flex: none; max-height: 42%; }
+.aw-plist--tgt { flex: 1; border-top: 1px solid var(--app-rule); }
+.aw-ph {
+  position: sticky;
+  top: 0;
+  background: var(--app-soft);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--app-mute);
+  letter-spacing: .04em;
+  padding: 8px 0 6px;
+  margin: 0;
+  z-index: 1;
+}
+.aw-pool--over .aw-ph { background: var(--app-tint); }
+.aw-wn { background: var(--app-warn-pill); color: var(--app-warn-pill-ink); padding: 0 7px; border-radius: 9px; }
+
+/* chips (person / household cards) */
+.aw-chip {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--app-rule);
+  padding: 5px 9px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+.aw-chip[draggable='true'] { cursor: grab; }
+.aw-chip:hover { border-color: var(--app-mute); }
+.aw-chip--sel { border-color: var(--app-accent); box-shadow: inset 3px 0 0 var(--app-accent); }
+.aw-chip--sel:hover { border-color: var(--app-accent); }
+.aw-chip--dragging { opacity: .3; }
+.aw-row { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.aw-row .aw-st { margin-right: 0; }
+.aw-nm { font-weight: 700; white-space: nowrap; }
+.aw-ag { color: var(--app-mute); font-size: 11.5px; white-space: nowrap; }
+.aw-row .aw-stx { margin-left: 0; white-space: nowrap; }
+.aw-cnt { margin-left: auto; color: var(--app-mute); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw-fam {
+  margin: 1px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--app-ink-soft);
+}
+.aw-fam li { display: inline-block; white-space: nowrap; margin-right: 9px; }
+.aw-fam i { font-style: normal; color: var(--app-mute); }
+.aw .aw-x {
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  color: var(--app-mute);
+  font-size: 13px;
+  line-height: 1;
+  display: none;
+}
+.aw .aw-x:hover { color: var(--app-ink); }
+.aw-mcard .aw-chip:hover .aw-x,
+.aw-mcard .aw-x:focus-visible { display: block; }
+.aw-mcard .aw-chip:hover .aw-cnt { visibility: hidden; }
+
+/* board */
+.aw-board { min-height: 0; overflow: auto; padding: 12px 14px 20px; }
+.aw-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.aw-mcard {
+  border: 1px solid var(--app-rule);
+  border-top: 3px solid var(--app-navy);
+  background: #fff;
+  padding: 8px 10px 10px;
+  cursor: pointer;
+}
+.aw-mcard--bad { border-top-color: var(--app-bad); }
+.aw-mcard--hot {
+  border-color: var(--app-accent);
+  border-top-color: var(--app-accent);
+  box-shadow: 0 0 0 1px var(--app-accent);
+}
+.aw-mcard h3 { display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 700; line-height: 1.5; }
+.aw-mtitle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aw-mtools { margin-left: auto; display: flex; align-items: baseline; gap: 8px; flex: none; }
+.aw .aw-shr {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--app-accent);
+  text-decoration: underline;
+}
+.aw .aw-menu { font-size: 14px; color: var(--app-mute); padding: 0 2px; line-height: 1; }
+.aw .aw-menu:hover { color: var(--app-ink); }
+.aw-rename {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--app-navy);
+  padding: 0 4px;
+  border: 1px solid var(--app-accent);
+  border-radius: 0;
+  background: #fff;
+}
+.aw-rename:focus { outline: none; }
+.aw-gw {
+  margin-top: 6px;
+  background: var(--app-bad-bg);
+  color: var(--app-bad-ink);
+  border-left: 3px solid var(--app-bad);
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.aw-gw--soft {
+  background: var(--app-warn-bg);
+  color: var(--app-warn-ink);
+  border-left-color: var(--app-warn);
+  font-weight: 500;
+}
+.aw-zone { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--app-rule); }
+.aw-zone--over { background: var(--app-tint); outline: 2px dashed var(--app-accent); outline-offset: 2px; }
+.aw-lab {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--app-mute);
+  letter-spacing: .04em;
+  margin: 0 0 4px;
+}
+.aw-empty {
+  font-size: 11.5px;
+  color: var(--app-mute);
+  border: 1px dashed var(--app-rule);
+  padding: 6px 8px;
+  text-align: center;
+}
+.aw-newg {
+  border: 1.5px dashed var(--app-rule-strong);
+  color: var(--app-mute);
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 12.5px;
+}
+.aw-newg small { font-size: 11px; }
+.aw-newg--over { border-color: var(--app-accent); background: var(--app-tint); color: var(--app-accent); }
+
+/* resize bar + right column */
+.aw-bar { cursor: col-resize; background: var(--app-rule); touch-action: none; }
+.aw-bar:hover,
+.aw-bar--on { background: var(--app-accent); }
+.aw-side { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+
+/* trust-ui overlays used by the board */
+.aw-dialog-text { margin: 0; font-size: 13px; line-height: 1.6; }

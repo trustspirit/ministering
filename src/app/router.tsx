@@ -7,7 +7,7 @@ import DashboardPage from '@/pages/DashboardPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import MembersPage from '@/pages/MembersPage';
 import HouseholdsPage from '@/pages/HouseholdsPage';
-import AssignmentWorkspacePage from '@/pages/AssignmentWorkspacePage';
+import AssignmentPage from '@/pages/AssignmentPage';
 import SettingsPage from '@/pages/SettingsPage';
 
 export const router = createBrowserRouter([
@@ -21,7 +21,7 @@ export const router = createBrowserRouter([
           { path: '/', element: <HomeRedirect /> },
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/assignments', element: <Navigate to="/assignments/rs" replace /> },
-          { path: '/assignments/:org', element: <AssignmentWorkspacePage /> },
+          { path: '/assignments/:org', element: <AssignmentPage /> },
           { path: '/members', element: <MembersPage /> },
           { path: '/households', element: <HouseholdsPage /> },
           { path: '/settings', element: <SettingsPage /> },

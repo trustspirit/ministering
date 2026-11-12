@@ -7,7 +7,7 @@ import { router } from '@/app/router';
 export default function App() {
   return (
     <ThemeProvider defaultTheme="light">
-      <ToastProvider>
+      <ToastProvider position="bottom-center">
         <AuthProvider>
           <QueryProvider>
             <RouterProvider router={router} />

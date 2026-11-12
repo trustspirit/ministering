@@ -11,6 +11,15 @@
   --app-bad: #b3261e;
   --app-bad-bg: #fbe3e0;
   --app-ok: #4a7a5c;
+  --app-ink-soft: #3d444b;
+  --app-rule-strong: #aab2ba;
+  --app-less-active: #a8650a;
+  --app-warn-ink: #6f4300;
+  --app-warn-line: #dfae4c;
+  --app-warn-pill: #e9b949;
+  --app-warn-pill-ink: #3a2800;
+  --app-bad-ink: #8f1d15;
+  --app-bad-line: #d8807a;
 }
 
 :root,
@@ -20,5 +29,7 @@
   --tui-on-accent: #fff;
   --tui-ink: #212225;
   --tui-radius-control: 2px;
+  --tui-radius-sheet: 2px;
+  --tui-radius-tight: 2px;
   --tui-font-sans: 'Ensign:Sans', Roboto, 'Noto Sans KR', Arial, sans-serif;
 }
