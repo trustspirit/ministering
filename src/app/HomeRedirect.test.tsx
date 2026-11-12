@@ -24,7 +24,7 @@ describe('HomeRedirect', () => {
   it('waits while the profile is loading', () => {
     useAuth.mockReturnValue({ profile: null, profileLoaded: false });
     renderHome();
-    expect(screen.getByText('로딩 중...')).toBeInTheDocument();
+    expect(screen.getByText('불러오는 중…')).toBeInTheDocument();
     expect(screen.queryByText('rs page')).toBeNull();
     expect(screen.queryByText('eq page')).toBeNull();
   });

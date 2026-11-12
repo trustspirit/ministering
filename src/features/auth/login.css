@@ -1,0 +1,37 @@
+/* Login: public page outside the app layout, the same brand band and centred column as the share page. */
+.lg {
+  min-height: 100%;
+  background: var(--app-soft);
+  padding: 24px 16px 40px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-ink);
+}
+.lg article {
+  max-width: 400px;
+  margin: 0 auto;
+  background: var(--app-surface);
+  border: 1px solid var(--app-rule);
+  padding: 0 24px 24px;
+}
+.lg-band {
+  background: var(--app-navy);
+  margin: 0 -24px 18px;
+  padding: 18px 0;
+  text-align: center;
+}
+.lg-band img { height: 120px; width: auto; display: inline-block; vertical-align: top; }
+.lg-head h1 { margin: 0; font-family: var(--app-font-serif); font-size: 19px; font-weight: 700; line-height: 1.35; color: var(--app-navy); }
+.lg-head p { margin: 2px 0 0; font-size: 12px; color: var(--app-mute); }
+.lg-form { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+/* Every single-line control is 36px tall (trust-ui's small step); its text input is that height plus the wrapper's
+   2px border, so the border is taken off the input — same rule as the roster dialogs. */
+.lg-form input { height: calc(var(--tui-control-sm) - 2px); }
+.lg-error { margin: 0; color: var(--app-bad-ink); background: var(--app-bad-bg); border: 1px solid var(--app-bad-line); padding: 4px 10px; font-size: 12.5px; }
+.lg-help { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--app-rule); color: var(--app-mute); font-size: 12px; }
+
+@media (max-width: 819.98px) {
+  .lg { padding: 0; font-size: 14px; }
+  .lg article { border-left: 0; border-right: 0; padding: 0 16px 24px; min-height: 100vh; }
+  .lg-band { margin: 0 -16px 16px; }
+}

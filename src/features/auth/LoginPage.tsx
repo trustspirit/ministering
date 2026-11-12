@@ -1,6 +1,19 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button, TextField } from 'trust-ui-react';
+import { T, UNIT_NAME } from '@/shared/copy';
 import { useAuth } from './useAuth';
+import './login.css';
+
+/** Only same-site paths: a `redirect` like `//example.com` must not leave the app. */
+function safeRedirect(value: string | null): string {
+  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/';
+}
+
+/** Wrong email or password is an HTTP 400 from the auth server; anything else is a connection or server problem. */
+function isInvalidCredentials(err: unknown): boolean {
+  return typeof err === 'object' && err !== null && 'status' in err && (err as { status?: number }).status === 400;
+}
 
 export default function LoginPage() {
   const { signIn } = useAuth();
@@ -16,49 +29,58 @@ export default function LoginPage() {
     setError(null);
     setBusy(true);
     try {
-      await signIn(email, password);
-      const redirect = params.get('redirect') || '/';
-      navigate(redirect, { replace: true });
+      await signIn(email.trim(), password);
+      navigate(safeRedirect(params.get('redirect')), { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : '로그인 실패');
-    } finally {
+      setError(isInvalidCredentials(err) ? T.login.invalidCredentials : T.login.failed);
       setBusy(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <form onSubmit={onSubmit} className="w-full max-w-sm bg-white p-8 rounded-lg shadow">
-        <h1 className="text-2xl font-semibold mb-6">성역 편성 관리</h1>
-        <label className="block mb-4">
-          <span className="block text-sm mb-1">이메일</span>
-          <input
+    <main className="lg">
+      <article>
+        <div className="lg-band">
+          <img src="/brand/church-symbol-ko-white.png" alt={T.header.logoAlt} />
+        </div>
+        <header className="lg-head">
+          <h1>{T.login.title}</h1>
+          {UNIT_NAME && <p>{UNIT_NAME}</p>}
+        </header>
+        <form onSubmit={onSubmit} className="lg-form">
+          <TextField
             type="email"
+            size="sm"
+            fullWidth
+            label={T.login.email}
+            required
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2"
           />
-        </label>
-        <label className="block mb-4">
-          <span className="block text-sm mb-1">비밀번호</span>
-          <input
+          <TextField
             type="password"
+            size="sm"
+            fullWidth
+            label={T.login.password}
+            required
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2"
           />
-        </label>
-        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full bg-blue-600 text-white rounded py-2 disabled:opacity-60"
-        >
-          {busy ? '로그인 중...' : '로그인'}
-        </button>
-      </form>
-    </div>
+          {error && (
+            <p className="lg-error" role="alert">
+              ⚠ {error}
+            </p>
+          )}
+          <Button type="submit" size="sm" shape="square" fullWidth loading={busy} disabled={busy}>
+            {busy ? T.login.submitting : T.login.submit}
+          </Button>
+        </form>
+        <p className="lg-help">{T.login.forgot}</p>
+      </article>
+    </main>
   );
 }

@@ -179,7 +179,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
             </Dialog.Actions>
           </>
         ) : (
-            <>
+          <>
             <Dialog.Title onClose={onClose}>{isEdit ? F.editTitle : F.createTitle}</Dialog.Title>
             <Dialog.Content>
               <form id="member-form" onSubmit={submit} noValidate>

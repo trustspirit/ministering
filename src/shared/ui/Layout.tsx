@@ -5,8 +5,8 @@ export default function Layout() {
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <AppHeader />
-      {/* Legacy pages expect a scrolling, padded container until they are replaced. */}
-      <main style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      {/* App screens fill this exactly and scroll inside their own panels (no page scrollbar). */}
+      <main style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <Outlet />
       </main>
     </div>

@@ -1,0 +1,82 @@
+/* Settings ("설정"): sub bar + toolbar + a user table that scrolls inside itself, like the roster. */
+.st {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--app-surface);
+  color: var(--app-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.st-msg { padding: 24px 18px; color: var(--app-mute); }
+.st-tools { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 28px 10px; }
+.st-hint { margin: 0; color: var(--app-warn-ink); font-size: 12px; }
+.st-acts { margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; }
+.st-acts:empty { display: none; }
+
+.st-scroll { flex: 1; min-height: 0; overflow: auto; padding: 0 28px 27px; display: flex; flex-direction: column; }
+/* 3px of the bottom space shrinks away when the content only just fits (no one-pixel scroll); see .ro-scroll */
+.st-scroll::after { content: ''; flex: 0 1 3px; }
+
+/* A grid of ARIA table rows: the same markup becomes a stacked card per user on phones. */
+.st-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) 190px minmax(70px, auto);
+  align-items: center;
+  column-gap: 12px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--app-rule);
+}
+.st-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--app-surface);
+  border-bottom: 2px solid var(--app-navy);
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--app-mute);
+  letter-spacing: .04em;
+}
+.st-c-name, .st-c-email { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-c-email { color: var(--app-mute); }
+.st-c-act { text-align: right; white-space: nowrap; }
+.st-name { font-family: var(--app-font-serif); font-size: 14px; font-weight: 700; color: var(--app-navy); }
+.st-me { margin-left: 8px; font-size: 11px; color: var(--app-accent); border: 1px solid var(--app-accent); padding: 0 6px; line-height: 16px; display: inline-block; }
+.st-edit { display: flex; align-items: center; gap: 6px; }
+.st-edit input { height: calc(var(--tui-control-sm) - 2px); }
+.st-edit button { flex: none; }
+.st-link {
+  font: inherit;
+  font-size: 11px;
+  color: var(--app-accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.st-link:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; }
+.st-dialog-text { margin: 0; font-size: 13px; line-height: 1.6; }
+
+@media (max-width: 819.98px) {
+  .st { font-size: 14px; }
+  .st-tools { padding: 10px 12px 8px; }
+  .st-scroll { padding: 0 12px 27px; }
+  .st-head { display: none; }
+  .st-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'name act' 'email email' 'role role';
+    row-gap: 4px;
+    padding: 10px 0;
+  }
+  .st-c-name { grid-area: name; }
+  .st-c-act { grid-area: act; }
+  .st-c-email { grid-area: email; }
+  .st-c-role { grid-area: role; }
+  .st-edit { flex-wrap: wrap; }
+  .st-link { font-size: 12px; min-height: 36px; padding: 0 4px; }
+}

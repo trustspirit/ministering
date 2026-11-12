@@ -101,7 +101,7 @@ export function ShareDialog({
         size="sm"
       >
         {confirm === null ? (
-            <>
+          <>
             <Dialog.Title onClose={onClose}>{S.dialogTitleOf(ministryLabel(ministry))}</Dialog.Title>
             <Dialog.Content>
               <p className="aw-dialog-text">{S.description}</p>
@@ -132,21 +132,21 @@ export function ShareDialog({
               ) : token ? (
                 <>
                   <Button
-                  ref={disableRef}
-                  variant="ghost"
-                  size="sm"
-                  disabled={loading}
-                  onClick={() => setConfirm('disable')}
-                >
+                    ref={disableRef}
+                    variant="ghost"
+                    size="sm"
+                    disabled={loading}
+                    onClick={() => setConfirm('disable')}
+                  >
                     {S.disable}
                   </Button>
                   <Button
-                  ref={regenerateRef}
-                  variant="outline"
-                  size="sm"
-                  disabled={loading}
-                  onClick={() => setConfirm('regenerate')}
-                >
+                    ref={regenerateRef}
+                    variant="outline"
+                    size="sm"
+                    disabled={loading}
+                    onClick={() => setConfirm('regenerate')}
+                  >
                     {S.regenerate}
                   </Button>
                   <Button size="sm" disabled={loading} onClick={() => void copy()}>
@@ -166,7 +166,7 @@ export function ShareDialog({
             </Dialog.Actions>
           </>
         ) : (
-            <>
+          <>
             <Dialog.Title onClose={() => setConfirm(null)}>
               {confirm === 'disable' ? S.disableTitle : S.regenerateTitle}
             </Dialog.Title>
