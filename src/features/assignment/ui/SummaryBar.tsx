@@ -18,7 +18,9 @@ export function SummaryBar({ households }: { households: Household[] }) {
   const s = useMemo(() => summarize(board, members, households), [board, members, households]);
   const recipientNoun = T.assign.recipientNoun[org];
   const unassignedRecipients = s.recipientTotal - s.recipientAssigned;
-  const fitRef = useSubbarFit();
+  const fitRef = useSubbarFit(
+    [org, s.ministryCount, s.recipientAssigned, s.recipientTotal, s.shortMinistryCount, s.unassignedCandidateCount].join('|'),
+  );
 
   // Hide order when narrow (subbar.css / assignment.css): description, then legend; the size switch shows only in
   // the three-column layout; warnings always show and wrap.

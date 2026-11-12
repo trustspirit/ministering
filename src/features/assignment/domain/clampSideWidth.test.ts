@@ -23,6 +23,12 @@ describe('clampSideWidth', () => {
     expect(clampSideWidth('45vw', 1920, 286)).toBe(864);
   });
 
+  it('returns the 300px floor when the window has no room above the minimums', () => {
+    // 800 < 240 + 7 + 300 + 300: the cap would be 253px, the floor wins
+    expect(clampSideWidth('45vw', 800, 240)).toBe(300);
+    expect(clampSideWidth('600px', 892, 286)).toBe(300);
+  });
+
   it('falls back to the default width for an unreadable value', () => {
     expect(clampSideWidth('wide', 1440, 286)).toBe(648);
   });

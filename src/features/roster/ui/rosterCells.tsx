@@ -14,5 +14,11 @@ export interface RosterViewProps {
 }
 
 export function Phone({ phone }: { phone: string | null }) {
-  return phone ? <a href={`tel:${phone}`}>{phone}</a> : <>{T.roster.noValue}</>;
+  return phone ? (
+    <a href={`tel:${phone}`} title={phone}>
+      {phone}
+    </a>
+  ) : (
+    <>{T.roster.noValue}</>
+  );
 }

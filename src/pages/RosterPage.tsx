@@ -74,7 +74,8 @@ export default function RosterPage() {
   const setPersonality = useMemberFilterStore((s) => s.setPersonality);
 
   const isPhone = useLayout() === 'phone';
-  const fitRef = useSubbarFit();
+  // the bar shows counts only; their digits are what can change its width
+  const fitRef = useSubbarFit(`${householdsQuery.data?.length}|${membersQuery.data?.length}`);
   const [dialog, setDialog] = useState<Dialogs>({ kind: 'none' });
   const [csvOpen, setCsvOpen] = useState(false);
 

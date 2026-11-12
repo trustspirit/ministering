@@ -21,9 +21,12 @@ function MemberRow({
   onEdit?: (member: Member) => void;
 }) {
   const org = memberOrganization(member);
+  const serves = org ? (info.serves.get(member.id) ?? dash) : dash;
+  const assigned = org === 'RS' ? (info.memberAssigned.get(member.id) ?? dash) : '';
+  // ro-cut cells may be shortened with an ellipsis on narrow windows; the title keeps the full text
   return (
     <tr className="ro-mem">
-      <td className="ro-ind">
+      <td className="ro-ind ro-c-name ro-cut" title={member.full_name}>
         <StatusMark status={member.active_status} />
         {member.full_name}
       </td>
@@ -37,13 +40,17 @@ function MemberRow({
         )}
       </td>
       <td>{org ? ORG_LABEL[org] : T.roster.noOrg}</td>
-      <td>{org ? (info.serves.get(member.id) ?? dash) : dash}</td>
-      <td>{org === 'RS' ? (info.memberAssigned.get(member.id) ?? dash) : ''}</td>
-      <td>
+      <td className="ro-c-label ro-cut" title={serves}>
+        {serves}
+      </td>
+      <td className="ro-c-label ro-cut" title={assigned || undefined}>
+        {assigned}
+      </td>
+      <td className="ro-c-tel ro-cut">
         <Phone phone={member.phone} />
       </td>
-      <td className="ro-memo" title={member.memo ?? undefined}>
-        <span className="ro-fit">{firstLine(member.memo)}</span>
+      <td className="ro-memo ro-c-memo ro-cut" title={member.memo ?? undefined}>
+        {firstLine(member.memo)}
       </td>
       <td className="ro-act">
         {onEdit && (
@@ -61,23 +68,24 @@ function MemberRow({
   );
 }
 
-/** Roster table (tablet and wider). Narrow windows shorten the memo with an ellipsis instead of scrolling. */
+/** Roster table (tablet and wider). Below 1280px it has a fixed layout that always fits its container: the memo shortens first, then the phone number, then the companionship columns. */
 export function RosterTable({ groups, info, onEditMember, onEditHousehold }: RosterViewProps) {
   const c = T.roster.columns;
   return (
     <table className="ro-table" aria-label={T.roster.tableLabel}>
       <thead>
         <tr>
-          <th scope="col">{c.name}</th>
-          <th scope="col">{c.age}</th>
-          <th scope="col">{c.gender}</th>
-          <th scope="col">{c.status}</th>
-          <th scope="col">{c.org}</th>
-          <th scope="col">{c.serves}</th>
-          <th scope="col">{c.assigned}</th>
-          <th scope="col">{c.phone}</th>
-          <th scope="col">{c.memo}</th>
-          <th scope="col" />
+          {/* column classes set the widths on narrow windows (roster.css) */}
+          <th scope="col" className="ro-c-name">{c.name}</th>
+          <th scope="col" className="ro-c-age">{c.age}</th>
+          <th scope="col" className="ro-c-gender">{c.gender}</th>
+          <th scope="col" className="ro-c-status">{c.status}</th>
+          <th scope="col" className="ro-c-org">{c.org}</th>
+          <th scope="col" className="ro-c-label">{c.serves}</th>
+          <th scope="col" className="ro-c-label">{c.assigned}</th>
+          <th scope="col" className="ro-c-tel">{c.phone}</th>
+          <th scope="col" className="ro-c-memo">{c.memo}</th>
+          <th scope="col" className="ro-c-act" />
         </tr>
       </thead>
       <tbody>
@@ -91,10 +99,12 @@ export function RosterTable({ groups, info, onEditMember, onEditHousehold }: Ros
                     {[g.household.address, T.roster.headcount(g.members.length)].filter(Boolean).join(' · ')}
                   </span>
                 </th>
-                <td>{info.householdAssigned.get(g.household.id) ?? dash}</td>
+                <td className="ro-c-label ro-cut" title={info.householdAssigned.get(g.household.id)}>
+                  {info.householdAssigned.get(g.household.id) ?? dash}
+                </td>
                 <td />
-                <td className="ro-memo" title={g.household.memo ?? undefined}>
-                  <span className="ro-fit">{firstLine(g.household.memo)}</span>
+                <td className="ro-memo ro-c-memo ro-cut" title={g.household.memo ?? undefined}>
+                  {firstLine(g.household.memo)}
                 </td>
                 <td className="ro-act">
                   {onEditHousehold && (

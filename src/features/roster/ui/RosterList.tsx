@@ -42,7 +42,7 @@ function MemberItem({ member, info, onEdit }: { member: Member; info: MinistryIn
       </div>
       <div className="ro-l2">
         <span>{org ? ORG_LABEL[org] : T.roster.noOrg}</span>
-        {serves && <span>{serves}</span>}
+        {org && <span>{serves ?? dash}</span>}
         {org === 'RS' && (
           <span>
             <i>{c.assigned}</i> {assigned ?? dash}
@@ -66,7 +66,7 @@ function MemberItem({ member, info, onEdit }: { member: Member; info: MinistryIn
 /** Phone roster (< 820px): the table's rows stacked as a list, with the same data and edit links. */
 export function RosterList({ groups, info, onEditMember, onEditHousehold }: RosterViewProps) {
   return (
-    <div className="ro-list">
+    <div className="ro-list" role="region" aria-label={T.roster.tableLabel}>
       {groups.map((g) => {
         const hh = g.household;
         const assigned = hh ? info.householdAssigned.get(hh.id) : undefined;

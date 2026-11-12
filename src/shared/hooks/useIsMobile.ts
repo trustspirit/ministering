@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from 'react';
-import { BP, type Layout } from '@/shared/ui/breakpoints';
+import { QUERY_BELOW, type Layout } from '@/shared/ui/breakpoints';
 
-/** One media query per breakpoint, written like the CSS ones (`max-width: 819.98px` etc.). */
-const QUERIES = [BP.phone, BP.compact, BP.wide].map((bp) => `(max-width: ${bp - 0.02}px)`);
+/** Narrowest first: below 820 is phone, below 1024 tablet, below 1280 compact. */
+const QUERIES = [QUERY_BELOW.phone, QUERY_BELOW.compact, QUERY_BELOW.wide];
 const LAYOUTS: Layout[] = ['phone', 'tablet', 'compact'];
 
 const hasMatchMedia = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function';

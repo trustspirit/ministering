@@ -116,6 +116,14 @@
   white-space: nowrap;
 }
 .ro-act { text-align: right; white-space: nowrap; }
+/* Wide (auto layout): every column that can grow with the data has a ceiling, so the table can never be wider than
+   its container at 1280px (1224px inside the padding). The ceilings sum to at most 1200px with the fixed-vocabulary
+   columns (age, gender, status, organization, actions) and are above anything the seed data needs, so typical
+   rosters look exactly as before; longer text ends in an ellipsis (full text in the title). */
+.ro-table .ro-cut { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ro-table td.ro-c-name { max-width: 180px; }
+.ro-table td.ro-c-label { max-width: 150px; }
+.ro-table td.ro-c-tel { max-width: 130px; }
 .ro-table a { color: var(--app-accent); }
 .ro-link {
   font: inherit;
@@ -148,20 +156,46 @@
 .ro-errlist div { padding: 3px 8px; border-top: 1px solid var(--app-rule); }
 .ro-errlist div:first-child { border-top: 0; }
 
-/* Narrower than wide (breakpoints.ts): the table never scrolls sideways. Every column but the memo keeps just its
-   content width (width: 1%), so the memo takes the remaining width and its first line is shortened with an ellipsis
-   (its .ro-fit box adds nothing to the column's minimum width and fills whatever width the column gets). Measured
-   with the seed data, the memo still has 138px at 820px, the narrowest window that shows the table, so the phone
-   number is never cut. */
+/* Narrower than wide (breakpoints.ts): a fixed layout that can never be wider than .ro-scroll, whatever the data.
+   Short columns get fixed widths and the memo takes what is left. The phone number and the two companionship
+   columns get computed widths: the phone column starts to shrink only when the memo is down to --ro-memo-min, and
+   the companionship columns only when the phone column is down to its minimum. Names keep at least 70px (~5em).
+   Cut text (.ro-cut, above) ends in an ellipsis and keeps its full text in a title.
+   It always fits from 70 + 320 + 2 × 56 + 56 + 30 = 588px of container (the 820px window gives 764px). */
 @media (max-width: 1279.98px) {
-  .ro-table thead th:not(:nth-child(9)) { width: 1%; }
-  .ro-memo .ro-fit {
-    display: block;
-    width: 0;
-    min-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .ro-scroll { container-type: inline-size; }
+  .ro-table {
+    table-layout: fixed;
+    --ro-fixed: 320px; /* age 44 + gender 44 + status 76 + org 86 + actions 70 */
+    --ro-name: clamp(70px, 12cqw, 160px);
+    --ro-label-min: 56px;
+    --ro-label-max: clamp(100px, 14cqw, 160px);
+    --ro-tel-min: 56px;
+    --ro-tel-max: 110px;
+    --ro-memo-min: 30px;
   }
+  .ro-c-name { width: var(--ro-name); }
+  .ro-c-age,
+  .ro-c-gender { width: 44px; }
+  .ro-c-status { width: 76px; }
+  .ro-c-org { width: 86px; }
+  .ro-c-act { width: 70px; }
+  .ro-c-tel {
+    width: clamp(
+      var(--ro-tel-min),
+      100cqw - var(--ro-fixed) - var(--ro-name) - 2 * var(--ro-label-max) - var(--ro-memo-min),
+      var(--ro-tel-max)
+    );
+  }
+  .ro-c-label {
+    width: clamp(
+      var(--ro-label-min),
+      (100cqw - var(--ro-fixed) - var(--ro-name) - var(--ro-tel-min) - var(--ro-memo-min)) / 2,
+      var(--ro-label-max)
+    );
+  }
+  .ro-table thead th { overflow: hidden; text-overflow: ellipsis; }
+  .ro-memo { max-width: none; }
 }
 
 /* phone list (RosterList): the table's rows stacked */

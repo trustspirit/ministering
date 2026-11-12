@@ -14,3 +14,12 @@ export function layoutFor(width: number): Layout {
   if (width < BP.wide) return 'compact';
   return 'wide';
 }
+
+const below = (bp: number) => `(max-width: ${(bp - 0.02).toFixed(2)}px)`;
+
+/** Media queries for "narrower than this breakpoint", the same literals the CSS uses. */
+export const QUERY_BELOW = {
+  phone: below(BP.phone),
+  compact: below(BP.compact),
+  wide: below(BP.wide),
+} as const;

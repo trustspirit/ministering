@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { household, member } from '@/features/assignment/ui/testUtils';
 import RosterPage from './RosterPage';
 
-const mocks = vi.hoisted(() => ({ canEditMembers: true, noMembers: false }));
+const mocks = vi.hoisted(() => ({ canEditMembers: true, noMembers: false, layout: 'wide' as string }));
 
 vi.mock('@/shared/auth/usePermission', () => ({
   usePermission: () => ({ canEditMembers: mocks.canEditMembers }),
 }));
 vi.mock('@/shared/hooks/useRealtimeSync', () => ({ useRealtimeSync: () => {} }));
+vi.mock('@/shared/hooks/useIsMobile', () => ({ useLayout: () => mocks.layout }));
 vi.mock('@/features/assignment/hooks/useAssignmentBoard', () => ({
   useAssignmentBoard: () => ({ data: undefined }),
 }));
@@ -41,6 +42,22 @@ describe('RosterPage', () => {
   beforeEach(() => {
     mocks.canEditMembers = true;
     mocks.noMembers = false;
+    mocks.layout = 'wide';
+  });
+
+  it('phones get the stacked list instead of the table', () => {
+    mocks.layout = 'phone';
+    open();
+    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.getByRole('region', { name: '명부' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '한상철 가정' })).toBeInTheDocument();
+  });
+
+  it.each(['tablet', 'compact', 'wide'])('%s keeps the table', (layout) => {
+    mocks.layout = layout;
+    open();
+    expect(screen.getByRole('table', { name: '명부' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: '명부' })).toBeNull();
   });
 
   it('shows the summary numbers and, for editors, every edit control', () => {

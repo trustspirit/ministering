@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BP, layoutFor } from './breakpoints';
+import { BP, layoutFor, QUERY_BELOW } from './breakpoints';
 
 describe('layoutFor', () => {
   it.each([
@@ -17,5 +17,13 @@ describe('layoutFor', () => {
 
   it('uses the shared breakpoint values', () => {
     expect(BP).toEqual({ phone: 820, compact: 1024, wide: 1280 });
+  });
+
+  it('builds the media queries with the same literals as the CSS', () => {
+    expect(QUERY_BELOW).toEqual({
+      phone: '(max-width: 819.98px)',
+      compact: '(max-width: 1023.98px)',
+      wide: '(max-width: 1279.98px)',
+    });
   });
 });

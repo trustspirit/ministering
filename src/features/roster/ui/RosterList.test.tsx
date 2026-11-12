@@ -67,6 +67,14 @@ describe('RosterList (phone roster)', () => {
     expect(lone.textContent).toContain('성역 동반자 1');
   });
 
+  it('is named like the table and shows — for a member of an organization without a companionship', () => {
+    render(<RosterList groups={groups} info={info} />);
+    expect(screen.getByRole('region', { name: '명부' })).toBeInTheDocument();
+    const lone = screen.getByText('독거인').closest('li')!;
+    const second = lone.querySelector('.ro-l2')!;
+    expect([...second.children].map((c) => c.textContent)).toEqual(['상호부조회', '—', '지명된 성역자 성역 동반자 1']);
+  });
+
   it('has no edit controls without edit handlers (viewers)', () => {
     render(<RosterList groups={groups} info={info} />);
     expect(screen.queryByRole('button')).toBeNull();
