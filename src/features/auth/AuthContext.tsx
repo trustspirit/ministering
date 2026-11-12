@@ -1,24 +1,12 @@
-import { createContext, useEffect, useState, type ReactNode } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import { useEffect, useState, type ReactNode } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/shared/lib/supabase';
-import type { Database } from '@/types/database.types';
-
-type Profile = Database['public']['Tables']['app_user_profiles']['Row'];
-
-export interface AuthValue {
-  session: Session | null;
-  user: User | null;
-  profile: Profile | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthValue | null>(null);
+import { AuthContext, type Profile } from './context';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  // Keyed by user id so a profile fetched for one user is never shown for another.
+  const [loadedProfile, setLoadedProfile] = useState<{ userId: string; profile: Profile | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,13 +20,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const userId = session?.user?.id ?? null;
+
   useEffect(() => {
-    if (!session?.user) { setProfile(null); return; }
+    if (!userId) return;
     let cancelled = false;
-    supabase.from('app_user_profiles').select('*').eq('user_id', session.user.id).single()
-      .then(({ data }) => { if (!cancelled) setProfile(data ?? null); });
+    supabase.from('app_user_profiles').select('*').eq('user_id', userId).single()
+      .then(({ data }) => { if (!cancelled) setLoadedProfile({ userId, profile: data ?? null }); });
     return () => { cancelled = true; };
-  }, [session?.user?.id]);
+  }, [userId]);
+
+  const profile = userId && loadedProfile?.userId === userId ? loadedProfile.profile : null;
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
