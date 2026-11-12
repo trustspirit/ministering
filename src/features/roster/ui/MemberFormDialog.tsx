@@ -119,7 +119,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
           <form id="member-form" onSubmit={submit} noValidate>
             <div className="ro-form">
               <div className="ro-wide">
-                <TextField
+                <TextField size="sm"
                   fullWidth
                   label={F.name}
                   required
@@ -129,7 +129,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                   errorMessage={nameError}
                 />
               </div>
-              <Select
+              <Select size="sm"
                 fullWidth
                 label={F.gender}
                 required
@@ -139,7 +139,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 error={!!genderError}
                 errorMessage={genderError}
               />
-              <DatePicker
+              <DatePicker size="sm"
                 label={F.birthDate}
                 required
                 mobileVariant="native"
@@ -150,7 +150,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 errorMessage={birthError}
               />
               <div className="ro-wide">
-                <TextField
+                <TextField size="sm"
                   fullWidth
                   label={F.address}
                   placeholder={F.addressPlaceholder}
@@ -158,28 +158,28 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                   onChange={(e) => setAddress(e.target.value)}
                 />
               </div>
-              <TextField
+              <TextField size="sm"
                 fullWidth
                 type="tel"
                 label={F.phone}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
-              <Select
+              <Select size="sm"
                 fullWidth
                 label={F.status}
                 value={status}
                 options={options(STATUS_LABEL)}
                 onChange={(v) => setStatus(v as ActiveStatus)}
               />
-              <Select
+              <Select size="sm"
                 fullWidth
                 label={F.personality}
                 value={personality}
                 options={options(PERSONALITY_LABEL)}
                 onChange={(v) => setPersonality(v as Personality)}
               />
-              <Select
+              <Select size="sm"
                 fullWidth
                 label={F.householdRole}
                 value={role}
@@ -187,7 +187,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 onChange={(v) => setRole(v as HouseholdRole)}
               />
               <div className="ro-wide">
-                <Select
+                <Select size="sm"
                   fullWidth
                   searchable
                   label={F.household}
@@ -201,7 +201,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 />
               </div>
               <div className="ro-wide">
-                <TextField
+                <TextField size="sm"
                   multiline
                   rows={2}
                   fullWidth

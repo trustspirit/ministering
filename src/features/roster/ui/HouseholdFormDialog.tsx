@@ -52,7 +52,7 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
         <form id="household-form" onSubmit={submit} noValidate>
           <div className="ro-form">
             <div className="ro-wide">
-              <TextField
+              <TextField size="sm"
                 fullWidth
                 label={F.name}
                 required
@@ -63,10 +63,10 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
               />
             </div>
             <div className="ro-wide">
-              <TextField fullWidth label={F.address} value={address} onChange={(e) => setAddress(e.target.value)} />
+              <TextField size="sm" fullWidth label={F.address} value={address} onChange={(e) => setAddress(e.target.value)} />
             </div>
             <div className="ro-wide">
-              <TextField
+              <TextField size="sm"
                 multiline
                 rows={4}
                 fullWidth

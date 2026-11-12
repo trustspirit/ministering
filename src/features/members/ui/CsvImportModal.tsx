@@ -81,6 +81,7 @@ export function CsvImportModal({ open, onClose }: CsvImportModalProps) {
               ))}
             </ul>
             <FileUpload
+              size="sm"
               accept=".csv,text/csv"
               placeholder={C.drop}
               browseText={C.browse}
@@ -133,7 +134,7 @@ export function CsvImportModal({ open, onClose }: CsvImportModalProps) {
                 : C.preparing}
             </p>
             <Progress
-              size="md"
+              size="sm"
               indeterminate={!progress || progress.total === 0}
               value={progress && progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}
             />
