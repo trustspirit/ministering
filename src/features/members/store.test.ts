@@ -75,6 +75,12 @@ describe('filterMembers', () => {
     expect(result[0].id).toBe('3');
   });
 
+  it('활동 상태 필터: 새로운 회원', () => {
+    const withNew = [...members, member({ id: '4', full_name: '최신입', active_status: 'new_member' })];
+    const result = filterMembers(withNew, { search: '', gender: 'all', activeStatus: 'new_member', personality: 'all' });
+    expect(result.map((m) => m.id)).toEqual(['4']);
+  });
+
   it('복수 필터 조합', () => {
     const result = filterMembers(members, { search: '', gender: 'M', activeStatus: 'active', personality: 'all' });
     expect(result).toHaveLength(1);

@@ -89,6 +89,7 @@ export function useImportMembers() {
             address: row.address,
             lat: geo.lat,
             lng: geo.lng,
+            ...(row.phone === undefined ? {} : { phone: row.phone }),
             active_status: row.active_status,
             personality: row.personality,
             memo: row.memo,

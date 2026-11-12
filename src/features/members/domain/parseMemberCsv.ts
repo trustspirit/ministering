@@ -11,6 +11,8 @@ export interface ParsedMemberRow {
   gender: Gender;
   birth_date: string;
   address: string | null;
+  /** undefined = the CSV had no phone column, so an import must leave the stored phone alone. */
+  phone?: string | null;
   active_status: ActiveStatus;
   personality: Personality;
   memo: string | null;
@@ -41,8 +43,13 @@ const GENDER_MAP: Record<string, Gender> = {
 const ACTIVE_MAP: Record<string, ActiveStatus> = {
   active: 'active',
   less_active: 'less_active',
+  new_member: 'new_member',
   '활동': 'active',
+  '활동 회원': 'active',
   '저활동': 'less_active',
+  '저활동 회원': 'less_active',
+  '새로운 회원': 'new_member',
+  '신회원': 'new_member',
 };
 
 const PERSONALITY_MAP: Record<string, Personality> = {
@@ -125,6 +132,8 @@ function parseRow(
   );
   if (!role.ok) return { ok: false, error: { rowIndex, reason: role.reason, raw } };
 
+  const phoneRaw = raw['연락처'] ?? raw.phone;
+
   return {
     ok: true,
     row: {
@@ -132,6 +141,7 @@ function parseRow(
       gender: gender.value,
       birth_date: birthDate,
       address: raw.address?.trim() || null,
+      ...(phoneRaw === undefined ? {} : { phone: phoneRaw.trim() || null }),
       active_status: active.value,
       personality: personality.value,
       memo: raw.memo?.trim() || null,

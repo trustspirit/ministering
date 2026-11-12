@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { exportMembersCsv } from './exportMembersCsv';
+import { parseMemberCsv } from './parseMemberCsv';
 import type { Member } from '../types';
 
 const member = (p: Partial<Member>): Member => ({
@@ -55,6 +56,34 @@ describe('exportMembersCsv', () => {
     );
     const fields = csv.split('\n')[1].split(',');
     expect(fields[fields.length - 2]).toBe('');
+  });
+
+  it('머리글에 연락처, 상태는 한글 라벨, 연락처 값 포함', () => {
+    const csv = exportMembersCsv(
+      [member({ active_status: 'new_member', phone: '010-1111-2222' })],
+      {},
+    );
+    const [head, row] = csv.split('\n');
+    expect(head.split(',')).toContain('연락처');
+    expect(row).toContain('새로운 회원');
+    expect(row).toContain('010-1111-2222');
+  });
+
+  it('내보낸 CSV를 다시 읽으면 같은 값이 된다', () => {
+    const csv = exportMembersCsv(
+      [member({ full_name: '새신자', active_status: 'new_member', phone: '010-1111-2222', household_id: 'h1', household_role: 'wife', gender: 'F' })],
+      { h1: '새 가정' },
+    );
+    const res = parseMemberCsv(csv);
+    expect(res.errors).toEqual([]);
+    expect(res.valid[0]).toMatchObject({
+      full_name: '새신자',
+      gender: 'F',
+      active_status: 'new_member',
+      phone: '010-1111-2222',
+      household_name: '새 가정',
+      household_role: 'wife',
+    });
   });
 
   it('쉼표가 들어간 필드는 quote', () => {

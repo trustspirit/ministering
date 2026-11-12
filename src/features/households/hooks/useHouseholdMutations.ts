@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { householdRepository } from '@/repositories/HouseholdRepository';
 import { geocodeAddress } from '@/shared/lib/geocode';
-import type { HouseholdUpdate } from '@/features/households/types';
+import type { HouseholdInsert, HouseholdUpdate } from '@/features/households/types';
 import { HOUSEHOLDS_QUERY_KEY } from './useHouseholds';
 import { MEMBERS_QUERY_KEY } from '@/features/members/hooks/useMembers';
 
@@ -28,5 +28,17 @@ export function useUpdateHousehold() {
       qc.invalidateQueries({ queryKey: HOUSEHOLDS_QUERY_KEY });
       qc.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY });
     },
+  });
+}
+
+/** Creates a household and geocodes its address; resolves with the new row. */
+export function useCreateHousehold() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: HouseholdInsert) => {
+      const geo = await geocodeAddress(input.address);
+      return householdRepository.create({ ...input, lat: geo.lat, lng: geo.lng });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: HOUSEHOLDS_QUERY_KEY }),
   });
 }

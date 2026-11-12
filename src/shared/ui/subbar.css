@@ -1,0 +1,61 @@
+/* Sub bar under the header, legend and status dots shared by the assignment and roster screens. */
+
+.aw-sub {
+  flex: none;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 18px;
+  background: var(--app-soft);
+  border-bottom: 1px solid var(--app-rule);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.aw-unit {
+  border: 1px solid var(--app-navy);
+  color: var(--app-navy);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 0 8px;
+  line-height: 18px;
+}
+.aw-sum { display: flex; align-items: center; gap: 14px; }
+.aw-sum b { font-weight: 700; }
+.aw-wr {
+  background: var(--app-warn-bg);
+  color: var(--app-warn-ink);
+  border: 1px solid var(--app-warn-line);
+  padding: 0 8px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.aw-wr--bad {
+  background: var(--app-bad-bg);
+  color: var(--app-bad-ink);
+  border-color: var(--app-bad-line);
+  font-weight: 700;
+}
+.aw-legend { margin-left: auto; display: flex; gap: 12px; color: var(--app-mute); list-style: none; padding: 0; margin-top: 0; margin-bottom: 0; }
+
+/* status marks */
+.aw-st {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--app-ok);
+  margin-right: 4px;
+  vertical-align: 1px;
+}
+.aw-st--less_active { background: var(--app-less-active); }
+.aw-st--new_member { background: var(--app-accent); }
+.aw-stx { font-style: normal; font-size: 10.5px; margin-left: 3px; }
+.aw-stx--less_active { color: var(--app-less-active); }
+.aw-stx--new_member { color: var(--app-accent); }
+
+@media (max-width: 819.98px) {
+  .aw-sub { overflow-x: auto; padding: 0 12px; gap: 12px; }
+  .aw-sub > *, .aw-sum > * { flex: none; }
+}

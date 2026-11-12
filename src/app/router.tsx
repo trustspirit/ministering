@@ -5,8 +5,7 @@ import RequireAuth from '@/features/auth/RequireAuth';
 import Layout from '@/shared/ui/Layout';
 import DashboardPage from '@/pages/DashboardPage';
 import NotFoundPage from '@/pages/NotFoundPage';
-import MembersPage from '@/pages/MembersPage';
-import HouseholdsPage from '@/pages/HouseholdsPage';
+import RosterPage from '@/pages/RosterPage';
 import AssignmentPage from '@/pages/AssignmentPage';
 import SettingsPage from '@/pages/SettingsPage';
 
@@ -22,8 +21,9 @@ export const router = createBrowserRouter([
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/assignments', element: <Navigate to="/assignments/rs" replace /> },
           { path: '/assignments/:org', element: <AssignmentPage /> },
-          { path: '/members', element: <MembersPage /> },
-          { path: '/households', element: <HouseholdsPage /> },
+          { path: '/roster', element: <RosterPage /> },
+          { path: '/members', element: <Navigate to="/roster" replace /> },
+          { path: '/households', element: <Navigate to="/roster" replace /> },
           { path: '/settings', element: <SettingsPage /> },
         ],
       },

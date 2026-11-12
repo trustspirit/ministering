@@ -29,7 +29,7 @@ export const useMemberFilterStore = create<MemberFilterState>((set) => ({
   reset: () => set(initial),
 }));
 
-type FilterSnapshot = Pick<MemberFilterState, 'search' | 'gender' | 'activeStatus' | 'personality'>;
+export type FilterSnapshot = Pick<MemberFilterState, 'search' | 'gender' | 'activeStatus' | 'personality'>;
 
 export function filterMembers(members: Member[], f: FilterSnapshot): Member[] {
   const q = f.search.trim().toLowerCase();

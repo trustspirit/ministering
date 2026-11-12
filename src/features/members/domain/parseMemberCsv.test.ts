@@ -24,6 +24,37 @@ describe('parseMemberCsv', () => {
     });
   });
 
+  it('상태 한글 값: 새로운 회원 / 신회원 / new_member / 활동 회원 / 저활동 회원', () => {
+    const csv = [
+      'full_name,gender,birth_date,active_status',
+      'A,M,1990-01-01,새로운 회원',
+      'B,M,1990-01-01,신회원',
+      'C,M,1990-01-01,new_member',
+      'D,M,1990-01-01,활동 회원',
+      'E,M,1990-01-01,저활동 회원',
+    ].join('\n');
+    const res = parseMemberCsv(csv);
+    expect(res.errors).toEqual([]);
+    expect(res.valid.map((r) => r.active_status)).toEqual([
+      'new_member',
+      'new_member',
+      'new_member',
+      'active',
+      'less_active',
+    ]);
+  });
+
+  it('연락처 열이 있으면 phone으로, 없어도 통과(phone은 비워 둠)', () => {
+    const withCol = parseMemberCsv('full_name,gender,birth_date,연락처\nA,M,1990-01-01,010-1234-5678');
+    expect(withCol.errors).toEqual([]);
+    expect(withCol.valid[0].phone).toBe('010-1234-5678');
+    const emptyCell = parseMemberCsv('full_name,gender,birth_date,연락처\nA,M,1990-01-01,');
+    expect(emptyCell.valid[0].phone).toBeNull();
+    const without = parseMemberCsv('full_name,gender,birth_date\nA,M,1990-01-01');
+    expect(without.errors).toEqual([]);
+    expect(without.valid[0].phone).toBeUndefined();
+  });
+
   it('한글 값 매핑 (남/여 → M/F)', () => {
     const csv = 'full_name,gender,birth_date\n이자매,여,1985-03-20';
     const res = parseMemberCsv(csv);

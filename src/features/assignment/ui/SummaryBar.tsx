@@ -1,3 +1,4 @@
+import '@/shared/ui/subbar.css';
 import { useMemo } from 'react';
 import type { Household } from '@/features/households/types';
 import type { ActiveStatus } from '@/features/members/types';

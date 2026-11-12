@@ -4,6 +4,9 @@ import type { MemberInsert, MemberUpdate } from '@/features/members/types';
 import { geocodeAddress } from '@/shared/lib/geocode';
 import { MEMBERS_QUERY_KEY } from './useMembers';
 
+/** Deleting a person also drops their assignments in the database, so boards must reload too. */
+const BOARD_QUERY_KEY = ['assignment-board'] as const;
+
 export function useCreateMember() {
   const qc = useQueryClient();
   return useMutation({
@@ -46,6 +49,10 @@ export function useDeleteMember() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => memberRepository.softDelete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY }),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY }),
+        qc.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
+      ]),
   });
 }

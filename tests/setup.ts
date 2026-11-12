@@ -28,3 +28,18 @@ Object.defineProperty(globalThis, 'localStorage', {
   configurable: true,
   value: new MemoryStorage(),
 });
+
+// jsdom has no <dialog> modal support; trust-ui's Dialog calls showModal()/close().
+if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    this.removeAttribute('open');
+  };
+}
+
+// jsdom does not implement scrollIntoView (trust-ui's Select calls it when opening).
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}

@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import { STATUS_LABEL } from '@/shared/copy';
 import type { Member } from '../types';
 
 const HEADERS = [
@@ -6,6 +7,7 @@ const HEADERS = [
   'gender',
   'birth_date',
   'address',
+  '연락처',
   'active_status',
   'personality',
   'memo',
@@ -22,7 +24,8 @@ export function exportMembersCsv(
     gender: m.gender,
     birth_date: m.birth_date,
     address: m.address ?? '',
-    active_status: m.active_status,
+    연락처: m.phone ?? '',
+    active_status: STATUS_LABEL[m.active_status],
     personality: m.personality,
     memo: m.memo ?? '',
     household_name: m.household_id ? (householdIdToName[m.household_id] ?? '') : '',

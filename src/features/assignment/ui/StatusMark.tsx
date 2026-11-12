@@ -1,3 +1,4 @@
+import '@/shared/ui/subbar.css';
 import type { ActiveStatus } from '@/features/members/types';
 import { STATUS_LABEL } from '@/shared/copy';
 

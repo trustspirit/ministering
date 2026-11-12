@@ -1,0 +1,152 @@
+/* Roster ("명부") — ported from the approved mockup (full-layout-v6.html: #roster, .tools, .btn, table.rs). */
+
+.ro {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  color: var(--app-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.ro-status-msg { padding: 24px 18px; color: var(--app-mute); }
+
+/* toolbar */
+.ro-tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px 10px;
+}
+.ro-search { width: 220px; }
+.ro-sp { margin-left: auto; }
+.ro-filter { width: 128px; }
+/* trust-ui TextField / Select flattened to the mockup's single 1px rule, 2px corners */
+.ro-tools input,
+.ro-tools [role='combobox'] {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-ink);
+}
+.ro-search > div > div:first-child {
+  height: auto;
+  min-height: 0;
+  border: 1px solid var(--app-rule);
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: none;
+}
+.ro-filter [role='combobox'] {
+  height: auto;
+  min-height: 0;
+  padding: 5px 9px;
+  border: 1px solid var(--app-rule);
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: none;
+}
+.ro-filter [role='combobox']:focus-visible { border-color: var(--app-accent); outline: 0; }
+.ro-search > div > div:first-child:focus-within { border-color: var(--app-accent); }
+.ro-search > div > div:not(:first-child) { display: none; }
+.ro .ro-search input { padding: 5px 9px; height: auto; border: 0; background: transparent; }
+
+/* mockup .btn: 1px navy rule, 12.5px, primary = filled navy */
+.ro-btn {
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 4px 12px;
+  border: 1px solid var(--app-navy);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--app-navy);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ro-btn:hover:not(:disabled) { background: var(--app-tint); }
+.ro-btn--pri { background: var(--app-navy); color: #fff; }
+.ro-btn--pri:hover:not(:disabled) { background: var(--app-accent); }
+.ro-btn:disabled { opacity: .5; cursor: default; }
+.ro-btn:focus-visible,
+.ro-link:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; }
+
+/* table: scrolls inside itself, header row sticks */
+.ro-scroll { flex: 1; min-height: 0; overflow: auto; padding: 0 28px 30px; }
+.ro-table { width: 100%; border-collapse: collapse; }
+.ro-table th,
+.ro-table td { text-align: left; font-weight: 400; }
+.ro-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--app-mute);
+  letter-spacing: .04em;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--app-navy);
+  white-space: nowrap;
+}
+.ro-table td { padding: 5px 10px; border-bottom: 1px solid var(--app-rule); vertical-align: top; white-space: nowrap; }
+.ro-hh th,
+.ro-hh td {
+  background: var(--app-soft);
+  border-top: 1px solid var(--app-rule-strong);
+  border-bottom: 1px solid var(--app-rule);
+  padding: 7px 10px;
+  vertical-align: top;
+}
+.ro-hh b { color: var(--app-navy); font-size: 14px; font-weight: 700; }
+.ro-sub { margin-left: 10px; color: var(--app-mute); }
+.ro-ind { padding-left: 26px; white-space: nowrap; }
+.ro-memo {
+  color: var(--app-mute);
+  font-size: 12px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ro-act { text-align: right; white-space: nowrap; }
+.ro-table a { color: var(--app-accent); }
+.ro-link {
+  font: inherit;
+  font-size: 11px;
+  color: var(--app-accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ro-empty { padding: 24px 10px; color: var(--app-mute); }
+
+/* dialogs (portalled outside .ro, so scoped by their own classes) */
+.ro-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ro-form > .ro-wide { grid-column: 1 / -1; }
+.ro-dialog-text { margin: 0; font-size: 13px; line-height: 1.6; }
+.ro-error { margin: 8px 0 0; color: var(--app-bad-ink); background: var(--app-bad-bg); border: 1px solid var(--app-bad-line); padding: 4px 10px; font-size: 12.5px; }
+.ro-help { margin: 0 0 10px; padding-left: 18px; color: var(--app-ink-soft); font-size: 12.5px; line-height: 1.6; }
+.ro-help code { font-size: 11.5px; word-break: break-all; }
+.ro-stats { display: flex; gap: 10px; margin-bottom: 10px; }
+.ro-stat { flex: 1; border: 1px solid var(--app-rule); border-top: 3px solid var(--app-navy); padding: 6px 10px; }
+.ro-stat--bad { border-top-color: var(--app-bad); }
+.ro-stat b { display: block; font-size: 20px; color: var(--app-navy); line-height: 1.3; }
+.ro-stat--bad b { color: var(--app-bad); }
+.ro-errlist { max-height: 180px; overflow: auto; border: 1px solid var(--app-rule); font-size: 12px; margin-bottom: 10px; }
+.ro-errlist div { padding: 3px 8px; border-top: 1px solid var(--app-rule); }
+.ro-errlist div:first-child { border-top: 0; }
+
+@media (max-width: 819.98px) {
+  .ro { font-size: 14px; }
+  .ro-tools { flex-wrap: wrap; padding: 10px 12px 8px; }
+  .ro-search { width: 100%; }
+  .ro-sp { display: none; }
+  .ro-scroll { padding: 0 12px 24px; }
+  .ro-table { min-width: 860px; }
+  .ro-form { grid-template-columns: 1fr; }
+}
