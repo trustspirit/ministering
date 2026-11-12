@@ -148,7 +148,7 @@ export default function RosterPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="ro-filter">
+        <div className="ro-filter" role="group" aria-label={T.roster.statusFilter}>
           <Select
             size="sm"
             fullWidth
@@ -157,7 +157,7 @@ export default function RosterPage() {
             onChange={(v) => setActiveStatus(v as ActiveStatus | 'all')}
           />
         </div>
-        <div className="ro-filter">
+        <div className="ro-filter" role="group" aria-label={T.roster.genderFilter}>
           <Select
             size="sm"
             fullWidth
@@ -166,7 +166,7 @@ export default function RosterPage() {
             onChange={(v) => setGender(v as Gender | 'all')}
           />
         </div>
-        <div className="ro-filter">
+        <div className="ro-filter" role="group" aria-label={T.roster.personalityFilter}>
           <Select
             size="sm"
             fullWidth

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from 'trust-ui-react';
 import { household, member } from '@/features/assignment/ui/testUtils';
 import { MemberFormDialog } from './MemberFormDialog';
@@ -51,12 +52,16 @@ const hans = household({ id: 'h1', name: '한상철 가정' });
 
 function renderDialog(props: Partial<Parameters<typeof MemberFormDialog>[0]> = {}) {
   const onClose = vi.fn();
+  const qc = new QueryClient();
+  const invalidate = vi.spyOn(qc, 'invalidateQueries');
   render(
-    <ToastProvider>
-      <MemberFormDialog open member={null} households={[hans]} onClose={onClose} {...props} />
-    </ToastProvider>,
+    <QueryClientProvider client={qc}>
+      <ToastProvider>
+        <MemberFormDialog open member={null} households={[hans]} onClose={onClose} {...props} />
+      </ToastProvider>
+    </QueryClientProvider>,
   );
-  return { onClose };
+  return { onClose, invalidate };
 }
 
 /** trust-ui's Select does not link its label to the combobox, so find it through the label text. */
@@ -124,7 +129,7 @@ describe('MemberFormDialog', () => {
   it('removes the just-created household when saving the person fails', async () => {
     const user = userEvent.setup();
     mocks.createMember.mockRejectedValue(new Error('boom'));
-    const { onClose } = renderDialog({ member: null });
+    const { onClose, invalidate } = renderDialog({ member: null });
     await user.type(screen.getByLabelText(/이름/), '김새롬');
     await choose(user, '성별', '여');
     fireEvent.change(screen.getByLabelText('생년월일'), { target: { value: '1990-05-06' } });
@@ -132,7 +137,25 @@ describe('MemberFormDialog', () => {
     await user.click(screen.getByRole('button', { name: '저장' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('저장하지 못했습니다');
     expect(mocks.removeHousehold).toHaveBeenCalledWith('new-h');
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['households'] });
     expect(onClose).not.toHaveBeenCalled();
+    expect(screen.queryByText(/가정은 만들어졌지만/)).toBeNull();
+  });
+
+  it('tells the user when the just-created household could not be removed either', async () => {
+    const user = userEvent.setup();
+    mocks.createMember.mockRejectedValue(new Error('boom'));
+    mocks.removeHousehold.mockRejectedValueOnce(new Error('rls'));
+    const { invalidate } = renderDialog({ member: null });
+    await user.type(screen.getByLabelText(/이름/), '김새롬');
+    await choose(user, '성별', '여');
+    fireEvent.change(screen.getByLabelText('생년월일'), { target: { value: '1990-05-06' } });
+    await choose(user, '소속 가정', '새 가정 만들기');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    expect(
+      await screen.findByText('가정은 만들어졌지만 사람을 저장하지 못했습니다. 명부에서 가정을 확인해 주세요.'),
+    ).toBeInTheDocument();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['households'] });
   });
 
   it('editing defaults to the current household and offers a confirmed delete', async () => {

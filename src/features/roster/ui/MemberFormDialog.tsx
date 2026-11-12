@@ -1,9 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { Button, DatePicker, Dialog, Select, TextField } from 'trust-ui-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Button, DatePicker, Dialog, Select, TextField, useToast } from 'trust-ui-react';
 import { householdDefaultName } from '@/features/households/domain/householdDefaultName';
+import { HOUSEHOLDS_QUERY_KEY } from '@/features/households/hooks/useHouseholds';
 import { useCreateHousehold } from '@/features/households/hooks/useHouseholdMutations';
 import type { Household } from '@/features/households/types';
-import { useCreateMember, useDeleteMember, useUpdateMember } from '@/features/members/hooks/useMemberMutations';
+import {
+  useCreateMember,
+  useDeleteMember,
+  useUpdateMember,
+} from '@/features/members/hooks/useMemberMutations';
 import type { ActiveStatus, Gender, HouseholdRole, Member, Personality } from '@/features/members/types';
 import { householdRepository } from '@/repositories/HouseholdRepository';
 import { GENDER_LABEL, PERSONALITY_LABEL, STATUS_LABEL, T } from '@/shared/copy';
@@ -42,6 +48,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  const qc = useQueryClient();
+  const { toast } = useToast();
   const createMember = useCreateMember();
   const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
@@ -94,7 +102,14 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
       onClose();
     } catch {
       // Do not leave an empty household behind when the person could not be saved.
-      if (createdHouseholdId) await householdRepository.remove(createdHouseholdId).catch(() => {});
+      if (createdHouseholdId) {
+        const removed = await householdRepository.remove(createdHouseholdId).then(
+          () => true,
+          () => false,
+        );
+        await qc.invalidateQueries({ queryKey: HOUSEHOLDS_QUERY_KEY });
+        if (!removed) toast({ variant: 'danger', message: F.rollbackFailed });
+      }
       setError(F.saveFailed);
     }
   };
@@ -119,7 +134,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
           <form id="member-form" onSubmit={submit} noValidate>
             <div className="ro-form">
               <div className="ro-wide">
-                <TextField size="sm"
+                <TextField
+                  size="sm"
                   fullWidth
                   label={F.name}
                   required
@@ -129,7 +145,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                   errorMessage={nameError}
                 />
               </div>
-              <Select size="sm"
+              <Select
+                size="sm"
                 fullWidth
                 label={F.gender}
                 required
@@ -139,7 +156,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 error={!!genderError}
                 errorMessage={genderError}
               />
-              <DatePicker size="sm"
+              <DatePicker
+                size="sm"
                 label={F.birthDate}
                 required
                 mobileVariant="native"
@@ -150,7 +168,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 errorMessage={birthError}
               />
               <div className="ro-wide">
-                <TextField size="sm"
+                <TextField
+                  size="sm"
                   fullWidth
                   label={F.address}
                   placeholder={F.addressPlaceholder}
@@ -158,28 +177,32 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                   onChange={(e) => setAddress(e.target.value)}
                 />
               </div>
-              <TextField size="sm"
+              <TextField
+                size="sm"
                 fullWidth
                 type="tel"
                 label={F.phone}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
-              <Select size="sm"
+              <Select
+                size="sm"
                 fullWidth
                 label={F.status}
                 value={status}
                 options={options(STATUS_LABEL)}
                 onChange={(v) => setStatus(v as ActiveStatus)}
               />
-              <Select size="sm"
+              <Select
+                size="sm"
                 fullWidth
                 label={F.personality}
                 value={personality}
                 options={options(PERSONALITY_LABEL)}
                 onChange={(v) => setPersonality(v as Personality)}
               />
-              <Select size="sm"
+              <Select
+                size="sm"
                 fullWidth
                 label={F.householdRole}
                 value={role}
@@ -187,7 +210,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 onChange={(v) => setRole(v as HouseholdRole)}
               />
               <div className="ro-wide">
-                <Select size="sm"
+                <Select
+                  size="sm"
                   fullWidth
                   searchable
                   label={F.household}
@@ -201,7 +225,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                 />
               </div>
               <div className="ro-wide">
-                <TextField size="sm"
+                <TextField
+                  size="sm"
                   multiline
                   rows={2}
                   fullWidth
@@ -212,33 +237,33 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
               </div>
             </div>
           </form>
-            {error && (
-              <p className="ro-error" role="alert">
-                ⚠ {error}
-              </p>
-            )}
-          </Dialog.Content>
-          <Dialog.Actions>
-            {isEdit && (
-              <Button
-                type="button"
-                variant="danger"
-                size="sm"
-                shape="square"
-                disabled={busy}
-                onClick={() => setConfirmDelete(true)}
-                style={{ marginRight: 'auto' }}
-              >
-                {F.delete}
-              </Button>
-            )}
-            <Button type="button" variant="ghost" size="sm" shape="square" disabled={busy} onClick={onClose}>
-              {F.cancel}
+          {error && (
+            <p className="ro-error" role="alert">
+              ⚠ {error}
+            </p>
+          )}
+        </Dialog.Content>
+        <Dialog.Actions>
+          {isEdit && (
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              shape="square"
+              disabled={busy}
+              onClick={() => setConfirmDelete(true)}
+              style={{ marginRight: 'auto' }}
+            >
+              {F.delete}
             </Button>
-            <Button type="submit" form="member-form" variant="primary" size="sm" shape="square" disabled={busy}>
-              {busy ? F.saving : F.save}
-            </Button>
-          </Dialog.Actions>
+          )}
+          <Button type="button" variant="ghost" size="sm" shape="square" disabled={busy} onClick={onClose}>
+            {F.cancel}
+          </Button>
+          <Button type="submit" form="member-form" variant="primary" size="sm" shape="square" disabled={busy}>
+            {busy ? F.saving : F.save}
+          </Button>
+        </Dialog.Actions>
       </Dialog>
 
       {member && (

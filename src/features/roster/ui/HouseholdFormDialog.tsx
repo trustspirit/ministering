@@ -52,7 +52,8 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
         <form id="household-form" onSubmit={submit} noValidate>
           <div className="ro-form">
             <div className="ro-wide">
-              <TextField size="sm"
+              <TextField
+                size="sm"
                 fullWidth
                 label={F.name}
                 required
@@ -63,10 +64,17 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
               />
             </div>
             <div className="ro-wide">
-              <TextField size="sm" fullWidth label={F.address} value={address} onChange={(e) => setAddress(e.target.value)} />
+              <TextField
+                size="sm"
+                fullWidth
+                label={F.address}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
             </div>
             <div className="ro-wide">
-              <TextField size="sm"
+              <TextField
+                size="sm"
                 multiline
                 rows={4}
                 fullWidth
@@ -77,20 +85,34 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
             </div>
           </div>
         </form>
-          {error && (
-            <p className="ro-error" role="alert">
-              ⚠ {error}
-            </p>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button type="button" variant="ghost" size="sm" shape="square" disabled={update.isPending} onClick={onClose}>
-            {F.cancel}
-          </Button>
-          <Button type="submit" form="household-form" variant="primary" size="sm" shape="square" disabled={update.isPending}>
-            {update.isPending ? F.saving : F.save}
-          </Button>
-        </Dialog.Actions>
+        {error && (
+          <p className="ro-error" role="alert">
+            ⚠ {error}
+          </p>
+        )}
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          shape="square"
+          disabled={update.isPending}
+          onClick={onClose}
+        >
+          {F.cancel}
+        </Button>
+        <Button
+          type="submit"
+          form="household-form"
+          variant="primary"
+          size="sm"
+          shape="square"
+          disabled={update.isPending}
+        >
+          {update.isPending ? F.saving : F.save}
+        </Button>
+      </Dialog.Actions>
     </Dialog>
   );
 }

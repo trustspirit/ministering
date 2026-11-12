@@ -15,6 +15,19 @@ const HEADERS = [
   'household_role',
 ];
 
+/**
+ * Cells starting with = + - @ tab or CR run as formulas in spreadsheets. Such a cell (optionally already
+ * starting with apostrophes) gets one extra leading apostrophe; parseMemberCsv removes exactly one again.
+ * Papa's own escapeFormulae is not used: its pattern ends in `.*$`, which skips cells with a newline.
+ */
+const NEEDS_GUARD = /^'*[=+\-@\t\r]/;
+
+function protectCells<T extends Record<string, string>>(row: T): T {
+  return Object.fromEntries(
+    Object.entries(row).map(([k, v]) => [k, NEEDS_GUARD.test(v) ? `'${v}` : v]),
+  ) as T;
+}
+
 export function exportMembersCsv(
   members: Member[],
   householdIdToName: Record<string, string>,
@@ -32,6 +45,5 @@ export function exportMembersCsv(
     household_role: m.household_role,
   }));
 
-  // escapeFormulae prefixes cells starting with = + - @ tab CR with ' so spreadsheets do not run them.
-  return Papa.unparse({ fields: HEADERS, data: rows }, { escapeFormulae: true });
+  return Papa.unparse({ fields: HEADERS, data: rows.map(protectCells) });
 }

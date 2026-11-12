@@ -20,6 +20,7 @@
   --app-warn-pill-ink: #3a2800;
   --app-bad-ink: #8f1d15;
   --app-bad-line: #d8807a;
+  --app-surface: #fff;
   --app-font-serif: 'Noto Serif KR', serif;
 }
 
@@ -36,7 +37,7 @@
 }
 
 /* Titles are serif (明朝); trust-ui dialog titles included. */
-dialog h2 {
+dialog h2[class] {
   font-family: var(--app-font-serif);
   font-weight: 700;
   color: var(--app-navy);

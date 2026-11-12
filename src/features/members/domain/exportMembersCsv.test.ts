@@ -87,12 +87,12 @@ describe('exportMembersCsv', () => {
     });
   });
 
-  it('neutralizes spreadsheet formulas and round-trips the original values', () => {
+  it('neutralizes spreadsheet formulas, also in multi-line cells', () => {
     const csv = exportMembersCsv(
       [
         member({
           full_name: '@관리자',
-          memo: '=HYPERLINK("http://x","y")',
+          memo: '=HYPERLINK("http://x","y")\n둘째 줄',
           phone: '+82-10-1234-5678',
           address: '-1 거리',
           household_id: 'h1',
@@ -103,17 +103,26 @@ describe('exportMembersCsv', () => {
     const parsed = Papa.parse<Record<string, string>>(csv, { header: true });
     const cells = Object.values(parsed.data[0]);
     expect(cells.some((c) => /^[=+\-@\t\r]/.test(c))).toBe(false);
-    expect(parsed.data[0]['연락처']).toBe("'+82-10-1234-5678");
+    expect(parsed.data[0]['memo']).toBe('\'=HYPERLINK("http://x","y")\n둘째 줄');
+  });
 
-    const res = parseMemberCsv(csv.replace('full_name', 'full_name'));
+  it.each([
+    "'=x",
+    "''=x",
+    '=x',
+    '+82-10-1234-5678',
+    "O'Neil",
+    "'plain",
+    '=a\nb',
+  ])('round-trips %j without leaving a formula character first', (value) => {
+    const csv = exportMembersCsv([member({ full_name: 'N', memo: value, phone: value })], {});
+    const parsed = Papa.parse<Record<string, string>>(csv, { header: true });
+    expect(/^[=+\-@\t\r]/.test(parsed.data[0]['memo'])).toBe(false);
+    expect(/^[=+\-@\t\r]/.test(parsed.data[0]['연락처'])).toBe(false);
+    const res = parseMemberCsv(csv);
     expect(res.errors).toEqual([]);
-    expect(res.valid[0]).toMatchObject({
-      full_name: '@관리자',
-      memo: '=HYPERLINK("http://x","y")',
-      phone: '+82-10-1234-5678',
-      address: '-1 거리',
-      household_name: '=가정',
-    });
+    expect(res.valid[0].memo).toBe(value);
+    expect(res.valid[0].phone).toBe(value);
   });
 
   it('쉼표가 들어간 필드는 quote', () => {

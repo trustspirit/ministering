@@ -128,7 +128,6 @@ export const T = {
     noValue: '—',
     headcount: (n: number) => `${n}명`,
     noHouseholdGroup: '가정 미지정',
-    emptyHousehold: '구성원이 없습니다',
     empty: '조건에 맞는 사람이 없습니다',
     editMember: '수정',
     editMemberOf: (name: string) => `${name} 수정`,
@@ -163,6 +162,7 @@ export const T = {
     deleteConfirm: (name: string) => `${name}을(를) 삭제할까요? 명부에서 사라지고, 지명도 함께 해제됩니다.`,
     confirmDelete: '삭제',
     saveFailed: '저장하지 못했습니다. 다시 시도해 주세요.',
+    rollbackFailed: '가정은 만들어졌지만 사람을 저장하지 못했습니다. 명부에서 가정을 확인해 주세요.',
     deleteFailed: '삭제하지 못했습니다. 다시 시도해 주세요.',
   },
   householdForm: {
@@ -195,8 +195,6 @@ export const T = {
     valid: '가져올 수 있음',
     errors: '오류',
     errorRow: '행',
-    errorReason: '이유',
-    errorRaw: '원본',
     pickAgain: '다시 선택',
     importValid: (n: number) => `${n}건 가져오기`,
     preparing: '준비 중…',
@@ -212,7 +210,6 @@ export const T = {
     close: '닫기',
     cancel: '취소',
     importFailed: '가져오지 못했습니다. 다시 시도해 주세요.',
-    wrongType: 'CSV 파일만 선택할 수 있습니다.',
   },
   mobile: {
     tabsLabel: '작업 화면',
