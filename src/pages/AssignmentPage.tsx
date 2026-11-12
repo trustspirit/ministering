@@ -9,6 +9,7 @@ import { endDrag, isOurDrag } from '@/features/assignment/dnd';
 import { useWorkspaceStore } from '@/features/assignment/store';
 import { buildLookups, WorkspaceContext, type WorkspaceData } from '@/features/assignment/workspaceContext';
 import { BoardPanel } from '@/features/assignment/ui/BoardPanel';
+import { MapPanel } from '@/features/assignment/ui/MapPanel';
 import { PoolPanel } from '@/features/assignment/ui/PoolPanel';
 import { ResizeBar } from '@/features/assignment/ui/ResizeBar';
 import { SummaryBar } from '@/features/assignment/ui/SummaryBar';
@@ -100,8 +101,11 @@ export default function AssignmentPage() {
             <PoolPanel households={households} />
             <BoardPanel />
             <ResizeBar />
-            {/* Map (Task 8) and background detail (Task 9) go here. */}
-            <aside className="aw-side" />
+            <aside className="aw-side">
+              <MapPanel />
+              {/* Background detail (Task 9) goes here. */}
+              <div className="aw-detail" />
+            </aside>
           </div>
         </WorkspaceContext.Provider>
       )}

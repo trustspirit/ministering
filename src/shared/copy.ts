@@ -90,6 +90,23 @@ export const T = {
     newMinistryHint: '여기에 끌어다 놓기',
     resize: '끌어서 지도 크기 조절',
   },
+  map: {
+    label: '지도',
+    keyLabel: '지도 범례',
+    loading: '지도를 불러오는 중…',
+    loadFailed: '지도를 불러오지 못했습니다. 목록과 성역 동반자 카드는 그대로 쓸 수 있습니다.',
+    noCoords: '주소 좌표가 있는 대상이 없습니다',
+    keyHousehold: '가정',
+    keyMember: { EQ: '장로 정원회 회원', RS: '상호부조회 회원' } satisfies Record<Organization, string>,
+    keyAssigned: '지명됨 (숫자 = 성역 동반자 번호)',
+    keyRecipientBadge: '작은 숫자 = 지명된 성역 동반자',
+    /** Stripped from household names on pin labels ("노진수 가정" → "노진수"). */
+    householdSuffix: ' 가정',
+    pinCompanion: (n: number) => `성역 동반자 ${n}의 성역자`,
+    pinRecipient: (n: number) => `성역 동반자 ${n}에게 지명됨`,
+    pinNewMember: '새로운 회원',
+    pinLessActive: '저활동 회원',
+  },
   drop: {
     notFound: '대상을 찾을 수 없습니다',
     needZoneRs: '자매 성역자 칸이나 지명된 자매 칸에 놓아 주세요',

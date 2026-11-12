@@ -293,5 +293,108 @@
 .aw-bar--on { background: var(--app-accent); }
 .aw-side { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 
+/* map (top of the right column) */
+.aw-map { position: relative; flex: 1.9; min-height: 0; background: #edf0f2; overflow: hidden; }
+.aw-map-canvas { position: absolute; inset: 0; }
+.aw-map-msg { margin: 0; padding: 16px 18px; color: var(--app-mute); font-size: 12px; }
+.aw-map-note {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 2;
+  margin: 0;
+  font-size: 11px;
+  color: var(--app-mute);
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--app-rule);
+  padding: 1px 6px;
+}
+.aw-key {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 2;
+  margin: 0;
+  list-style: none;
+  font-size: 11px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--app-rule);
+  padding: 4px 8px;
+  display: flex;
+  gap: 12px;
+  pointer-events: none;
+}
+.aw-key i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--app-ink);
+  margin-right: 4px;
+  vertical-align: -1px;
+  background: #fff;
+}
+.aw-key i.aw-key-p { border-radius: 50%; }
+.aw-key i.aw-key-as { background: var(--app-navy); border-color: var(--app-navy); }
+
+/* map pins (positioned by Kakao; centred on their coordinate) */
+.aw-pin {
+  position: relative;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--app-ink);
+  background: #fff;
+  border: 1.5px solid var(--app-ink);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+/* Kakao's overlay box stays at the coordinate while a spread pin is shifted out of it; the box
+   must not catch the pointer meant for a neighbouring pin. */
+.aw-map-canvas div:has(> .aw-pin) { pointer-events: none; }
+.aw-pin { pointer-events: auto; }
+.aw-pin[draggable='true'] { cursor: grab; }
+.aw-pin--p { border-radius: 11px; }
+.aw-pin--n { border-color: var(--app-accent); }
+.aw-pin--as { background: var(--app-navy); border-color: var(--app-navy); color: #fff; }
+.aw-pin--l { opacity: .55; }
+.aw-pin--dim { opacity: .18; }
+.aw-pin--sel { background: var(--app-accent); border-color: var(--app-accent); color: #fff; opacity: 1; }
+.aw-pin:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; }
+.aw-pin-lb {
+  position: absolute;
+  top: 23px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 500;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--app-ink);
+  background: rgba(255, 255, 255, .88);
+  padding: 0 3px;
+}
+.aw-pin-rb {
+  position: absolute;
+  right: -9px;
+  top: -9px;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--app-navy);
+  color: var(--app-navy);
+  font-size: 9px;
+  display: grid;
+  place-items: center;
+}
+
+/* background detail (bottom of the right column; filled in Task 9) */
+.aw-detail { flex: 1; min-height: 150px; overflow: auto; border-top: 1px solid var(--app-rule); }
+
 /* trust-ui overlays used by the board */
 .aw-dialog-text { margin: 0; font-size: 13px; line-height: 1.6; }
