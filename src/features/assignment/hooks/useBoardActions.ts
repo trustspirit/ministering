@@ -17,6 +17,8 @@ export interface BoardActions {
   perform(ops: Op[]): Promise<void>;
   renameMinistry(id: string, name: string | null): Promise<void>;
   deleteMinistry(id: string): Promise<void>;
+  /** `null` switches the public link off. Resolves true when the change was saved (a failure toasts and resolves false). */
+  setShareToken(id: string, token: string | null): Promise<boolean>;
   pending: boolean;
 }
 
@@ -80,7 +82,20 @@ export function useBoardActions(org: Organization): BoardActions {
 
     const deleteMinistry = (id: string) => simple(() => ministryRepository.remove(id));
 
-    return { perform, renameMinistry, deleteMinistry };
+    const setShareToken = (id: string, token: string | null): Promise<boolean> => {
+      let saved = false;
+      return enqueue(async () => {
+        try {
+          await ministryRepository.update(id, { share_token: token });
+          saved = true;
+        } catch {
+          toast({ variant: 'danger', message: T.saveFailed });
+        }
+        await refetch();
+      }).then(() => saved);
+    };
+
+    return { perform, renameMinistry, deleteMinistry, setShareToken };
   }, [qc, toast, org, queue]);
 
   const pending = pendingCount > 0;

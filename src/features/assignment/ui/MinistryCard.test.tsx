@@ -55,7 +55,14 @@ describe('MinistryCard', () => {
     expect(screen.queryByRole('button', { name: '지명 해제' })).toBeNull();
     expect(screen.queryByRole('button', { name: '이름 바꾸기 · 삭제' })).toBeNull();
     expect(screen.queryByText('공유')).toBeNull();
+    expect(screen.queryByRole('button', { name: '링크 만들기' })).toBeNull();
     expect(screen.getByText('김도현').closest('[draggable]')).toBeNull();
+  });
+
+  it('opens the share dialog from 공유 for an editor', () => {
+    renderCard();
+    fireEvent.click(screen.getByText('공유'));
+    expect(screen.getByRole('button', { name: '링크 만들기' })).toBeInTheDocument();
   });
 
   it('keeps × in the accessibility tree for an editor (hidden only visually)', () => {

@@ -16,6 +16,7 @@ import { useWorkspace, WorkspaceContext } from '../workspaceContext';
 import { HouseholdCard } from './HouseholdCard';
 import { onActivateKey } from './keyboard';
 import { PersonCard } from './PersonCard';
+import { ShareDialog } from '@/features/share/ui/ShareDialog';
 
 function Warning({ text, soft }: { text: string; soft?: boolean }) {
   return (
@@ -36,7 +37,7 @@ export function MinistryCard({
   canEdit: boolean;
 }) {
   const workspace = useWorkspace();
-  const { memberById, householdById, familyOf, actions, onShare } = workspace;
+  const { memberById, householdById, familyOf, actions } = workspace;
   // An optimistic card (not yet saved) is shown but takes no drops or edits until the refetch replaces it.
   const pending = isPendingMinistry(ministry.id);
   const editable = canEdit && !pending;
@@ -52,6 +53,7 @@ export function MinistryCard({
   const handleDrop = useDropHandler(org);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const editDone = useRef(false);
 
   const label = ministryLabel(ministry);
@@ -153,7 +155,7 @@ export function MinistryCard({
                 type="button"
                 className="aw-shr"
                 title={T.assign.shareTitle}
-                onClick={() => onShare(ministry.id)}
+                onClick={() => setSharing(true)}
               >
                 {T.assign.share}
               </button>
@@ -224,6 +226,8 @@ export function MinistryCard({
           </div>
         </WorkspaceContext.Provider>
       </section>
+
+      {editable && <ShareDialog ministry={ministry} open={sharing} onClose={() => setSharing(false)} />}
 
       {canEdit && (
         <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)} size="sm">

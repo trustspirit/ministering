@@ -32,9 +32,6 @@ const REALTIME_TABLES = [
   'households',
 ] as const;
 
-/** Share links arrive in Task 12. */
-const noShare = () => {};
-
 export default function AssignmentPage() {
   const { org: orgParam } = useParams<{ org: string }>();
   const org: Organization = orgParam === 'eq' ? 'EQ' : 'RS';
@@ -88,7 +85,7 @@ export default function AssignmentPage() {
   const value = useMemo<WorkspaceData | null>(
     () =>
       board && members && lookups && board.organization === org
-        ? { org, board, canEdit, members, ...lookups, actions, onShare: noShare }
+        ? { org, board, canEdit, members, ...lookups, actions }
         : null,
     [org, board, canEdit, members, lookups, actions],
   );

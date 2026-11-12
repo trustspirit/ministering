@@ -48,9 +48,9 @@ export function renderWorkspace(
       perform: vi.fn(async () => {}),
       renameMinistry: vi.fn(async () => {}),
       deleteMinistry: vi.fn(async () => {}),
+      setShareToken: vi.fn(async () => true),
       pending: false,
     },
-    onShare: vi.fn(),
   };
   return {
     value,

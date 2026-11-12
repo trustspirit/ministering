@@ -8,9 +8,12 @@ import NotFoundPage from '@/pages/NotFoundPage';
 import RosterPage from '@/pages/RosterPage';
 import AssignmentPage from '@/pages/AssignmentPage';
 import SettingsPage from '@/pages/SettingsPage';
+import SharePage from '@/pages/SharePage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  // Public, token-gated: outside RequireAuth and Layout (no app chrome).
+  { path: '/s/:token', element: <SharePage /> },
   {
     element: <RequireAuth />,
     children: [

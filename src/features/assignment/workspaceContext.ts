@@ -16,7 +16,6 @@ export interface WorkspaceData {
   /** household id → its members (unsorted) */
   familyOf: Map<string, Member[]>;
   actions: BoardActions;
-  onShare: (ministryId: string) => void;
 }
 
 export const WorkspaceContext = createContext<WorkspaceData | null>(null);
