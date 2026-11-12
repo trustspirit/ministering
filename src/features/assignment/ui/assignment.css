@@ -166,7 +166,7 @@
   box-shadow: 0 0 0 1px var(--app-accent);
 }
 .aw-mcard h3 { display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 700; line-height: 1.5; }
-.aw-mtitle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aw-mtitle { font-family: var(--app-font-serif); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aw-mtitle:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 .aw-mtools { margin-left: auto; display: flex; align-items: baseline; gap: 8px; flex: none; }
 .aw .aw-shr {
@@ -346,9 +346,8 @@
   overflow: auto;
   border-top: 1px solid var(--app-rule);
   padding: 12px 16px 16px;
-  font-size: 12.5px;
 }
-.aw-detail h2 { font-size: 17px; margin: 0; color: var(--app-navy); font-family: inherit; }
+.aw-detail h2 { font-family: var(--app-font-serif); font-size: 17px; font-weight: 700; margin: 0; color: var(--app-navy); }
 .aw-detail a { color: var(--app-accent); }
 .aw-detail-empty { margin: 0; color: var(--app-mute); }
 .aw-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; }

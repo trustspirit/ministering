@@ -100,7 +100,7 @@
   padding: 7px 10px;
   vertical-align: top;
 }
-.ro-hh b { color: var(--app-navy); font-size: 14px; font-weight: 700; }
+.ro-hh b { font-family: var(--app-font-serif); color: var(--app-navy); font-size: 14px; font-weight: 700; }
 .ro-sub { margin-left: 10px; color: var(--app-mute); }
 .ro-ind { padding-left: 26px; white-space: nowrap; }
 .ro-memo {

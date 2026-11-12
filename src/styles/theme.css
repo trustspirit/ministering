@@ -20,6 +20,7 @@
   --app-warn-pill-ink: #3a2800;
   --app-bad-ink: #8f1d15;
   --app-bad-line: #d8807a;
+  --app-font-serif: 'Noto Serif KR', serif;
 }
 
 :root,
@@ -32,4 +33,11 @@
   --tui-radius-sheet: 2px;
   --tui-radius-tight: 2px;
   --tui-font-sans: 'Ensign:Sans', Roboto, 'Noto Sans KR', Arial, sans-serif;
+}
+
+/* Titles are serif (明朝); trust-ui dialog titles included. */
+dialog h2 {
+  font-family: var(--app-font-serif);
+  font-weight: 700;
+  color: var(--app-navy);
 }
