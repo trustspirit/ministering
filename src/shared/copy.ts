@@ -9,10 +9,10 @@ export const ORG_LABEL: Record<Organization, string> = {
   RS: '상호부조회',
 };
 
-// `new_member` is added together with the DB enum change.
 export const STATUS_LABEL: Record<ActiveStatus, string> = {
   active: '활동 회원',
   less_active: '저활동 회원',
+  new_member: '새로운 회원',
 };
 
 export const GENDER_LABEL: Record<Gender, string> = {

@@ -65,6 +65,7 @@ export type Database = {
           id: string
           lat: number | null
           lng: number | null
+          memo: string | null
           name: string
           updated_at: string
         }
@@ -74,6 +75,7 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          memo?: string | null
           name: string
           updated_at?: string
         }
@@ -83,6 +85,7 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          memo?: string | null
           name?: string
           updated_at?: string
         }
@@ -104,6 +107,7 @@ export type Database = {
           lng: number | null
           memo: string | null
           personality: Database["public"]["Enums"]["personality"]
+          phone: string | null
           updated_at: string
         }
         Insert: {
@@ -121,6 +125,7 @@ export type Database = {
           lng?: number | null
           memo?: string | null
           personality?: Database["public"]["Enums"]["personality"]
+          phone?: string | null
           updated_at?: string
         }
         Update: {
@@ -138,6 +143,7 @@ export type Database = {
           lng?: number | null
           memo?: string | null
           personality?: Database["public"]["Enums"]["personality"]
+          phone?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -157,6 +163,7 @@ export type Database = {
           name: string | null
           number: number
           organization: Database["public"]["Enums"]["organization"]
+          share_token: string | null
           updated_at: string
         }
         Insert: {
@@ -165,6 +172,7 @@ export type Database = {
           name?: string | null
           number: number
           organization: Database["public"]["Enums"]["organization"]
+          share_token?: string | null
           updated_at?: string
         }
         Update: {
@@ -173,6 +181,7 @@ export type Database = {
           name?: string | null
           number?: number
           organization?: Database["public"]["Enums"]["organization"]
+          share_token?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -286,9 +295,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_ministry_share: { Args: { p_token: string }; Returns: Json }
     }
     Enums: {
-      active_status: "active" | "less_active"
+      active_status: "active" | "less_active" | "new_member"
       gender: "M" | "F"
       household_role: "husband" | "wife" | "child" | "other"
       organization: "RS" | "EQ"
@@ -424,7 +434,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      active_status: ["active", "less_active"],
+      active_status: ["active", "less_active", "new_member"],
       gender: ["M", "F"],
       household_role: ["husband", "wife", "child", "other"],
       organization: ["RS", "EQ"],
