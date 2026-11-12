@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Combobox, DatePicker, Dialog, Select, TextArea, TextField, useToast } from 'trust-ui-react';
 import { householdDefaultName } from '@/features/households/domain/householdDefaultName';
@@ -47,6 +47,12 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Keyboard focus: swapping the form for the confirmation unmounts the clicked button, so focus is placed
+  // explicitly. Confirmation -> its safe action (취소); back to the form -> the 삭제 button that opened it.
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const cancelDeleteRef = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  const [deleting, setDeleting] = useState(false);
 
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -60,6 +66,18 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
   const nameError = submitted && !fullName.trim() ? F.nameRequired : undefined;
   const genderError = submitted && !gender ? F.genderRequired : undefined;
   const birthError = submitted && !birthDate ? F.birthRequired : undefined;
+
+  useEffect(() => {
+    if (!confirmDelete) return;
+    cancelDeleteRef.current?.focus();
+    restoreFocus.current = true;
+  }, [confirmDelete]);
+  // Waits for `busy` so that a failed delete (button disabled while it ran) still gets its focus back.
+  useEffect(() => {
+    if (confirmDelete || !restoreFocus.current || busy || deleting || !open) return;
+    restoreFocus.current = false;
+    deleteButtonRef.current?.focus();
+  }, [confirmDelete, busy, deleting, open]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -116,6 +134,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
 
   const remove = async () => {
     if (!member) return;
+    setDeleting(true);
     setConfirmDelete(false);
     setError(null);
     try {
@@ -123,6 +142,8 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
       onClose();
     } catch {
       setError(F.deleteFailed);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -143,7 +164,13 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
               <p className="ro-dialog-text">{F.deleteConfirm(member.full_name)}</p>
             </Dialog.Content>
             <Dialog.Actions>
-              <Button variant="ghost" size="sm" shape="square" onClick={() => setConfirmDelete(false)}>
+              <Button
+                ref={cancelDeleteRef}
+                variant="ghost"
+                size="sm"
+                shape="square"
+                onClick={() => setConfirmDelete(false)}
+              >
                 {F.cancel}
               </Button>
               <Button variant="danger" size="sm" shape="square" onClick={remove}>
@@ -152,146 +179,147 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
             </Dialog.Actions>
           </>
         ) : (
-          <>
-          <Dialog.Title onClose={onClose}>{isEdit ? F.editTitle : F.createTitle}</Dialog.Title>
-          <Dialog.Content>
-            <form id="member-form" onSubmit={submit} noValidate>
-              <div className="ro-form">
-                <div className="ro-wide">
-                  <TextField
+            <>
+            <Dialog.Title onClose={onClose}>{isEdit ? F.editTitle : F.createTitle}</Dialog.Title>
+            <Dialog.Content>
+              <form id="member-form" onSubmit={submit} noValidate>
+                <div className="ro-form">
+                  <div className="ro-wide">
+                    <TextField
+                      size="sm"
+                      fullWidth
+                      label={F.name}
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      error={!!nameError}
+                      errorMessage={nameError}
+                    />
+                  </div>
+                  <Select
                     size="sm"
                     fullWidth
-                    label={F.name}
+                    label={F.gender}
                     required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    error={!!nameError}
-                    errorMessage={nameError}
+                    placeholder={F.genderPlaceholder}
+                    value={gender}
+                    options={options(GENDER_LABEL)}
+                    onChange={(v) => setGender(v as Gender)}
+                    error={!!genderError}
+                    errorMessage={genderError}
                   />
-                </div>
-                <Select
-                  size="sm"
-                  fullWidth
-                  label={F.gender}
-                  required
-                  placeholder={F.genderPlaceholder}
-                  value={gender}
-                  options={options(GENDER_LABEL)}
-                  onChange={(v) => setGender(v as Gender)}
-                  error={!!genderError}
-                  errorMessage={genderError}
-                />
-                <DatePicker
-                  size="sm"
-                  label={F.birthDate}
-                  required
-                  mobileVariant="native"
-                  value={parseIsoDate(birthDate)}
-                  maxDate={new Date()}
-                  onChange={(d) => setBirthDate(d ? toIsoDate(d) : '')}
-                  error={!!birthError}
-                  errorMessage={birthError}
-                />
-                <div className="ro-wide">
+                  <DatePicker
+                    size="sm"
+                    label={F.birthDate}
+                    required
+                    mobileVariant="native"
+                    value={parseIsoDate(birthDate)}
+                    maxDate={new Date()}
+                    onChange={(d) => setBirthDate(d ? toIsoDate(d) : '')}
+                    error={!!birthError}
+                    errorMessage={birthError}
+                  />
+                  <div className="ro-wide">
+                    <TextField
+                      size="sm"
+                      fullWidth
+                      label={F.address}
+                      placeholder={F.addressPlaceholder}
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                  </div>
                   <TextField
                     size="sm"
                     fullWidth
-                    label={F.address}
-                    placeholder={F.addressPlaceholder}
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    type="tel"
+                    label={F.phone}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                   />
-                </div>
-                <TextField
-                  size="sm"
-                  fullWidth
-                  type="tel"
-                  label={F.phone}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-                <Select
-                  size="sm"
-                  fullWidth
-                  label={F.status}
-                  value={status}
-                  options={options(STATUS_LABEL)}
-                  onChange={(v) => setStatus(v as ActiveStatus)}
-                />
-                <Select
-                  size="sm"
-                  fullWidth
-                  label={F.personality}
-                  value={personality}
-                  options={options(PERSONALITY_LABEL)}
-                  onChange={(v) => setPersonality(v as Personality)}
-                />
-                <Select
-                  size="sm"
-                  fullWidth
-                  label={F.householdRole}
-                  value={role}
-                  options={options(F.roles)}
-                  onChange={(v) => setRole(v as HouseholdRole)}
-                />
-                <div className="ro-wide">
-                  <Combobox
+                  <Select
                     size="sm"
                     fullWidth
-                    label={F.household}
-                    clearable={false}
-                    placeholder={F.householdSearch}
-                    emptyText={F.householdNoMatch}
-                    value={householdChoice}
-                    options={[
-                      { value: NONE, label: F.householdNone },
-                      { value: NEW, label: F.householdNew },
-                      ...households.map((h) => ({ value: h.id, label: h.name })),
-                    ]}
-                    // The "가정 없음" item is the way to clear, so an emptied field falls back to it.
-                    onChange={(v) => setHouseholdChoice(v ?? NONE)}
+                    label={F.status}
+                    value={status}
+                    options={options(STATUS_LABEL)}
+                    onChange={(v) => setStatus(v as ActiveStatus)}
                   />
-                </div>
-                <div className="ro-wide">
-                  <TextArea
+                  <Select
                     size="sm"
-                    rows={2}
-                    autoResize
                     fullWidth
-                    label={F.memo}
-                    value={memo}
-                    onValueChange={setMemo}
+                    label={F.personality}
+                    value={personality}
+                    options={options(PERSONALITY_LABEL)}
+                    onChange={(v) => setPersonality(v as Personality)}
                   />
+                  <Select
+                    size="sm"
+                    fullWidth
+                    label={F.householdRole}
+                    value={role}
+                    options={options(F.roles)}
+                    onChange={(v) => setRole(v as HouseholdRole)}
+                  />
+                  <div className="ro-wide">
+                    <Combobox
+                      size="sm"
+                      fullWidth
+                      label={F.household}
+                      clearable={false}
+                      placeholder={F.householdSearch}
+                      emptyText={F.householdNoMatch}
+                      value={householdChoice}
+                      options={[
+                        { value: NONE, label: F.householdNone },
+                        { value: NEW, label: F.householdNew },
+                        ...households.map((h) => ({ value: h.id, label: h.name })),
+                      ]}
+                      // The "가정 없음" item is the way to clear, so an emptied field falls back to it.
+                      onChange={(v) => setHouseholdChoice(v ?? NONE)}
+                    />
+                  </div>
+                  <div className="ro-wide">
+                    <TextArea
+                      size="sm"
+                      rows={2}
+                      autoResize
+                      fullWidth
+                      label={F.memo}
+                      value={memo}
+                      onValueChange={setMemo}
+                    />
+                  </div>
                 </div>
-              </div>
-            </form>
-            {error && (
-              <p className="ro-error" role="alert">
-                ⚠ {error}
-              </p>
-            )}
-          </Dialog.Content>
-          <Dialog.Actions>
-            {isEdit && (
-              <Button
-                type="button"
-                variant="danger"
-                size="sm"
-                shape="square"
-                disabled={busy}
-                onClick={() => setConfirmDelete(true)}
-                style={{ marginRight: 'auto' }}
-              >
-                {F.delete}
+              </form>
+              {error && (
+                <p className="ro-error" role="alert">
+                  ⚠ {error}
+                </p>
+              )}
+            </Dialog.Content>
+            <Dialog.Actions>
+              {isEdit && (
+                <Button
+                  ref={deleteButtonRef}
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  shape="square"
+                  disabled={busy}
+                  onClick={() => setConfirmDelete(true)}
+                  style={{ marginRight: 'auto' }}
+                >
+                  {F.delete}
+                </Button>
+              )}
+              <Button type="button" variant="ghost" size="sm" shape="square" disabled={busy} onClick={onClose}>
+                {F.cancel}
               </Button>
-            )}
-            <Button type="button" variant="ghost" size="sm" shape="square" disabled={busy} onClick={onClose}>
-              {F.cancel}
-            </Button>
-            <Button type="submit" form="member-form" variant="primary" size="sm" shape="square" disabled={busy}>
-              {busy ? F.saving : F.save}
-            </Button>
-          </Dialog.Actions>
+              <Button type="submit" form="member-form" variant="primary" size="sm" shape="square" disabled={busy}>
+                {busy ? F.saving : F.save}
+              </Button>
+            </Dialog.Actions>
           </>
         )}
       </Dialog>

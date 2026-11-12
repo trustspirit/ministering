@@ -23,6 +23,16 @@ export function ShareDialog({
   const S = T.share;
   const [confirm, setConfirm] = useState<Confirm>(null);
   const [writing, setWriting] = useState(false);
+  // Keyboard focus: the confirmation replaces the buttons that opened it, so focus is placed explicitly.
+  // Confirmation -> its safe action (취소). Cancel/Escape/backdrop -> the button that opened it. After a
+  // completed write (including 링크 만들기, whose button disappears) -> the link field, or 링크 만들기 when the
+  // link was switched off.
+  const disableRef = useRef<HTMLButtonElement>(null);
+  const regenerateRef = useRef<HTMLButtonElement>(null);
+  const createRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const openedFrom = useRef<Confirm>(null);
+  const afterWrite = useRef(false);
   const writingRef = useRef(false);
   const fieldRef = useRef<HTMLInputElement>(null);
   const query = useShareToken(ministry.id, open);
@@ -34,6 +44,22 @@ export function ShareDialog({
   useEffect(() => {
     if (open && failed) toast({ variant: 'danger', message: S.loadFailed });
   }, [open, failed, toast, S.loadFailed]);
+
+  useEffect(() => {
+    if (confirm !== null) {
+      openedFrom.current = confirm;
+      cancelRef.current?.focus();
+    } else if (openedFrom.current !== null && !afterWrite.current) {
+      (openedFrom.current === 'disable' ? disableRef : regenerateRef).current?.focus();
+      openedFrom.current = null;
+    }
+  }, [confirm]);
+  useEffect(() => {
+    if (!afterWrite.current || loading || confirm !== null || !open) return;
+    afterWrite.current = false;
+    openedFrom.current = null;
+    (fieldRef.current ?? createRef.current)?.focus();
+  }, [loading, confirm, open, token]);
 
   const copy = async () => {
     try {
@@ -52,6 +78,7 @@ export function ShareDialog({
     if (writingRef.current) return;
     writingRef.current = true;
     setWriting(true);
+    afterWrite.current = true;
     setConfirm(null);
     try {
       if (await actions.setShareToken(ministry.id, next)) {
@@ -74,82 +101,94 @@ export function ShareDialog({
         size="sm"
       >
         {confirm === null ? (
-          <>
-          <Dialog.Title onClose={onClose}>{S.dialogTitleOf(ministryLabel(ministry))}</Dialog.Title>
-          <Dialog.Content>
-            <p className="aw-dialog-text">{S.description}</p>
-            {loading && !failed && (
-              <div className="sh-status">
-                <Spinner size="sm" label={S.loading} showLabel />
-              </div>
-            )}
-            {!loading && token && (
-              <div className="sh-url">
-                <TextField
-                  ref={fieldRef}
-                  size="sm"
-                  fullWidth
-                  label={S.urlLabel}
-                  value={url}
-                  readOnly
-                  onFocus={(e) => e.currentTarget.select()}
-                />
-              </div>
-            )}
-          </Dialog.Content>
-          <Dialog.Actions>
-            {failed ? (
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                {S.close}
-              </Button>
-            ) : token ? (
-              <>
-                <Button variant="ghost" size="sm" disabled={loading} onClick={() => setConfirm('disable')}>
-                  {S.disable}
-                </Button>
-                <Button variant="outline" size="sm" disabled={loading} onClick={() => setConfirm('regenerate')}>
-                  {S.regenerate}
-                </Button>
-                <Button size="sm" disabled={loading} onClick={() => void copy()}>
-                  {S.copy}
-                </Button>
-              </>
-            ) : (
-              <>
+            <>
+            <Dialog.Title onClose={onClose}>{S.dialogTitleOf(ministryLabel(ministry))}</Dialog.Title>
+            <Dialog.Content>
+              <p className="aw-dialog-text">{S.description}</p>
+              {loading && !failed && (
+                <div className="sh-status">
+                  <Spinner size="sm" label={S.loading} showLabel />
+                </div>
+              )}
+              {!loading && token && (
+                <div className="sh-url">
+                  <TextField
+                    ref={fieldRef}
+                    size="sm"
+                    fullWidth
+                    label={S.urlLabel}
+                    value={url}
+                    readOnly
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                </div>
+              )}
+            </Dialog.Content>
+            <Dialog.Actions>
+              {failed ? (
                 <Button variant="ghost" size="sm" onClick={onClose}>
                   {S.close}
                 </Button>
-                <Button size="sm" disabled={loading} onClick={() => void write(generateShareToken())}>
-                  {S.create}
-                </Button>
-              </>
-            )}
-          </Dialog.Actions>
+              ) : token ? (
+                <>
+                  <Button
+                  ref={disableRef}
+                  variant="ghost"
+                  size="sm"
+                  disabled={loading}
+                  onClick={() => setConfirm('disable')}
+                >
+                    {S.disable}
+                  </Button>
+                  <Button
+                  ref={regenerateRef}
+                  variant="outline"
+                  size="sm"
+                  disabled={loading}
+                  onClick={() => setConfirm('regenerate')}
+                >
+                    {S.regenerate}
+                  </Button>
+                  <Button size="sm" disabled={loading} onClick={() => void copy()}>
+                    {S.copy}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" onClick={onClose}>
+                    {S.close}
+                  </Button>
+                  <Button ref={createRef} size="sm" disabled={loading} onClick={() => void write(generateShareToken())}>
+                    {S.create}
+                  </Button>
+                </>
+              )}
+            </Dialog.Actions>
           </>
         ) : (
-          <>
-          <Dialog.Title onClose={() => setConfirm(null)}>
-            {confirm === 'disable' ? S.disableTitle : S.regenerateTitle}
-          </Dialog.Title>
-          <Dialog.Content>
-            <p className="aw-dialog-text">{confirm === 'disable' ? S.disableConfirm : S.regenerateConfirm}</p>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button variant="ghost" size="sm" onClick={() => setConfirm(null)}>
-              {S.cancel}
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() =>
-                confirm === 'disable'
-                  ? void write(null, S.disabled)
-                  : void write(generateShareToken(), S.regenerated)
-              }
-            >
-              {confirm === 'disable' ? S.disable : S.regenerate}
-            </Button>
-          </Dialog.Actions>
+            <>
+            <Dialog.Title onClose={() => setConfirm(null)}>
+              {confirm === 'disable' ? S.disableTitle : S.regenerateTitle}
+            </Dialog.Title>
+            <Dialog.Content>
+              <p className="aw-dialog-text">{confirm === 'disable' ? S.disableConfirm : S.regenerateConfirm}</p>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button ref={cancelRef} variant="ghost" size="sm" onClick={() => setConfirm(null)}>
+                {S.cancel}
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() =>
+                  confirm === 'disable'
+                    ? void write(null, S.disabled)
+                    : void write(generateShareToken(), S.regenerated)
+                }
+              >
+                {confirm === 'disable' ? S.disable : S.regenerate}
+              </Button>
+            </Dialog.Actions>
           </>
         )}
       </Dialog>

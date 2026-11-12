@@ -48,9 +48,10 @@
 }
 .aw-pool--over { background: var(--app-tint); }
 .aw-search { flex: none; padding: 10px 12px 8px; }
-/* trust-ui 2.2 TextField has no prop for a bare single-rule field, so its box is restyled to the mockup's 1px rule.
-   The box is found as "the element holding the <input>" and the helper/counter footer (the box's sibling) is
-   hidden; neither depends on hashed class names or child positions. */
+/* trust-ui 2.3.0 TextField has no prop for a bare single-rule field, so its box is restyled to the mockup's 1px rule.
+   The box is "the element that directly holds the <input>" (no hashed class names, no child positions). The footer
+   (helper text / counter) is hidden as "any child of the TextField root that does not hold the input", which still
+   relies on the root's direct children being the input box and that footer. */
 .aw-search :has(> input) {
   height: auto;
   min-height: 0;
@@ -216,7 +217,7 @@
   letter-spacing: .04em;
   margin: 0 0 4px;
 }
-.aw-empty {
+.aw-drop-hint {
   font-size: 11.5px;
   color: var(--app-mute);
   border: 1px dashed var(--app-rule);

@@ -39,7 +39,7 @@
   --tui-font-sans: 'Ensign:Sans', Roboto, 'Noto Sans KR', Arial, sans-serif;
 }
 
-/* Titles are serif (明朝). trust-ui 2.2 has no heading-font token (every title uses --tui-font-sans), so the
+/* Titles are serif (明朝). trust-ui 2.3.0 has no heading-font token (every title uses --tui-font-sans), so the
    dialog title is restyled here; Dialog.Title renders an <h2> carrying one hashed class, and [class] lifts this rule
    above that class's own weight and colour. */
 dialog h2[class] {
@@ -48,7 +48,8 @@ dialog h2[class] {
   color: var(--app-navy);
 }
 
-/* trust-ui EmptyState / Spinner at the mockup's compact density. The sizes come from library tokens, scoped to
+/* trust-ui EmptyState / Spinner at the mockup's compact density. The sizes come from library tokens (checked in
+   trust-ui-react 2.3.0: EmptyState reads --tui-gap-4/-6, --tui-font-size-h3 and --tui-font-size-body), scoped to
    the element, so nothing reaches into the components' internal DOM. Titles are serif like every other title. */
 .app-empty {
   --tui-gap-4: 6px;

@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from 'trust-ui-react';
 import { household, member } from '@/features/assignment/ui/testUtils';
+import { flushDialogClose } from '../../../../tests/dialogPolyfill';
 import { MemberFormDialog } from './MemberFormDialog';
 
 const mocks = vi.hoisted(() => ({
@@ -178,11 +179,65 @@ describe('MemberFormDialog', () => {
     await user.click(screen.getByRole('button', { name: '삭제' }));
     expect(mocks.deleteMember).not.toHaveBeenCalled();
     // trust-ui fires `close` after a programmatic close; switching to the confirmation must not report it.
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await act(async () => flushDialogClose());
     expect(onClose).not.toHaveBeenCalled();
     await user.click(await screen.findByRole('button', { name: '삭제' }));
     await waitFor(() => expect(mocks.deleteMember).toHaveBeenCalledWith('p'));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  describe('delete confirmation keeps keyboard focus inside the dialog', () => {
+    const m = member({ id: 'p', full_name: '박영수', household_id: 'h1', birth_date: '1980-02-03' });
+    const dialog = () => document.querySelector('dialog[open]') as HTMLDialogElement;
+    const focused = () => document.activeElement as HTMLElement;
+
+    async function openConfirm() {
+      const user = userEvent.setup();
+      const { onClose } = renderDialog({ member: m });
+      await user.click(screen.getByRole('button', { name: '삭제' }));
+      await screen.findByRole('button', { name: '취소' });
+      return { onClose, user };
+    }
+
+    it('focuses 취소 when the confirmation appears, and 삭제 again after 취소', async () => {
+      const { user } = await openConfirm();
+      expect(dialog()).toContainElement(focused());
+      expect(focused()).toBe(screen.getByRole('button', { name: '취소' }));
+      await user.click(screen.getByRole('button', { name: '취소' }));
+      const back = await screen.findByRole('button', { name: '삭제' });
+      await waitFor(() => expect(focused()).toBe(back));
+      expect(dialog()).toContainElement(focused());
+    });
+
+    it('Escape returns to the form without deleting or closing', async () => {
+      const { onClose } = await openConfirm();
+      fireEvent(dialog(), new Event('cancel', { cancelable: true }));
+      const back = await screen.findByRole('button', { name: '삭제' });
+      await waitFor(() => expect(focused()).toBe(back));
+      await act(async () => flushDialogClose());
+      expect(onClose).not.toHaveBeenCalled();
+      expect(mocks.deleteMember).not.toHaveBeenCalled();
+      expect(screen.getByLabelText(/이름/)).toHaveValue('박영수');
+    });
+
+    it('a backdrop click returns to the form without deleting or closing', async () => {
+      const { onClose } = await openConfirm();
+      fireEvent.mouseDown(dialog());
+      fireEvent.click(dialog());
+      const back = await screen.findByRole('button', { name: '삭제' });
+      await waitFor(() => expect(focused()).toBe(back));
+      expect(onClose).not.toHaveBeenCalled();
+      expect(mocks.deleteMember).not.toHaveBeenCalled();
+    });
+
+    it('a failed delete returns to the form with focus on 삭제 once it is enabled again', async () => {
+      mocks.deleteMember.mockRejectedValueOnce(new Error('403'));
+      const { user } = await openConfirm();
+      await user.click(screen.getAllByRole('button', { name: '삭제' })[0]);
+      expect(await screen.findByRole('alert')).toHaveTextContent('삭제하지 못했습니다');
+      const back = screen.getByRole('button', { name: '삭제' });
+      await waitFor(() => expect(focused()).toBe(back), { timeout: 500 });
+    });
   });
 
   it('shows no delete button when registering', () => {

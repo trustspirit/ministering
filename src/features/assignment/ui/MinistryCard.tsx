@@ -189,7 +189,7 @@ export function MinistryCard({
           <div className={zoneClass('companion')} data-zone="companion">
             <p className="aw-lab">{T.assign.zoneCompanions(companionNoun)}</p>
             {ministry.companionIds.length === 0 ? (
-              <div className="aw-empty">{T.assign.emptyCompanions(companionNoun)}</div>
+              <div className="aw-drop-hint">{T.assign.emptyCompanions(companionNoun)}</div>
             ) : (
               ministry.companionIds.map((id) => {
                 const m = memberById.get(id);
@@ -203,7 +203,7 @@ export function MinistryCard({
           <div className={zoneClass('recipient')} data-zone="recipient">
             <p className="aw-lab">{T.assign.zoneRecipients(recipientNoun)}</p>
             {ministry.recipientIds.length === 0 ? (
-              <div className="aw-empty">{T.assign.emptyRecipients[org]}</div>
+              <div className="aw-drop-hint">{T.assign.emptyRecipients[org]}</div>
             ) : (
               ministry.recipientIds.map((id) => {
                 if (org === 'EQ') {

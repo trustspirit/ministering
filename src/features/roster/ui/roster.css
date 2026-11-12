@@ -23,8 +23,8 @@
 .ro-search { width: 220px; }
 .ro-sp { margin-left: auto; }
 .ro-filter { width: 128px; }
-/* trust-ui TextField / Select flattened to the mockup's single 1px rule, 2px corners (see the same note in
-   assignment.css for why the TextField box is found with :has(> input)) */
+/* trust-ui TextField / Select flattened to the mockup's single 1px rule, 2px corners (see assignment.css for
+   what the :has(> input) and footer-hiding rules depend on in TextField's structure) */
 .ro-tools input,
 .ro-tools [role='combobox'] {
   font: inherit;

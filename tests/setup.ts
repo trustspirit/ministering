@@ -29,19 +29,7 @@ Object.defineProperty(globalThis, 'localStorage', {
   value: new MemoryStorage(),
 });
 
-// jsdom has no <dialog> modal support; trust-ui's Dialog calls showModal()/close().
-if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.showModal) {
-  HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
-    if (!this.hasAttribute('open')) return;
-    this.removeAttribute('open');
-    // Like a browser, `close` is fired asynchronously (a queued task), after close() has returned. trust-ui 2.2.0's
-    // Dialog reports that event through onClose even for a close it triggered itself, so tests must see it.
-    setTimeout(() => this.dispatchEvent(new Event('close')), 0);
-  };
-}
+import './dialogPolyfill';
 
 // jsdom does not implement scrollIntoView (trust-ui's Select calls it when opening).
 if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {

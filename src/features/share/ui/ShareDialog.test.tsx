@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { BoardMinistry } from '@/features/assignment/domain/board';
 import { renderWorkspace } from '@/features/assignment/ui/testUtils';
+import { flushDialogClose } from '../../../../tests/dialogPolyfill';
 import { ShareDialog } from './ShareDialog';
 
 const mocks = vi.hoisted(() => ({ getShareToken: vi.fn() }));
@@ -102,16 +103,79 @@ describe('ShareDialog', () => {
     );
   });
 
-  it('does not report onClose when it switches to the confirmation (trust-ui fires `close` after a programmatic close)', async () => {
-    mocks.getShareToken.mockImplementation(async () => TOKEN);
-    const onClose = vi.fn();
-    const { wrapper } = renderWorkspace(<ShareDialog ministry={ministry} open onClose={onClose} />);
-    render(wrapper);
-    fireEvent.click(await screen.findByRole('button', { name: '링크 끄기' }));
-    await screen.findByText(/이 링크는 더 이상 열리지 않습니다/);
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(onClose).not.toHaveBeenCalled();
-    expect(screen.getByText(/이 링크는 더 이상 열리지 않습니다/).closest('dialog')).toHaveAttribute('open');
+  describe('switching to the confirmation (single dialog)', () => {
+    const openDialog = () => document.querySelector('dialog[open]') as HTMLDialogElement;
+    const focused = () => document.activeElement as HTMLElement;
+
+    async function openConfirm(which: '링크 끄기' | '링크 다시 만들기') {
+      let server: string | null = TOKEN;
+      mocks.getShareToken.mockImplementation(async () => server);
+      const onClose = vi.fn();
+      const { wrapper, value } = renderWorkspace(<ShareDialog ministry={ministry} open onClose={onClose} />);
+      vi.mocked(value.actions.setShareToken).mockImplementation(async (_id, token) => {
+        server = token;
+        return true;
+      });
+      render(wrapper);
+      const trigger = await screen.findByRole('button', { name: which });
+      await waitFor(() => expect(trigger).toBeEnabled());
+      fireEvent.click(trigger);
+      await screen.findByRole('button', { name: '취소' });
+      return { onClose, value };
+    }
+
+    it('does not report onClose when it switches (trust-ui fires `close` after a programmatic close)', async () => {
+      const { onClose } = await openConfirm('링크 끄기');
+      await act(async () => flushDialogClose());
+      expect(onClose).not.toHaveBeenCalled();
+      expect(openDialog()).toContainElement(screen.getByText(/이 링크는 더 이상 열리지 않습니다/));
+    });
+
+    it('moves focus to 취소 inside the dialog, and back to the opening button on 취소', async () => {
+      await openConfirm('링크 다시 만들기');
+      expect(openDialog()).toContainElement(focused());
+      expect(focused()).toBe(screen.getByRole('button', { name: '취소' }));
+      fireEvent.click(screen.getByRole('button', { name: '취소' }));
+      const back = await screen.findByRole('button', { name: '링크 다시 만들기' });
+      await waitFor(() => expect(focused()).toBe(back));
+      expect(openDialog()).toContainElement(focused());
+    });
+
+    it('Escape in the confirmation returns to the main view without acting or closing', async () => {
+      const { onClose, value } = await openConfirm('링크 끄기');
+      fireEvent(openDialog(), new Event('cancel', { cancelable: true }));
+      const back = await screen.findByRole('button', { name: '링크 끄기' });
+      await waitFor(() => expect(focused()).toBe(back));
+      await act(async () => flushDialogClose());
+      expect(onClose).not.toHaveBeenCalled();
+      expect(value.actions.setShareToken).not.toHaveBeenCalled();
+      expect(openDialog()).toBeTruthy();
+    });
+
+    it('a backdrop click in the confirmation does the same', async () => {
+      const { onClose, value } = await openConfirm('링크 다시 만들기');
+      fireEvent.mouseDown(openDialog());
+      fireEvent.click(openDialog());
+      const back = await screen.findByRole('button', { name: '링크 다시 만들기' });
+      await waitFor(() => expect(focused()).toBe(back));
+      expect(onClose).not.toHaveBeenCalled();
+      expect(value.actions.setShareToken).not.toHaveBeenCalled();
+    });
+
+    it('after a completed action focus goes to a control in the dialog (link field / 링크 만들기)', async () => {
+      const { value } = await openConfirm('링크 다시 만들기');
+      fireEvent.click(within(openDialog()).getAllByRole('button', { name: '링크 다시 만들기' })[0]);
+      const field = await screen.findByLabelText('공개 링크 주소');
+      await waitFor(() => expect(focused()).toBe(field));
+      expect(value.actions.setShareToken).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(await screen.findByRole('button', { name: '링크 끄기' }));
+      await screen.findByRole('button', { name: '취소' });
+      fireEvent.click(within(openDialog()).getAllByRole('button', { name: '링크 끄기' })[0]);
+      const create = await screen.findByRole('button', { name: '링크 만들기' });
+      await waitFor(() => expect(focused()).toBe(create));
+      expect(openDialog()).toContainElement(focused());
+    });
   });
 
   it('disables the link after confirmation', async () => {
