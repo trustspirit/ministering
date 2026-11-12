@@ -32,6 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const profile = userId && loadedProfile?.userId === userId ? loadedProfile.profile : null;
 
+  const profileLoaded = !userId || loadedProfile?.userId === userId;
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
@@ -47,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: session?.user ?? null,
       profile,
       loading,
+      profileLoaded,
       signIn,
       signOut,
     }}>

@@ -9,6 +9,8 @@ export interface AuthValue {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  /** True when signed out, or once the profile fetch for the current user has finished. */
+  profileLoaded: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
