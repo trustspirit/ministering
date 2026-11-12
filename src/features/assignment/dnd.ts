@@ -77,18 +77,26 @@ export function takeDrag(e: DragEventLike): DragItem | null {
   return item;
 }
 
-/** Resolves the dropped item against `target`; rejections become a toast, accepted drops are performed. */
-export function useDropHandler(org: Organization): (e: DragEventLike, target: DropTarget) => void {
+/** Resolves `item` against `target`; rejections become a toast, accepted moves are performed. Shared by drop and tap-to-assign. */
+export function useAssign(org: Organization): (item: DragItem, target: DropTarget) => void {
   const { board, members, actions } = useWorkspace();
   const { toast } = useToast();
-  return (e, target) => {
-    const item = takeDrag(e);
-    if (!item || board.organization !== org) return;
+  return (item, target) => {
+    if (board.organization !== org) return;
     const result = resolveDrop({ board, item, target, members });
     if (!result.ok) {
       toast({ variant: 'warning', message: result.message });
       return;
     }
     void actions.perform(result.ops);
+  };
+}
+
+/** Drop handler: takes the drag in progress and hands it to `useAssign`. */
+export function useDropHandler(org: Organization): (e: DragEventLike, target: DropTarget) => void {
+  const assign = useAssign(org);
+  return (e, target) => {
+    const item = takeDrag(e);
+    if (item) assign(item, target);
   };
 }

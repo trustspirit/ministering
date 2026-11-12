@@ -426,3 +426,64 @@
 
 /* trust-ui overlays used by the board */
 .aw-dialog-text { margin: 0; font-size: 13px; line-height: 1.6; }
+
+/* ---- phone layout: strictly below 820px (see useIsMobile) ---- */
+.aw-mtabs { display: none; }
+.aw-massign { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.aw-massign > :first-child:not(button) { flex: 1; min-width: 0; }
+/* the mockup's .massign: 13px, 1px navy rule, white, square corners (trust-ui controls restyled to match) */
+.aw-massign button,
+.aw-massign [role='combobox'],
+.aw-massign [aria-haspopup] {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-ink);
+  background: #fff;
+  border: 1px solid var(--app-navy);
+  border-radius: 2px;
+  padding: 6px 10px;
+  height: auto;
+  min-height: 0;
+  box-shadow: none;
+}
+.aw-sheet { height: auto; display: block; overflow: visible; background: transparent; padding: 0 14px 16px; }
+.aw-sheet .aw-detail { border-top: 0; padding: 0; min-height: 0; overflow: visible; }
+
+/* trust-ui portals Select lists to <body> at z-dropdown, which sits below the bottom sheet. */
+@media (max-width: 819.98px) {
+  body > [role='listbox'] { z-index: calc(var(--tui-z-bottom-sheet) + 5) !important; /* beats the inline z-index */ }
+}
+
+@media (max-width: 819.98px) {
+  .aw { font-size: 14px; }
+  .aw-sub { overflow-x: auto; padding: 0 12px; gap: 12px; }
+  .aw-sub > *, .aw-sum > * { flex: none; }
+  .aw-seg { display: none; }
+  /* One panel at a time; all stay mounted so the map keeps its state. */
+  .aw-work { display: flex; flex-direction: column; }
+  .aw-bar { display: none; }
+  .aw-side { display: contents; }
+  .aw-pool, .aw-board, .aw-map { display: none; flex: 1; min-height: 0; }
+  .aw[data-mtab='pool'] .aw-pool { display: flex; border-right: 0; }
+  .aw[data-mtab='board'] .aw-board { display: block; }
+  .aw[data-mtab='map'] .aw-map { display: block; }
+  .aw-plist--cand { max-height: 45%; }
+  .aw-mtabs { display: flex; flex: none; height: 48px; border-top: 1px solid var(--app-rule); background: #fff; }
+  .aw .aw-mtabs button {
+    flex: 1;
+    font: inherit;
+    font-size: 13px;
+    color: var(--app-mute);
+    background: none;
+    border: 0;
+    border-top: 3px solid transparent;
+    cursor: pointer;
+    padding: 0;
+  }
+  .aw .aw-mtabs button.aw-mtab--on { color: var(--app-navy); font-weight: 700; border-top-color: var(--app-accent); }
+  .aw-chip { padding: 8px 10px; }
+  /* The × is always visible; it replaces the headcount/household label on the card. */
+  .aw .aw-x { opacity: 1; width: 28px; height: 28px; right: 2px; top: 2px; font-size: 16px; }
+  .aw-mcard .aw-chip:has(.aw-x) .aw-cnt { visibility: hidden; }
+}

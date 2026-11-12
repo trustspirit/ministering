@@ -6,15 +6,19 @@ import type { Organization } from '@/features/ministries/types';
 import { useAssignmentBoard } from '@/features/assignment/hooks/useAssignmentBoard';
 import { useBoardActions } from '@/features/assignment/hooks/useBoardActions';
 import { endDrag, isOurDrag } from '@/features/assignment/dnd';
+import { summarize } from '@/features/assignment/domain/board';
 import { useWorkspaceStore } from '@/features/assignment/store';
 import { buildLookups, WorkspaceContext, type WorkspaceData } from '@/features/assignment/workspaceContext';
 import { BoardPanel } from '@/features/assignment/ui/BoardPanel';
 import { DetailPanel } from '@/features/assignment/ui/DetailPanel';
+import { MobileSheet } from '@/features/assignment/ui/MobileSheet';
+import { MobileTabs } from '@/features/assignment/ui/MobileTabs';
 import { MapPanel } from '@/features/assignment/ui/MapPanel';
 import { PoolPanel } from '@/features/assignment/ui/PoolPanel';
 import { ResizeBar } from '@/features/assignment/ui/ResizeBar';
 import { SummaryBar } from '@/features/assignment/ui/SummaryBar';
 import { usePermission } from '@/shared/auth/usePermission';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import { useRealtimeSync } from '@/shared/hooks/useRealtimeSync';
 import { T } from '@/shared/copy';
 import '@/features/assignment/ui/assignment.css';
@@ -89,10 +93,20 @@ export default function AssignmentPage() {
     [org, board, canEdit, members, lookups, actions],
   );
 
+  const isMobile = useIsMobile();
+  const mobileTab = useWorkspaceStore((s) => s.mobileTab);
+  const setMobileTab = useWorkspaceStore((s) => s.setMobileTab);
+
+  const poolCount = useMemo(() => {
+    if (!board || !members || !households) return 0;
+    const s = summarize(board, members, households);
+    return s.unassignedCandidateCount + s.recipientTotal - s.recipientAssigned;
+  }, [board, members, households]);
+
   const failed = boardQuery.isError || membersQuery.isError || householdsQuery.isError;
 
   return (
-    <div className="aw" ref={rootRef}>
+    <div className="aw" ref={rootRef} data-mtab={isMobile ? mobileTab : undefined}>
       {!value || !households ? (
         <p className="aw-status-msg">{failed ? T.assign.loadFailed : T.assign.loading}</p>
       ) : (
@@ -104,9 +118,20 @@ export default function AssignmentPage() {
             <ResizeBar />
             <aside className="aw-side">
               <MapPanel />
-              <DetailPanel />
+              {!isMobile && <DetailPanel />}
             </aside>
           </div>
+          {isMobile && (
+            <>
+              <MobileTabs
+                tab={mobileTab}
+                onChange={setMobileTab}
+                poolCount={poolCount}
+                boardCount={value.board.ministries.length}
+              />
+              <MobileSheet />
+            </>
+          )}
         </WorkspaceContext.Provider>
       )}
     </div>
