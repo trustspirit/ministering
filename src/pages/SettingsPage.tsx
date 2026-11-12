@@ -5,7 +5,11 @@ import { useAuth } from '@/features/auth/useAuth';
 import { adminErrorMessage } from '@/features/settings/adminErrorMessage';
 import { useAdminUsers } from '@/features/settings/hooks/useAdminUsers';
 import { useAppUsers, type AppUser } from '@/features/settings/hooks/useAppUsers';
-import { useUpdateDisplayName, useUpdateProfileRole } from '@/features/settings/hooks/useProfileMutations';
+import {
+  isLastBishopricError,
+  useUpdateDisplayName,
+  useUpdateProfileRole,
+} from '@/features/settings/hooks/useProfileMutations';
 import { AddUserDialog } from '@/features/settings/ui/AddUserDialog';
 import { UserLinkDialog } from '@/features/settings/ui/UserLinkDialog';
 import { usePermission } from '@/shared/auth/usePermission';
@@ -18,6 +22,8 @@ type Role = Database['public']['Enums']['user_role'];
 
 const S = T.settings;
 const ROLE_OPTIONS = (Object.keys(T.role) as Role[]).map((value) => ({ value, label: T.role[value] }));
+// The only bishopric cannot be given another role (the database refuses it too).
+const LAST_BISHOPRIC_OPTIONS = ROLE_OPTIONS.map((o) => ({ ...o, disabled: o.value !== 'bishopric' }));
 
 export default function SettingsPage() {
   const perm = usePermission();
@@ -57,6 +63,7 @@ export default function SettingsPage() {
   if (!perm.canManageUsers) return <Navigate to="/" replace />;
 
   const users = usersQuery.data;
+  const bishopricCount = users?.filter((u) => u.role === 'bishopric').length ?? 0;
 
   const confirmRole = async () => {
     if (!pendingRole) return;
@@ -65,8 +72,8 @@ export default function SettingsPage() {
     try {
       await updateRole.mutateAsync({ userId: target.user_id, role });
       toast({ variant: 'success', message: S.roleSaved });
-    } catch {
-      toast({ variant: 'danger', message: S.roleFailed });
+    } catch (err) {
+      toast({ variant: 'danger', message: isLastBishopricError(err) ? S.lastBishopricRole : S.roleFailed });
     }
   };
 
@@ -121,6 +128,7 @@ export default function SettingsPage() {
         </div>
         {users.map((u) => {
           const isEditing = editing?.userId === u.user_id;
+          const isLastBishopric = u.role === 'bishopric' && bishopricCount === 1;
           return (
             <div className="st-row" role="row" key={u.user_id}>
               <div role="cell" className="st-c-name">
@@ -148,9 +156,9 @@ export default function SettingsPage() {
                   <>
                     <b className="st-name">{nameOf(u)}</b>
                     {u.user_id === user?.id && <span className="st-me">{S.me}</span>}
-                    {!u.has_password && (
-                      <span className="st-nopw" title={S.noPasswordHint}>
-                        {S.noPassword}
+                    {u.invite_pending && (
+                      <span className="st-nopw" title={S.invitePendingHint}>
+                        {S.invitePending}
                       </span>
                     )}
                   </>
@@ -159,13 +167,17 @@ export default function SettingsPage() {
               <div role="cell" className="st-c-email" title={u.email}>
                 {u.email}
               </div>
-              <div role="cell" className="st-c-role">
+              <div
+                role="cell"
+                className="st-c-role"
+                title={isLastBishopric ? S.lastBishopricHint : undefined}
+              >
                 <Select
                   size="sm"
                   fullWidth
                   aria-label={S.roleOf(nameOf(u))}
                   value={u.role}
-                  options={ROLE_OPTIONS}
+                  options={isLastBishopric ? LAST_BISHOPRIC_OPTIONS : ROLE_OPTIONS}
                   disabled={updateRole.isPending}
                   onChange={(v) => {
                     if (v !== u.role) setPendingRole({ user: u, role: v as Role });

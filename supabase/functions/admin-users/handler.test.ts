@@ -114,6 +114,11 @@ describe('handleAdminUsers — create', () => {
     ['an empty name', { displayName: '   ' }, 'invalid_name'],
     ['a name over 50 characters', { displayName: '가'.repeat(51) }, 'invalid_name'],
     ['an unknown role', { role: 'admin' }, 'invalid_role'],
+    ['a name with a control character', { displayName: '이름\u0007' }, 'invalid_name'],
+    ['a name with a line break', { displayName: '이름\n감독단' }, 'invalid_name'],
+    ['a name with DEL', { displayName: '이름\u007f' }, 'invalid_name'],
+    ['a name with a right-to-left override', { displayName: '\u202e단독감' }, 'invalid_name'],
+    ['a name with a bidi isolate', { displayName: '이름\u2066x\u2069' }, 'invalid_name'],
   ])('answers 400 for %s', async (_label, patch, code) => {
     const res = await handleAdminUsers({ authHeader: auth, body: { ...createBody, ...patch } }, deps);
     expect(res.status).toBe(400);
@@ -142,6 +147,18 @@ describe('handleAdminUsers — create', () => {
     const res = await handleAdminUsers({ authHeader: auth, body: createBody }, deps);
     expect(res.status).toBe(409);
     expect(res.body).toEqual({ error: 'email_exists' });
+    expect(deps.setProfile).not.toHaveBeenCalled();
+  });
+
+  it('answers 400 when the auth server cannot validate the email (e.g. a non-ASCII local part)', async () => {
+    deps.generateLink.mockRejectedValue(
+      Object.assign(new Error('Unable to validate email address: invalid format'), {
+        status: 400,
+        code: 'validation_failed',
+      }),
+    );
+    const res = await handleAdminUsers({ authHeader: auth, body: { ...createBody, email: 'ünï@test.local' } }, deps);
+    expect(res).toEqual({ status: 400, body: { error: 'invalid_email' } });
     expect(deps.setProfile).not.toHaveBeenCalled();
   });
 

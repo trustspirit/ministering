@@ -52,13 +52,17 @@ export function useAdminUsers() {
   const qc = useQueryClient();
   const refresh = () => qc.invalidateQueries({ queryKey: appUsersKey });
 
+  // gcTime 0: a finished mutation (whose data holds the one-time token hash) leaves the cache as soon as nothing
+  // observes it; the dialogs also reset it right after reading the link.
   const createUser = useMutation({
+    gcTime: 0,
     mutationFn: (input: { email: string; displayName: string; role: Role }) =>
       invokeAdminUsers<PasswordLinkResult>({ action: 'create', ...input }),
     onSuccess: refresh,
   });
 
   const createResetLink = useMutation({
+    gcTime: 0,
     mutationFn: ({ userId }: { userId: string }) =>
       invokeAdminUsers<PasswordLinkResult>({ action: 'reset', userId }),
     onSuccess: refresh,

@@ -25,23 +25,24 @@ vi.mock('@/features/auth/useAuth', () => ({
 vi.mock('@/features/settings/hooks/useAppUsers', () => ({
   useAppUsers: () => ({ data: mocks.users, isError: false }),
 }));
-vi.mock('@/features/settings/hooks/useProfileMutations', () => ({
+vi.mock('@/features/settings/hooks/useProfileMutations', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/settings/hooks/useProfileMutations')>()),
   useUpdateProfileRole: () => ({ mutateAsync: mocks.mutateRole, isPending: false }),
   useUpdateDisplayName: () => ({ mutateAsync: mocks.mutateName, isPending: false }),
 }));
 vi.mock('@/features/settings/hooks/useAdminUsers', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/settings/hooks/useAdminUsers')>()),
   useAdminUsers: () => ({
-    createUser: { mutateAsync: mocks.createUser, isPending: false },
-    createResetLink: { mutateAsync: mocks.createResetLink, isPending: false },
+    createUser: { mutateAsync: mocks.createUser, isPending: false, reset: vi.fn() },
+    createResetLink: { mutateAsync: mocks.createResetLink, isPending: false, reset: vi.fn() },
     deleteUser: { mutateAsync: mocks.deleteUser, isPending: false },
   }),
 }));
 
 const USERS = [
-  { user_id: 'u1', email: 'bishop@test.local', role: 'bishopric', display_name: '감독님', created_at: '', has_password: true },
-  { user_id: 'u2', email: 'viewer@test.local', role: 'viewer', display_name: '열람자', created_at: '', has_password: true },
-  { user_id: 'u3', email: 'new@test.local', role: 'eq_president', display_name: '새 회장', created_at: '', has_password: false },
+  { user_id: 'u1', email: 'bishop@test.local', role: 'bishopric', display_name: '감독님', created_at: '', invite_pending: false },
+  { user_id: 'u2', email: 'viewer@test.local', role: 'viewer', display_name: '열람자', created_at: '', invite_pending: false },
+  { user_id: 'u3', email: 'new@test.local', role: 'eq_president', display_name: '새 회장', created_at: '', invite_pending: true },
 ];
 const HASH = 'cd'.repeat(28);
 const ONCE_NOTE = '24시간 동안 한 번만 쓸 수 있습니다. 새 링크를 만들면 이전 링크는 쓸 수 없습니다.';
@@ -114,11 +115,11 @@ describe('SettingsPage', () => {
     expect(mocks.mutateName).toHaveBeenCalledWith({ userId: 'u2', displayName: '새 이름' });
   });
 
-  it('marks people who have not set a password yet', () => {
+  it('marks people who have not opened their invitation yet', () => {
     renderSettings();
     const rows = within(screen.getByRole('table', { name: '사용자 목록' })).getAllByRole('row');
-    expect(rows[3]).toHaveTextContent('비밀번호 미설정');
-    expect(rows[2]).not.toHaveTextContent('비밀번호 미설정');
+    expect(rows[3]).toHaveTextContent('초대 미확인');
+    expect(rows[2]).not.toHaveTextContent('초대 미확인');
   });
 
   it('adds a user with normalised input and shows the setup link once', async () => {
@@ -201,5 +202,66 @@ describe('SettingsPage', () => {
   it('never renders a password field for another user', () => {
     renderSettings();
     expect(document.querySelector('input[type="password"]')).toBeNull();
+  });
+
+  it('explains when the database refuses to demote the last bishopric', async () => {
+    mocks.users = [
+      { ...USERS[0], role: 'bishopric' },
+      { ...USERS[1], role: 'bishopric' },
+    ];
+    mocks.mutateRole.mockRejectedValue({ code: 'P0001', message: 'last_bishopric' });
+    const user = userEvent.setup();
+    renderSettings();
+    await user.click(screen.getByRole('combobox', { name: '열람자 역할' }));
+    await user.click(await screen.findByRole('option', { name: '열람' }));
+    await user.click(await screen.findByRole('button', { name: '변경' }));
+    expect(await screen.findByText('마지막 감독단 계정은 역할을 바꿀 수 없습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: '열람자 역할' })).toHaveTextContent('감독단');
+  });
+
+  it('offers only 감독단 on the row of the only bishopric, with the reason', async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    const cell = screen.getByRole('combobox', { name: '감독님 역할' }).closest('[role="cell"]');
+    expect(cell).toHaveAttribute('title', expect.stringContaining('감독단 계정이 하나뿐'));
+    await user.click(screen.getByRole('combobox', { name: '감독님 역할' }));
+    expect(await screen.findByRole('option', { name: '열람' })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('option', { name: '감독단' })).not.toHaveAttribute('aria-disabled', 'true');
+    // Other rows keep every role.
+    await user.keyboard('{Escape}');
+    expect(screen.getByRole('combobox', { name: '열람자 역할' }).closest('[role="cell"]')).not.toHaveAttribute('title');
+  });
+
+  it('forgets the one-time link when the dialog closes', async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    await user.click(screen.getByRole('button', { name: '＋ 사용자 추가' }));
+    let dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText(/이름/), '새 사람');
+    await user.type(within(dialog).getByLabelText(/이메일/), 'new.person@test.local');
+    await user.click(within(dialog).getByRole('button', { name: '추가' }));
+    await within(dialog).findByLabelText('비밀번호 설정 링크');
+    expect(document.body.innerHTML).toContain(HASH);
+    await user.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!); // the footer 닫기
+    expect(document.body.innerHTML).not.toContain(HASH);
+
+    await user.click(screen.getByRole('button', { name: '＋ 사용자 추가' }));
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByLabelText(/이름/)).toHaveValue('');
+    expect(within(dialog).getByLabelText(/이메일/)).toHaveValue('');
+    expect(within(dialog).queryByLabelText('비밀번호 설정 링크')).toBeNull();
+    expect(document.body.innerHTML).not.toContain(HASH);
+  });
+
+  it('forgets a password-change link when its dialog closes', async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    await user.click(screen.getByRole('button', { name: '열람자 비밀번호 변경 링크' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: '링크 만들기' }));
+    await within(dialog).findByLabelText('비밀번호 설정 링크');
+    // The title's × button this time (the add test used the footer 닫기).
+    await user.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]);
+    expect(document.body.innerHTML).not.toContain(HASH);
   });
 });

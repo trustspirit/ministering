@@ -56,6 +56,9 @@ export interface AdminResponse {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_NAME = 50;
+/** Control characters and bidirectional overrides/isolates, which could disguise a name in the user list. */
+// eslint-disable-next-line no-control-regex
+const UNSAFE_NAME = /[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/;
 const MAX_EMAIL = 254;
 
 const fail = (status: number, error: ErrorCode): AdminResponse => ({ status, body: { error } });
@@ -84,6 +87,13 @@ function isEmailExists(err: unknown): boolean {
   return e.code === 'email_exists' || (typeof e.message === 'string' && /already (been )?registered/i.test(e.message));
 }
 
+/** GoTrue refuses an address it cannot validate (e.g. a non-ASCII local part) with 400 `validation_failed`. */
+function isEmailRejected(err: unknown): boolean {
+  if (!isRecord(err) && !(err instanceof Error)) return false;
+  const e = err as { code?: unknown; status?: unknown };
+  return e.code === 'validation_failed' || e.code === 'email_address_invalid';
+}
+
 /** A safe label for logs: the error's code or status if it has one, never its message. */
 function errorKind(err: unknown): string {
   if (isRecord(err) || err instanceof Error) {
@@ -98,7 +108,9 @@ async function create(body: Record<string, unknown>, deps: AdminDeps): Promise<A
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
   if (!email || email.length > MAX_EMAIL || !EMAIL.test(email)) return fail(400, 'invalid_email');
   const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : '';
-  if (!displayName || [...displayName].length > MAX_NAME) return fail(400, 'invalid_name');
+  if (!displayName || [...displayName].length > MAX_NAME || UNSAFE_NAME.test(displayName)) {
+    return fail(400, 'invalid_name');
+  }
   if (!isRole(body.role)) return fail(400, 'invalid_role');
   const role = body.role;
 
@@ -110,6 +122,7 @@ async function create(body: Record<string, unknown>, deps: AdminDeps): Promise<A
     link = await deps.generateLink({ type: 'invite', email, displayName });
   } catch (err) {
     if (isEmailExists(err)) return fail(409, 'email_exists');
+    if (isEmailRejected(err)) return fail(400, 'invalid_email');
     deps.log?.('create_link_failed', { kind: errorKind(err) });
     return fail(500, 'internal_error');
   }

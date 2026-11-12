@@ -5,6 +5,16 @@ import { appUsersKey } from './useAppUsers';
 
 type Role = Database['public']['Enums']['user_role'];
 
+/** The database refused because it would leave the ward without a bishopric (trigger guard_last_bishopric). */
+export function isLastBishopricError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { code?: unknown }).code === 'P0001' &&
+    (err as { message?: unknown }).message === 'last_bishopric'
+  );
+}
+
 export function useUpdateProfileRole() {
   const qc = useQueryClient();
   return useMutation({
@@ -15,7 +25,8 @@ export function useUpdateProfileRole() {
         .eq('user_id', userId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: appUsersKey }),
+    // Also after a refusal, so every select shows the role actually stored.
+    onSettled: () => qc.invalidateQueries({ queryKey: appUsersKey }),
   });
 }
 

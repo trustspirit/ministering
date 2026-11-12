@@ -30,6 +30,8 @@ export const UNIT_NAME: string = import.meta.env.VITE_UNIT_NAME ?? '';
 export const APP_TITLE = '성역 임무 지명';
 
 export const T = {
+  /** Prefix of warning and error lines */
+  warnMark: '⚠',
   saveFailed: '저장하지 못했습니다. 다른 사람이 먼저 바꿨을 수 있습니다.',
   nav: {
     eq: ORG_LABEL.EQ,
@@ -82,8 +84,10 @@ export const T = {
     roleCancel: '취소',
     roleSaved: '역할을 바꿨습니다',
     roleFailed: '역할을 바꾸지 못했습니다. 다시 시도해 주세요.',
-    noPassword: '비밀번호 미설정',
-    noPasswordHint: '아직 링크로 비밀번호를 정하지 않았습니다',
+    lastBishopricRole: '마지막 감독단 계정은 역할을 바꿀 수 없습니다.',
+    lastBishopricHint: '감독단 계정이 하나뿐이라 다른 역할로 바꿀 수 없습니다. 먼저 다른 사람을 감독단으로 지정하세요.',
+    invitePending: '초대 미확인',
+    invitePendingHint: '아직 초대 링크를 열어 비밀번호를 정하지 않았습니다',
     addUser: '＋ 사용자 추가',
     addTitle: '사용자 추가',
     addHelp: '추가하면 비밀번호 설정 링크가 만들어집니다. 그 링크를 본인에게 전달하세요. 비밀번호는 본인이 정하며 관리자는 볼 수 없습니다.',
@@ -124,7 +128,7 @@ export const T = {
     adminErrors: {
       email_exists: '이미 등록된 이메일입니다.',
       invalid_email: '이메일 형식이 맞지 않습니다.',
-      invalid_name: '이름을 1~50자로 입력해 주세요.',
+      invalid_name: '이름을 1~50자로, 제어 문자 없이 입력해 주세요.',
       invalid_role: '역할을 다시 선택해 주세요.',
       user_not_found: '이미 삭제되었거나 찾을 수 없는 사용자입니다.',
       cannot_delete_self: '본인 계정은 삭제할 수 없습니다.',

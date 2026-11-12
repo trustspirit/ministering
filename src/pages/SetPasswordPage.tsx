@@ -110,7 +110,7 @@ export default function SetPasswordPage() {
             ) : (
               <>
                 <p className="spw-intro">{S.intro}</p>
-                {currentUser?.email && <p className="spw-other">⚠ {S.signedInAs(currentUser.email)}</p>}
+                {currentUser?.email && <p className="spw-other">{T.warnMark} {S.signedInAs(currentUser.email)}</p>}
               </>
             )}
             <form className="spw-form" onSubmit={onSubmit} noValidate>
@@ -139,7 +139,7 @@ export default function SetPasswordPage() {
               />
               {error && (
                 <p className="spw-error" role="alert">
-                  ⚠ {error}
+                  {T.warnMark} {error}
                 </p>
               )}
               <Button type="submit" size="sm" shape="square" fullWidth loading={busy} disabled={busy}>

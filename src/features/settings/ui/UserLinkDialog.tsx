@@ -63,7 +63,7 @@ export function PasswordLinkView({
           />
         </div>
         <p className="su-note">{S.linkOnce}</p>
-        <p className="su-warn">⚠ {S.linkShownOnce}</p>
+        <p className="su-warn">{T.warnMark} {S.linkShownOnce}</p>
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="ghost" size="sm" shape="square" onClick={onClose}>
@@ -96,14 +96,19 @@ export function UserLinkDialog({ user: openFor, onClose }: { user: AppUser | nul
     setError(null);
     try {
       setLink(await createResetLink.mutateAsync({ userId: user.user_id }));
+      // The link lives only in this dialog's state, not in the mutation cache.
+      createResetLink.reset();
     } catch (err) {
       setError(adminErrorMessage(err));
     }
   };
 
-  // While the request runs, closing would throw away the only copy of the new link.
+  // While the request runs, closing would throw away the only copy of the new link. Once closed, the link is gone
+  // for good (it is shown only once).
   const close = () => {
-    if (!busy) onClose();
+    if (busy) return;
+    setLink(null);
+    onClose();
   };
 
   return (
@@ -117,7 +122,7 @@ export function UserLinkDialog({ user: openFor, onClose }: { user: AppUser | nul
             {user && <p className="su-text">{S.resetConfirm(name, user.email)}</p>}
             {error && (
               <p className="su-error" role="alert">
-                ⚠ {error}
+                {T.warnMark} {error}
               </p>
             )}
           </Dialog.Content>

@@ -37,13 +37,14 @@ supabase db push
 | `20261113100000_share_address` | `get_ministry_share` 응답에 지명된 가정·자매의 주소 추가 |
 | `20261113110000_soft_delete_member_rpc` | 사람 삭제용 RPC `soft_delete_member` (아래 참고) |
 | `20261113120000_soft_delete_member_not_found` | 없는 사람을 삭제하면 `P0002` 오류 |
-| `20261113130000_admin_managed_users` | 새 계정의 프로필 트리거 수정(Auth API로 만든 계정이 "Database error saving new user"로 실패하던 문제), `get_app_users`에 `has_password`(비밀번호 설정 여부, 해시는 내보내지 않음), 마지막 감독단 계정 삭제 차단 트리거 |
+| `20261113130000_admin_managed_users` | 새 계정의 프로필 트리거 수정(Auth API로 만든 계정이 "Database error saving new user"로 실패하던 문제), `get_app_users`에 `has_password`, 마지막 감독단 계정 삭제 차단 트리거 |
+| `20261113140000_keep_a_bishopric` | 마지막 감독단 계정은 삭제뿐 아니라 **역할 변경**도 차단(`P0001` / `last_bishopric`, 동시에 바꿔도 한 명은 남는다), `get_app_users`의 `has_password` → `invite_pending`(초대 링크를 아직 열지 않음) |
 
 RPC 요약:
 
 - `get_ministry_share(p_token)` — 로그인 없이 호출 가능. 토큰이 맞는 성역 동반자 하나의 이름·연락처·주소·가족의 나이와 성별만 돌려준다 (공유 페이지 `/s/<token>`).
 - `get_ministry_share_token(p_ministry_id)` / `set_ministry_share_token(p_ministry_id, p_token)` — 해당 조직을 편집할 수 있는 역할(감독단, 해당 회장단)만 호출 가능.
-- `get_app_users()` — 감독단만 호출 가능. 사용자 목록과 비밀번호 설정 여부(`has_password`)만 돌려준다.
+- `get_app_users()` — 감독단만 호출 가능. 사용자 목록과 초대 확인 여부(`invite_pending`, 불리언)만 돌려준다. 비밀번호 해시는 내보내지 않는다.
 - `soft_delete_member(p_member_id)` — 장로 정원회 회장단, 상호부조회 회장단, 감독단만 호출 가능(그 외 `42501`). 명부에서 사람을 삭제하면 이 함수를 거치며, 그 사람의 성역 동반자·지명도 함께 정리된다. 테이블을 직접 UPDATE 하는 방식은 행 수준 보안 때문에 항상 실패한다.
 
 ### 3. Auth 설정 (공개 가입 끄기, 링크 유효 시간)
@@ -91,7 +92,7 @@ SET role = 'bishopric'
 WHERE user_id = (SELECT id FROM auth.users WHERE email = 'admin@example.com');
 ```
 
-3. 그 계정으로 로그인해 설정 화면에서 나머지 사용자를 추가한다. 감독단 계정이 하나뿐이면 그 계정은 삭제할 수 없다(DB 트리거가 막는다). 감독단을 바꾸려면 먼저 다른 사람을 감독단으로 지정한다.
+3. 그 계정으로 로그인해 설정 화면에서 나머지 사용자를 추가한다. 감독단 계정이 하나뿐이면 그 계정은 삭제할 수도, 다른 역할로 바꿀 수도 없다(DB 트리거 `guard_last_bishopric` 가 막는다. SQL Editor·서비스 키로 해도 마찬가지). 감독단을 바꾸려면 먼저 다른 사람을 감독단으로 지정한 뒤 이전 계정의 역할을 바꾸거나 삭제한다.
 
 ### 6. Realtime 활성화 확인
 
@@ -125,7 +126,7 @@ WHERE user_id = (SELECT id FROM auth.users WHERE email = 'admin@example.com');
 ### 사용자 관리
 
 - **추가**: 설정 → "＋ 사용자 추가" → 이름·이메일·역할 → 나온 링크를 복사해 본인에게 전달한다(앱은 메일을 보내지 않는다). 링크는 이때 한 번만 표시된다.
-- **비밀번호를 잊은 경우**: 설정 → 그 사람의 "비밀번호 변경 링크" → 새 링크를 전달한다. 아직 비밀번호를 정하지 않은 사람(목록에 "비밀번호 미설정")에게는 새 초대 링크가 만들어진다.
+- **비밀번호를 잊은 경우**: 설정 → 그 사람의 "비밀번호 변경 링크" → 새 링크를 전달한다. 아직 초대 링크를 열지 않은 사람(목록에 "초대 미확인")에게는 새 초대 링크가 만들어진다.
 - 링크는 24시간 동안 한 번만 쓸 수 있고, 새 링크를 만들면 이전 링크는 쓸 수 없다. 링크를 연 것만으로는 쓰이지 않고(메신저 미리보기 대비), "비밀번호 설정" 을 눌렀을 때 쓰인다.
 - 링크를 가진 사람은 그 계정의 비밀번호를 정할 수 있으므로, 링크는 본인에게만 전달한다.
 
@@ -183,6 +184,9 @@ Supabase Cloud 가 자동 백업 제공 (무료 플랜 7일 보관). Pro 플랜 
 - "Database error saving new user": `20261113130000_admin_managed_users` 마이그레이션이 적용됐는지 확인
 - 로컬: `supabase functions serve admin-users` 를 따로 띄워야 한다
 - 로그인한 감독단도 모든 호출이 401(`Invalid JWT`)이면: 프로젝트가 새 JWT 서명 키를 쓰는 경우 게이트웨이의 JWT 검사가 맞지 않을 수 있다. 그때는 `supabase functions deploy admin-users --no-verify-jwt` 로 배포한다. 함수가 토큰을 Auth 서버로 직접 확인하므로 감독단 확인은 그대로 유지된다.
+
+### "마지막 감독단 계정은 역할을 바꿀 수 없습니다"
+- 감독단이 한 명뿐이면 그 계정의 역할 변경·삭제는 DB가 거부한다(`P0001`, 메시지 `last_bishopric`). 먼저 다른 사람을 감독단으로 지정한다.
 
 ### 링크를 열었는데 "링크가 만료되었거나 이미 사용되었습니다"
 - 24시간이 지났거나, 이미 썼거나, 그 뒤에 새 링크를 만든 경우다. 설정 화면에서 새 링크를 만들어 전달한다.

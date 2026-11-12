@@ -49,14 +49,24 @@ export function AddUserDialog({ open, onClose }: { open: boolean; onClose: () =>
     try {
       const link = await createUser.mutateAsync({ email: cleanEmail, displayName: cleanName, role });
       setCreated({ link, name: cleanName, email: cleanEmail });
+      // The link lives only in this dialog's state, not in the mutation cache.
+      createUser.reset();
     } catch (err) {
       setError(adminErrorMessage(err));
     }
   };
 
-  // While the request runs, closing would throw away the only copy of the new link.
+  // While the request runs, closing would throw away the only copy of the new link. Once closed, the link and the
+  // form are cleared for good (the link is shown only once).
   const close = () => {
-    if (!busy) onClose();
+    if (busy) return;
+    setCreated(null);
+    setName('');
+    setEmail('');
+    setRole('viewer');
+    setSubmitted(false);
+    setError(null);
+    onClose();
   };
 
   return (
@@ -106,7 +116,7 @@ export function AddUserDialog({ open, onClose }: { open: boolean; onClose: () =>
             </form>
             {error && (
               <p className="su-error" role="alert">
-                ⚠ {error}
+                {T.warnMark} {error}
               </p>
             )}
           </Dialog.Content>
