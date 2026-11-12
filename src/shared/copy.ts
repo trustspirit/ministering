@@ -40,6 +40,18 @@ export const T = {
   ministry: {
     defaultLabel: (number: number) => `성역 동반자 ${number}`,
   },
+  drop: {
+    notFound: '대상을 찾을 수 없습니다',
+    needZoneEq: '가정은 성역 동반자 제목이나 조원 칸에 놓아 주세요',
+    needZoneRs: '자매 성역자 칸이나 지명된 자매 칸에 놓아 주세요',
+    eqCompanionOnly: '장로 정원회 회원만 성역자가 될 수 있습니다',
+    rsCompanionOnly: '상호부조회 회원만 성역자가 될 수 있습니다',
+    rsRecipientOnly: '성인 자매에게만 지명할 수 있습니다',
+    eqHouseholdUnit: '장로 정원회는 가정 단위로 지명합니다',
+    tooManyCompanions: '성역자는 최대 4명입니다',
+    selfHousehold: '성역자 자신의 가정에는 지명할 수 없습니다',
+    selfPerson: '자기 자신에게 지명될 수 없습니다',
+  },
   role: {
     bishopric: '감독단',
     eq_president: '장로 정원회 회장단',
