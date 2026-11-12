@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import HomeRedirect from '@/app/HomeRedirect';
 import LoginPage from '@/features/auth/LoginPage';
 import RequireAuth from '@/features/auth/RequireAuth';
 import Layout from '@/shared/ui/Layout';
@@ -17,7 +18,8 @@ export const router = createBrowserRouter([
       {
         element: <Layout />,
         children: [
-          { path: '/', element: <DashboardPage /> },
+          { path: '/', element: <HomeRedirect /> },
+          { path: '/dashboard', element: <DashboardPage /> },
           { path: '/assignments', element: <Navigate to="/assignments/rs" replace /> },
           { path: '/assignments/:org', element: <AssignmentWorkspacePage /> },
           { path: '/members', element: <MembersPage /> },

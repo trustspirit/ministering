@@ -12,7 +12,7 @@ export default {
         'status-recipient': '#f59e0b',
       },
       fontFamily: {
-        sans: ['Noto Sans KR', 'system-ui', 'sans-serif'],
+        sans: ['Ensign:Sans', 'Roboto', 'Noto Sans KR', 'Arial', 'sans-serif'],
       },
     },
   },

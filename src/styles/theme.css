@@ -1,0 +1,24 @@
+:root {
+  --app-navy: #003057;
+  --app-accent: #006184;
+  --app-ink: #212225;
+  --app-mute: #687078;
+  --app-rule: #dde1e6;
+  --app-soft: #f5f6f8;
+  --app-tint: #e6f3f7;
+  --app-warn: #d79a1e;
+  --app-warn-bg: #fdf1d8;
+  --app-bad: #b3261e;
+  --app-bad-bg: #fbe3e0;
+  --app-ok: #4a7a5c;
+}
+
+:root,
+[data-theme='light'] {
+  --tui-accent: #006184;
+  --tui-accent-hover: #004d69;
+  --tui-on-accent: #fff;
+  --tui-ink: #212225;
+  --tui-radius-control: 2px;
+  --tui-font-sans: 'Ensign:Sans', Roboto, 'Noto Sans KR', Arial, sans-serif;
+}
