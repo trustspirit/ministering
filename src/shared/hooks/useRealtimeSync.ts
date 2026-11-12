@@ -25,6 +25,7 @@ export function useRealtimeSync(tables: RealtimeTable[], channelKey: string) {
             case 'members':
               qc.invalidateQueries({ queryKey: ['members'] });
               qc.invalidateQueries({ queryKey: ['assignment-index'] });
+              qc.invalidateQueries({ queryKey: ['assignment-board'] });
               break;
             case 'households':
               qc.invalidateQueries({ queryKey: ['households'] });
@@ -32,12 +33,14 @@ export function useRealtimeSync(tables: RealtimeTable[], channelKey: string) {
             case 'ministries':
               qc.invalidateQueries({ queryKey: ['ministries'] });
               qc.invalidateQueries({ queryKey: ['assignment-index'] });
+              qc.invalidateQueries({ queryKey: ['assignment-board'] });
               break;
             case 'ministry_companions':
             case 'ministry_member_recipients':
             case 'ministry_household_recipients':
               qc.invalidateQueries({ queryKey: ['ministry-details'] });
               qc.invalidateQueries({ queryKey: ['assignment-index'] });
+              qc.invalidateQueries({ queryKey: ['assignment-board'] });
               break;
           }
         },

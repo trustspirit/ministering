@@ -24,6 +24,7 @@ export const UNIT_NAME: string = import.meta.env.VITE_UNIT_NAME ?? '';
 export const APP_TITLE = '성역 임무 지명';
 
 export const T = {
+  saveFailed: '저장하지 못했습니다. 다른 사람이 먼저 바꿨을 수 있습니다.',
   nav: {
     eq: ORG_LABEL.EQ,
     rs: ORG_LABEL.RS,
