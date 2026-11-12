@@ -2,13 +2,9 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, TextField } from 'trust-ui-react';
 import { T, UNIT_NAME } from '@/shared/copy';
+import { safeRedirect } from './safeRedirect';
 import { useAuth } from './useAuth';
 import './login.css';
-
-/** Only same-site paths: a `redirect` like `//example.com` must not leave the app. */
-function safeRedirect(value: string | null): string {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/';
-}
 
 /** Wrong email or password is an HTTP 400 from the auth server; anything else is a connection or server problem. */
 function isInvalidCredentials(err: unknown): boolean {
