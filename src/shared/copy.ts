@@ -20,6 +20,12 @@ export const GENDER_LABEL: Record<Gender, string> = {
   F: '여',
 };
 
+export const PERSONALITY_LABEL: Record<Database['public']['Enums']['personality'], string> = {
+  active: '적극적',
+  moderate: '보통',
+  passive: '수동적',
+};
+
 export const UNIT_NAME: string = import.meta.env.VITE_UNIT_NAME ?? '';
 export const APP_TITLE = '성역 임무 지명';
 
@@ -89,6 +95,34 @@ export const T = {
     newMinistry: '＋ 새 성역 동반자',
     newMinistryHint: '여기에 끌어다 놓기',
     resize: '끌어서 지도 크기 조절',
+  },
+  detail: {
+    label: '배경 정보',
+    empty: '사람이나 가정을 클릭하면 여기에 배경 정보가 열립니다.',
+    household: '가정',
+    brother: '형제',
+    sister: '자매',
+    none: '—',
+    ministryHeading: '성역',
+    householdHeading: '가정',
+    noHousehold: '가정 미지정',
+    noAssignment: '임무 지명 없음',
+    noRecipientMinistry: '지명된 성역자 없음',
+    assignedBrothers: (names: string) => `지명된 형제 성역자: ${names}`,
+    servesIn: (org: string, label: string) => `${org} ${label}에서 봉사`,
+    assignedSisterMinistry: (names: string, label: string) => `지명된 자매 성역자: ${names} (${label})`,
+    householdBrotherMinistry: (names: string, label: string) => `가정에 지명된 형제 성역자: ${names} (${label})`,
+    noNames: '없음',
+    familyHead: ['이름', '나이', '성별', '상태', '연락처'] as const,
+    ageUnit: (n: number) => `${n}세`,
+    personalMemo: '개인 메모',
+    householdMemo: '가정 메모',
+    memoOf: (name: string) => `${name} 메모`,
+    memoEmpty: '아직 메모가 없습니다',
+    memoEdit: '메모 편집',
+    memoSave: '저장',
+    memoCancel: '취소',
+    memoSaveFailed: '메모를 저장하지 못했습니다. 다시 시도해 주세요.',
   },
   map: {
     label: '지도',
