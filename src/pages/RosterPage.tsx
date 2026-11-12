@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select, TextField } from 'trust-ui-react';
+import { EmptyState, Select, Spinner, TextField } from 'trust-ui-react';
 import { memberOrganization } from '@/features/assignment/domain/orgMembership';
 import { useAssignmentBoard } from '@/features/assignment/hooks/useAssignmentBoard';
 import { StatusMark } from '@/features/assignment/ui/StatusMark';
@@ -97,7 +97,13 @@ export default function RosterPage() {
     const failed = membersQuery.isError || householdsQuery.isError;
     return (
       <div className="ro">
-        <p className="ro-status-msg">{failed ? T.roster.loadFailed : T.roster.loading}</p>
+        {failed ? (
+          <p className="ro-status-msg">{T.roster.loadFailed}</p>
+        ) : (
+          <div className="app-loading">
+            <Spinner size="sm" label={T.roster.loading} showLabel />
+          </div>
+        )}
       </div>
     );
   }
@@ -148,28 +154,31 @@ export default function RosterPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="ro-filter" role="group" aria-label={T.roster.statusFilter}>
+        <div className="ro-filter">
           <Select
             size="sm"
             fullWidth
+            aria-label={T.roster.statusFilter}
             value={activeStatus}
             options={filterOptions(T.roster.statusAll, STATUS_LABEL)}
             onChange={(v) => setActiveStatus(v as ActiveStatus | 'all')}
           />
         </div>
-        <div className="ro-filter" role="group" aria-label={T.roster.genderFilter}>
+        <div className="ro-filter">
           <Select
             size="sm"
             fullWidth
+            aria-label={T.roster.genderFilter}
             value={gender}
             options={filterOptions(T.roster.genderAll, GENDER_LABEL)}
             onChange={(v) => setGender(v as Gender | 'all')}
           />
         </div>
-        <div className="ro-filter" role="group" aria-label={T.roster.personalityFilter}>
+        <div className="ro-filter">
           <Select
             size="sm"
             fullWidth
+            aria-label={T.roster.personalityFilter}
             value={personality}
             options={filterOptions(T.roster.personalityAll, PERSONALITY_LABEL)}
             onChange={(v) => setPersonality(v as Personality | 'all')}
@@ -196,8 +205,13 @@ export default function RosterPage() {
       </div>
 
       <div className="ro-scroll">
-        {groups.length === 0 ? (
-          <p className="ro-empty">{T.roster.empty}</p>
+        {members.length === 0 || groups.length === 0 ? (
+          <EmptyState
+            className="app-empty"
+            headingLevel={2}
+            title={members.length === 0 ? T.roster.emptyAll : T.roster.empty}
+            description={members.length === 0 && canEditMembers ? T.roster.emptyAllHint : undefined}
+          />
         ) : (
           <RosterTable
             groups={groups}

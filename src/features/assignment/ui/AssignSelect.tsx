@@ -17,6 +17,7 @@ export function AssignSelect({ item }: { item: Selection }) {
       size="sm"
       fullWidth
       placeholder={T.mobile.assignPlaceholder}
+      aria-label={T.mobile.assignPlaceholder}
       // Always shows the placeholder: choosing performs the move, so there is no selected state to keep.
       value=""
       options={options.map((o, i) => ({ value: String(i), label: o.label }))}

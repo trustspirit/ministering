@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { Spinner } from 'trust-ui-react';
 import { useMembers } from '@/features/members/hooks/useMembers';
 import { useHouseholds } from '@/features/households/hooks/useHouseholds';
 import type { Organization } from '@/features/ministries/types';
@@ -105,7 +106,13 @@ export default function AssignmentPage() {
   return (
     <div className="aw" ref={rootRef} data-mtab={isMobile ? mobileTab : undefined}>
       {!value || !households ? (
-        <p className="aw-status-msg">{failed ? T.assign.loadFailed : T.assign.loading}</p>
+        failed ? (
+          <p className="aw-status-msg">{T.assign.loadFailed}</p>
+        ) : (
+          <div className="app-loading">
+            <Spinner size="sm" label={T.assign.loading} showLabel />
+          </div>
+        )
       ) : (
         <WorkspaceContext.Provider value={value}>
           <SummaryBar households={households} />

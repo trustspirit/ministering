@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { EmptyState } from 'trust-ui-react';
 import { T } from '@/shared/copy';
 import { dragOf, overKey, useDragStore, useDropHandler } from '../dnd';
 import { useWorkspace } from '../workspaceContext';
@@ -13,6 +14,14 @@ export function BoardPanel() {
   return (
     <section className="aw-board">
       <div className="aw-grid">
+        {board.ministries.length === 0 && (
+          <EmptyState
+            className="app-empty aw-grid-wide"
+            headingLevel={4}
+            title={T.assign.boardEmpty}
+            description={canEdit ? T.assign.boardEmptyHint : undefined}
+          />
+        )}
         {board.ministries.map((m) => (
           <MinistryCard key={m.id} ministry={m} org={org} canEdit={canEdit} />
         ))}

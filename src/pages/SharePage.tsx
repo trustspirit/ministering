@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Skeleton, Spinner } from 'trust-ui-react';
 import { isShareTokenShape } from '@/features/share/shareToken';
 import {
   useMinistryShare,
@@ -93,7 +94,16 @@ export default function SharePage() {
   if (!isShareTokenShape(token) || query.isError || share === null) {
     body = <p className="sp-msg">{S.invalid}</p>;
   } else if (!share) {
-    body = <p className="sp-msg sp-msg--quiet">{S.loading}</p>;
+    body = (
+      <>
+        <div className="sp-msg sp-msg--quiet">
+          <Spinner size="sm" label={S.loading} showLabel />
+        </div>
+        {/* A placeholder the size of the real page (title, name, two lists) so nothing jumps when it arrives. */}
+        <Skeleton shape="text" width="60%" height={19} />
+        <Skeleton shape="text" lines={4} height={13} style={{ marginTop: 18 }} />
+      </>
+    );
   } else {
     const noun = T.assign.companionNoun[share.organization];
     const recipientNoun = T.assign.recipientNoun[share.organization];

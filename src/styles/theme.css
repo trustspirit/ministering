@@ -24,6 +24,9 @@
   --app-font-serif: 'Noto Serif KR', serif;
 }
 
+/* Re-checked against trust-ui-react 2.2.0 dist/styles.css: every token below still exists and is read by the
+   components. Density stays the default (comfortable): --tui-control-sm is 36px, the approved form-control
+   height; data-density="compact" would make it 30px. */
 :root,
 [data-theme='light'] {
   --tui-accent: #006184;
@@ -36,9 +39,33 @@
   --tui-font-sans: 'Ensign:Sans', Roboto, 'Noto Sans KR', Arial, sans-serif;
 }
 
-/* Titles are serif (明朝); trust-ui dialog titles included. */
+/* Titles are serif (明朝). trust-ui 2.2 has no heading-font token (every title uses --tui-font-sans), so the
+   dialog title is restyled here; Dialog.Title renders an <h2> carrying one hashed class, and [class] lifts this rule
+   above that class's own weight and colour. */
 dialog h2[class] {
   font-family: var(--app-font-serif);
   font-weight: 700;
   color: var(--app-navy);
+}
+
+/* trust-ui EmptyState / Spinner at the mockup's compact density. The sizes come from library tokens, scoped to
+   the element, so nothing reaches into the components' internal DOM. Titles are serif like every other title. */
+.app-empty {
+  --tui-gap-4: 6px;
+  --tui-gap-6: 14px;
+  --tui-font-size-h3: 13px;
+  --tui-font-size-body: 12px;
+  color: var(--app-mute);
+}
+.app-empty :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--app-font-serif);
+  font-weight: 700;
+  color: var(--app-navy);
+}
+.app-loading {
+  display: flex;
+  justify-content: center;
+  padding: 24px 18px;
+  color: var(--app-mute);
+  font-size: 13px;
 }

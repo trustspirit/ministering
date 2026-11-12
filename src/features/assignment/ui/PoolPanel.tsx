@@ -1,6 +1,6 @@
 import { useMemo, type DragEvent } from 'react';
 import clsx from 'clsx';
-import { TextField } from 'trust-ui-react';
+import { EmptyState, TextField } from 'trust-ui-react';
 import type { Household } from '@/features/households/types';
 import { T } from '@/shared/copy';
 import { ministryOf, unassignedCandidates, unassignedRecipients, type AssignRole } from '../domain/board';
@@ -104,6 +104,13 @@ export function PoolPanel({ households }: { households: Household[] }) {
           <span>{T.assign.warnUnassignedCandidates(companionNoun)}</span>
           <CountPill n={candidates.length} />
         </h4>
+        {shownCandidates.length === 0 && (
+          <EmptyState
+            className="app-empty"
+            headingLevel={4}
+            title={q ? T.assign.searchNone : T.assign.poolEmptyCandidates[org]}
+          />
+        )}
         {shownCandidates.map((m) => (
           <PersonCard key={m.id} member={m} role="companion" />
         ))}
@@ -113,6 +120,13 @@ export function PoolPanel({ households }: { households: Household[] }) {
           <span>{T.assign.warnUnassignedRecipients(recipientNoun)}</span>
           <CountPill n={recipients.length} />
         </h4>
+        {shownRecipients.length === 0 && (
+          <EmptyState
+            className="app-empty"
+            headingLevel={4}
+            title={q ? T.assign.searchNone : T.assign.poolEmptyRecipients[org]}
+          />
+        )}
         {shownRecipients.map((r) =>
           'full_name' in r ? (
             <PersonCard key={r.id} member={r} role="recipient" />

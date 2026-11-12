@@ -50,7 +50,7 @@ describe('MobileSheet', () => {
 
   it('shows the assign row above the detail for a selected household', () => {
     open({ kind: 'household', id: 'h3' });
-    expect(screen.getByText('임무 지명…')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: '임무 지명…' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '닫기' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '박민수 가정' })).toBeInTheDocument();
     // not assigned yet: nothing to release
@@ -60,7 +60,7 @@ describe('MobileSheet', () => {
   it('performs the ops from resolveDrop when an option is chosen', async () => {
     const user = userEvent.setup();
     const value = open({ kind: 'household', id: 'h3' });
-    await user.click(screen.getByText('임무 지명…'));
+    await user.click(screen.getByRole('combobox', { name: '임무 지명…' }));
     await user.click(await screen.findByText('성역 동반자 1에 지명'));
     expect(value.actions.perform).toHaveBeenCalledWith([
       { type: 'add', role: 'recipient', ministryId: 'g1', targetId: 'h3' },
@@ -71,7 +71,7 @@ describe('MobileSheet', () => {
     const user = userEvent.setup();
     const value = open({ kind: 'household', id: 'h1' });
     // h1 is the household of companion m1 of g1
-    await user.click(screen.getByText('임무 지명…'));
+    await user.click(screen.getByRole('combobox', { name: '임무 지명…' }));
     await user.click(await screen.findByText('성역 동반자 1에 지명'));
     expect(await screen.findByText('성역자 자신의 가정에는 지명할 수 없습니다')).toBeInTheDocument();
     expect(value.actions.perform).not.toHaveBeenCalled();
@@ -95,7 +95,7 @@ describe('MobileSheet', () => {
 
   it('has no select or release for a viewer, only close', () => {
     open({ kind: 'household', id: 'h2' }, false);
-    expect(screen.queryByText('임무 지명…')).toBeNull();
+    expect(screen.queryByRole('combobox')).toBeNull();
     expect(screen.queryByRole('button', { name: '해제' })).toBeNull();
     expect(screen.getByRole('button', { name: '닫기' })).toBeInTheDocument();
   });

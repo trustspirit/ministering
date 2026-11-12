@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from 'trust-ui-react';
@@ -64,10 +64,8 @@ function renderDialog(props: Partial<Parameters<typeof MemberFormDialog>[0]> = {
   return { onClose, invalidate };
 }
 
-/** trust-ui's Select does not link its label to the combobox, so find it through the label text. */
 function selectOf(label: string): HTMLElement {
-  const field = screen.getByText(label, { selector: 'label' }).parentElement!;
-  return within(field).getByRole('combobox');
+  return screen.getByRole('combobox', { name: new RegExp(label) });
 }
 
 async function choose(user: ReturnType<typeof userEvent.setup>, label: string, option: string) {
@@ -126,6 +124,20 @@ describe('MemberFormDialog', () => {
     );
   });
 
+  it('the household field searches by name and keeps 새 가정 만들기 / 가정 없음 as items', async () => {
+    const user = userEvent.setup();
+    renderDialog({ households: [hans, household({ id: 'h2', name: '노진수 가정' })] });
+    const field = selectOf('소속 가정');
+    expect(field).toHaveValue('가정 없음');
+    await user.click(field);
+    expect(await screen.findByRole('option', { name: '새 가정 만들기' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '가정 없음' })).toBeInTheDocument();
+    await user.clear(field);
+    await user.type(field, '노진');
+    expect(screen.getByRole('option', { name: '노진수 가정' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: '한상철 가정' })).toBeNull();
+  });
+
   it('removes the just-created household when saving the person fails', async () => {
     const user = userEvent.setup();
     mocks.createMember.mockRejectedValue(new Error('boom'));
@@ -162,9 +174,12 @@ describe('MemberFormDialog', () => {
     const user = userEvent.setup();
     const m = member({ id: 'p', full_name: '박영수', household_id: 'h1', birth_date: '1980-02-03' });
     const { onClose } = renderDialog({ member: m });
-    expect(selectOf('소속 가정')).toHaveTextContent('한상철 가정');
+    expect(selectOf('소속 가정')).toHaveValue('한상철 가정');
     await user.click(screen.getByRole('button', { name: '삭제' }));
     expect(mocks.deleteMember).not.toHaveBeenCalled();
+    // trust-ui fires `close` after a programmatic close; switching to the confirmation must not report it.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(onClose).not.toHaveBeenCalled();
     await user.click(await screen.findByRole('button', { name: '삭제' }));
     await waitFor(() => expect(mocks.deleteMember).toHaveBeenCalledWith('p'));
     expect(onClose).toHaveBeenCalled();

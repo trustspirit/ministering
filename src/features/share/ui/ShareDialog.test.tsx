@@ -102,6 +102,18 @@ describe('ShareDialog', () => {
     );
   });
 
+  it('does not report onClose when it switches to the confirmation (trust-ui fires `close` after a programmatic close)', async () => {
+    mocks.getShareToken.mockImplementation(async () => TOKEN);
+    const onClose = vi.fn();
+    const { wrapper } = renderWorkspace(<ShareDialog ministry={ministry} open onClose={onClose} />);
+    render(wrapper);
+    fireEvent.click(await screen.findByRole('button', { name: '링크 끄기' }));
+    await screen.findByText(/이 링크는 더 이상 열리지 않습니다/);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText(/이 링크는 더 이상 열리지 않습니다/).closest('dialog')).toHaveAttribute('open');
+  });
+
   it('disables the link after confirmation', async () => {
     const value = open(TOKEN);
     fireEvent.click(await screen.findByRole('button', { name: '링크 끄기' }));

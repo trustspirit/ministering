@@ -35,7 +35,11 @@ if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.sho
     this.setAttribute('open', '');
   };
   HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    if (!this.hasAttribute('open')) return;
     this.removeAttribute('open');
+    // Like a browser, `close` is fired asynchronously (a queued task), after close() has returned. trust-ui 2.2.0's
+    // Dialog reports that event through onClose even for a close it triggered itself, so tests must see it.
+    setTimeout(() => this.dispatchEvent(new Event('close')), 0);
   };
 }
 

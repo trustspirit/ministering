@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, DatePicker, Dialog, Select, TextField, useToast } from 'trust-ui-react';
+import { Button, Combobox, DatePicker, Dialog, Select, TextArea, TextField, useToast } from 'trust-ui-react';
 import { householdDefaultName } from '@/features/households/domain/householdDefaultName';
 import { HOUSEHOLDS_QUERY_KEY } from '@/features/households/hooks/useHouseholds';
 import { useCreateHousehold } from '@/features/households/hooks/useHouseholdMutations';
@@ -128,160 +128,173 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
 
   return (
     <>
-      <Dialog open={open && !confirmDelete} onClose={onClose} size="md">
-        <Dialog.Title onClose={onClose}>{isEdit ? F.editTitle : F.createTitle}</Dialog.Title>
-        <Dialog.Content>
-          <form id="member-form" onSubmit={submit} noValidate>
-            <div className="ro-form">
-              <div className="ro-wide">
-                <TextField
-                  size="sm"
-                  fullWidth
-                  label={F.name}
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  error={!!nameError}
-                  errorMessage={nameError}
-                />
-              </div>
-              <Select
-                size="sm"
-                fullWidth
-                label={F.gender}
-                required
-                value={gender}
-                options={options(GENDER_LABEL)}
-                onChange={(v) => setGender(v as Gender)}
-                error={!!genderError}
-                errorMessage={genderError}
-              />
-              <DatePicker
-                size="sm"
-                label={F.birthDate}
-                required
-                mobileVariant="native"
-                value={parseIsoDate(birthDate)}
-                maxDate={new Date()}
-                onChange={(d) => setBirthDate(d ? toIsoDate(d) : '')}
-                error={!!birthError}
-                errorMessage={birthError}
-              />
-              <div className="ro-wide">
-                <TextField
-                  size="sm"
-                  fullWidth
-                  label={F.address}
-                  placeholder={F.addressPlaceholder}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                />
-              </div>
-              <TextField
-                size="sm"
-                fullWidth
-                type="tel"
-                label={F.phone}
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-              <Select
-                size="sm"
-                fullWidth
-                label={F.status}
-                value={status}
-                options={options(STATUS_LABEL)}
-                onChange={(v) => setStatus(v as ActiveStatus)}
-              />
-              <Select
-                size="sm"
-                fullWidth
-                label={F.personality}
-                value={personality}
-                options={options(PERSONALITY_LABEL)}
-                onChange={(v) => setPersonality(v as Personality)}
-              />
-              <Select
-                size="sm"
-                fullWidth
-                label={F.householdRole}
-                value={role}
-                options={options(F.roles)}
-                onChange={(v) => setRole(v as HouseholdRole)}
-              />
-              <div className="ro-wide">
+      {/* One Dialog whose content switches between the form and the delete confirmation: closing one trust-ui
+          Dialog while opening another makes the first report onClose (see the report, trust-ui 2.2.0), which
+          would close the whole flow before the confirmation appears. */}
+      <Dialog
+        open={open}
+        onClose={confirmDelete ? () => setConfirmDelete(false) : onClose}
+        size={confirmDelete ? 'sm' : 'md'}
+      >
+        {confirmDelete && member ? (
+          <>
+            <Dialog.Title onClose={() => setConfirmDelete(false)}>{F.deleteTitle}</Dialog.Title>
+            <Dialog.Content>
+              <p className="ro-dialog-text">{F.deleteConfirm(member.full_name)}</p>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button variant="ghost" size="sm" shape="square" onClick={() => setConfirmDelete(false)}>
+                {F.cancel}
+              </Button>
+              <Button variant="danger" size="sm" shape="square" onClick={remove}>
+                {F.confirmDelete}
+              </Button>
+            </Dialog.Actions>
+          </>
+        ) : (
+          <>
+          <Dialog.Title onClose={onClose}>{isEdit ? F.editTitle : F.createTitle}</Dialog.Title>
+          <Dialog.Content>
+            <form id="member-form" onSubmit={submit} noValidate>
+              <div className="ro-form">
+                <div className="ro-wide">
+                  <TextField
+                    size="sm"
+                    fullWidth
+                    label={F.name}
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    error={!!nameError}
+                    errorMessage={nameError}
+                  />
+                </div>
                 <Select
                   size="sm"
                   fullWidth
-                  searchable
-                  label={F.household}
-                  value={householdChoice}
-                  options={[
-                    { value: NONE, label: F.householdNone },
-                    { value: NEW, label: F.householdNew },
-                    ...households.map((h) => ({ value: h.id, label: h.name })),
-                  ]}
-                  onChange={(v) => setHouseholdChoice(String(v))}
+                  label={F.gender}
+                  required
+                  placeholder={F.genderPlaceholder}
+                  value={gender}
+                  options={options(GENDER_LABEL)}
+                  onChange={(v) => setGender(v as Gender)}
+                  error={!!genderError}
+                  errorMessage={genderError}
                 />
-              </div>
-              <div className="ro-wide">
+                <DatePicker
+                  size="sm"
+                  label={F.birthDate}
+                  required
+                  mobileVariant="native"
+                  value={parseIsoDate(birthDate)}
+                  maxDate={new Date()}
+                  onChange={(d) => setBirthDate(d ? toIsoDate(d) : '')}
+                  error={!!birthError}
+                  errorMessage={birthError}
+                />
+                <div className="ro-wide">
+                  <TextField
+                    size="sm"
+                    fullWidth
+                    label={F.address}
+                    placeholder={F.addressPlaceholder}
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
+                </div>
                 <TextField
                   size="sm"
-                  multiline
-                  rows={2}
                   fullWidth
-                  label={F.memo}
-                  value={memo}
-                  onChange={(e) => setMemo(e.target.value)}
+                  type="tel"
+                  label={F.phone}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                 />
+                <Select
+                  size="sm"
+                  fullWidth
+                  label={F.status}
+                  value={status}
+                  options={options(STATUS_LABEL)}
+                  onChange={(v) => setStatus(v as ActiveStatus)}
+                />
+                <Select
+                  size="sm"
+                  fullWidth
+                  label={F.personality}
+                  value={personality}
+                  options={options(PERSONALITY_LABEL)}
+                  onChange={(v) => setPersonality(v as Personality)}
+                />
+                <Select
+                  size="sm"
+                  fullWidth
+                  label={F.householdRole}
+                  value={role}
+                  options={options(F.roles)}
+                  onChange={(v) => setRole(v as HouseholdRole)}
+                />
+                <div className="ro-wide">
+                  <Combobox
+                    size="sm"
+                    fullWidth
+                    label={F.household}
+                    clearable={false}
+                    placeholder={F.householdSearch}
+                    emptyText={F.householdNoMatch}
+                    value={householdChoice}
+                    options={[
+                      { value: NONE, label: F.householdNone },
+                      { value: NEW, label: F.householdNew },
+                      ...households.map((h) => ({ value: h.id, label: h.name })),
+                    ]}
+                    // The "가정 없음" item is the way to clear, so an emptied field falls back to it.
+                    onChange={(v) => setHouseholdChoice(v ?? NONE)}
+                  />
+                </div>
+                <div className="ro-wide">
+                  <TextArea
+                    size="sm"
+                    rows={2}
+                    autoResize
+                    fullWidth
+                    label={F.memo}
+                    value={memo}
+                    onValueChange={setMemo}
+                  />
+                </div>
               </div>
-            </div>
-          </form>
-          {error && (
-            <p className="ro-error" role="alert">
-              ⚠ {error}
-            </p>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          {isEdit && (
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              shape="square"
-              disabled={busy}
-              onClick={() => setConfirmDelete(true)}
-              style={{ marginRight: 'auto' }}
-            >
-              {F.delete}
-            </Button>
-          )}
-          <Button type="button" variant="ghost" size="sm" shape="square" disabled={busy} onClick={onClose}>
-            {F.cancel}
-          </Button>
-          <Button type="submit" form="member-form" variant="primary" size="sm" shape="square" disabled={busy}>
-            {busy ? F.saving : F.save}
-          </Button>
-        </Dialog.Actions>
-      </Dialog>
-
-      {member && (
-        <Dialog open={open && confirmDelete} onClose={() => setConfirmDelete(false)} size="sm">
-          <Dialog.Title onClose={() => setConfirmDelete(false)}>{F.deleteTitle}</Dialog.Title>
-          <Dialog.Content>
-            <p className="ro-dialog-text">{F.deleteConfirm(member.full_name)}</p>
+            </form>
+            {error && (
+              <p className="ro-error" role="alert">
+                ⚠ {error}
+              </p>
+            )}
           </Dialog.Content>
           <Dialog.Actions>
-            <Button variant="ghost" size="sm" shape="square" onClick={() => setConfirmDelete(false)}>
+            {isEdit && (
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                shape="square"
+                disabled={busy}
+                onClick={() => setConfirmDelete(true)}
+                style={{ marginRight: 'auto' }}
+              >
+                {F.delete}
+              </Button>
+            )}
+            <Button type="button" variant="ghost" size="sm" shape="square" disabled={busy} onClick={onClose}>
               {F.cancel}
             </Button>
-            <Button variant="danger" size="sm" shape="square" onClick={remove}>
-              {F.confirmDelete}
+            <Button type="submit" form="member-form" variant="primary" size="sm" shape="square" disabled={busy}>
+              {busy ? F.saving : F.save}
             </Button>
           </Dialog.Actions>
-        </Dialog>
-      )}
+          </>
+        )}
+      </Dialog>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Dialog, TextField, useToast } from 'trust-ui-react';
+import { Button, Dialog, Spinner, TextField, useToast } from 'trust-ui-react';
 import { ministryLabel, type BoardMinistry } from '@/features/assignment/domain/board';
 import { useWorkspace } from '@/features/assignment/workspaceContext';
 import { T } from '@/shared/copy';
@@ -66,78 +66,92 @@ export function ShareDialog({
 
   return (
     <>
-      <Dialog open={open && confirm === null} onClose={onClose} size="sm">
-        <Dialog.Title onClose={onClose}>{S.dialogTitleOf(ministryLabel(ministry))}</Dialog.Title>
-        <Dialog.Content>
-          <p className="aw-dialog-text">{S.description}</p>
-          {loading && !failed && <p className="aw-dialog-text sh-status">{S.loading}</p>}
-          {!loading && token && (
-            <div className="sh-url">
-              <TextField
-                ref={fieldRef}
-                size="sm"
-                fullWidth
-                label={S.urlLabel}
-                value={url}
-                readOnly
-                onFocus={(e) => e.currentTarget.select()}
-              />
-            </div>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          {failed ? (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              {S.close}
-            </Button>
-          ) : token ? (
-            <>
-              <Button variant="ghost" size="sm" disabled={loading} onClick={() => setConfirm('disable')}>
-                {S.disable}
-              </Button>
-              <Button variant="outline" size="sm" disabled={loading} onClick={() => setConfirm('regenerate')}>
-                {S.regenerate}
-              </Button>
-              <Button size="sm" disabled={loading} onClick={() => void copy()}>
-                {S.copy}
-              </Button>
-            </>
-          ) : (
-            <>
+      {/* One Dialog whose content switches to the confirmation: closing one trust-ui Dialog while opening another
+          makes the first report onClose (trust-ui 2.2.0), which would close the whole flow. */}
+      <Dialog
+        open={open}
+        onClose={confirm !== null ? () => setConfirm(null) : onClose}
+        size="sm"
+      >
+        {confirm === null ? (
+          <>
+          <Dialog.Title onClose={onClose}>{S.dialogTitleOf(ministryLabel(ministry))}</Dialog.Title>
+          <Dialog.Content>
+            <p className="aw-dialog-text">{S.description}</p>
+            {loading && !failed && (
+              <div className="sh-status">
+                <Spinner size="sm" label={S.loading} showLabel />
+              </div>
+            )}
+            {!loading && token && (
+              <div className="sh-url">
+                <TextField
+                  ref={fieldRef}
+                  size="sm"
+                  fullWidth
+                  label={S.urlLabel}
+                  value={url}
+                  readOnly
+                  onFocus={(e) => e.currentTarget.select()}
+                />
+              </div>
+            )}
+          </Dialog.Content>
+          <Dialog.Actions>
+            {failed ? (
               <Button variant="ghost" size="sm" onClick={onClose}>
                 {S.close}
               </Button>
-              <Button size="sm" disabled={loading} onClick={() => void write(generateShareToken())}>
-                {S.create}
-              </Button>
-            </>
-          )}
-        </Dialog.Actions>
-      </Dialog>
-
-      <Dialog open={open && confirm !== null} onClose={() => setConfirm(null)} size="sm">
-        <Dialog.Title onClose={() => setConfirm(null)}>
-          {confirm === 'disable' ? S.disableTitle : S.regenerateTitle}
-        </Dialog.Title>
-        <Dialog.Content>
-          <p className="aw-dialog-text">{confirm === 'disable' ? S.disableConfirm : S.regenerateConfirm}</p>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button variant="ghost" size="sm" onClick={() => setConfirm(null)}>
-            {S.cancel}
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() =>
-              confirm === 'disable'
-                ? void write(null, S.disabled)
-                : void write(generateShareToken(), S.regenerated)
-            }
-          >
-            {confirm === 'disable' ? S.disable : S.regenerate}
-          </Button>
-        </Dialog.Actions>
+            ) : token ? (
+              <>
+                <Button variant="ghost" size="sm" disabled={loading} onClick={() => setConfirm('disable')}>
+                  {S.disable}
+                </Button>
+                <Button variant="outline" size="sm" disabled={loading} onClick={() => setConfirm('regenerate')}>
+                  {S.regenerate}
+                </Button>
+                <Button size="sm" disabled={loading} onClick={() => void copy()}>
+                  {S.copy}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={onClose}>
+                  {S.close}
+                </Button>
+                <Button size="sm" disabled={loading} onClick={() => void write(generateShareToken())}>
+                  {S.create}
+                </Button>
+              </>
+            )}
+          </Dialog.Actions>
+          </>
+        ) : (
+          <>
+          <Dialog.Title onClose={() => setConfirm(null)}>
+            {confirm === 'disable' ? S.disableTitle : S.regenerateTitle}
+          </Dialog.Title>
+          <Dialog.Content>
+            <p className="aw-dialog-text">{confirm === 'disable' ? S.disableConfirm : S.regenerateConfirm}</p>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button variant="ghost" size="sm" onClick={() => setConfirm(null)}>
+              {S.cancel}
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() =>
+                confirm === 'disable'
+                  ? void write(null, S.disabled)
+                  : void write(generateShareToken(), S.regenerated)
+              }
+            >
+              {confirm === 'disable' ? S.disable : S.regenerate}
+            </Button>
+          </Dialog.Actions>
+          </>
+        )}
       </Dialog>
     </>
   );

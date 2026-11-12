@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Button, Dialog, TextField } from 'trust-ui-react';
+import { Button, Dialog, TextArea, TextField } from 'trust-ui-react';
 import { useUpdateHousehold } from '@/features/households/hooks/useHouseholdMutations';
 import type { Household } from '@/features/households/types';
 import { T } from '@/shared/copy';
@@ -73,14 +73,14 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
               />
             </div>
             <div className="ro-wide">
-              <TextField
+              <TextArea
                 size="sm"
-                multiline
                 rows={4}
+                autoResize
                 fullWidth
                 label={F.memo}
                 value={memo}
-                onChange={(e) => setMemo(e.target.value)}
+                onValueChange={setMemo}
               />
             </div>
           </div>

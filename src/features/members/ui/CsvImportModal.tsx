@@ -135,6 +135,7 @@ export function CsvImportModal({ open, onClose }: CsvImportModalProps) {
             </p>
             <Progress
               size="sm"
+              aria-label={C.progressLabel}
               indeterminate={!progress || progress.total === 0}
               value={progress && progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}
             />

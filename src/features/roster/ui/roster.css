@@ -23,7 +23,8 @@
 .ro-search { width: 220px; }
 .ro-sp { margin-left: auto; }
 .ro-filter { width: 128px; }
-/* trust-ui TextField / Select flattened to the mockup's single 1px rule, 2px corners */
+/* trust-ui TextField / Select flattened to the mockup's single 1px rule, 2px corners (see the same note in
+   assignment.css for why the TextField box is found with :has(> input)) */
 .ro-tools input,
 .ro-tools [role='combobox'] {
   font: inherit;
@@ -31,7 +32,7 @@
   line-height: 1.5;
   color: var(--app-ink);
 }
-.ro-search > div > div:first-child {
+.ro-search :has(> input) {
   height: auto;
   min-height: 0;
   border: 1px solid var(--app-rule);
@@ -49,8 +50,8 @@
   box-shadow: none;
 }
 .ro-filter [role='combobox']:focus-visible { border-color: var(--app-accent); outline: 0; }
-.ro-search > div > div:first-child:focus-within { border-color: var(--app-accent); }
-.ro-search > div > div:not(:first-child) { display: none; }
+.ro-search :has(> input):focus-within { border-color: var(--app-accent); }
+.ro-search > div > :not(:has(> input)) { display: none; }
 .ro .ro-search input { padding: 5px 9px; height: auto; border: 0; background: transparent; }
 
 /* mockup .btn: 1px navy rule, 12.5px, primary = filled navy */
@@ -123,14 +124,13 @@
   text-decoration: underline;
   cursor: pointer;
 }
-.ro-empty { padding: 24px 10px; color: var(--app-mute); }
 
 /* dialogs (portalled outside .ro, so scoped by their own classes) */
 .ro-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
 .ro-form > .ro-wide { grid-column: 1 / -1; }
-/* Every single-line control is 36px tall (also the phone touch-target minimum). trust-ui's text input is
-   its height plus the wrapper's 2px border, so take the border off the input to match select and date. */
-.ro-form { --tui-control-sm: 36px; }
+/* Every single-line control is 36px tall (also the phone touch-target minimum): trust-ui's small step is 36px in
+   its default (comfortable) density, so no token override is needed. Its text input is that height PLUS the
+   wrapper's 2px border, so the border is taken off the input to match select and date. */
 .ro-form input:not([readonly]) { height: calc(var(--tui-control-sm) - 2px); }
 .ro-dialog-text { margin: 0; font-size: 13px; line-height: 1.6; }
 .ro-error { margin: 8px 0 0; color: var(--app-bad-ink); background: var(--app-bad-bg); border: 1px solid var(--app-bad-line); padding: 4px 10px; font-size: 12.5px; }

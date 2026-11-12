@@ -48,8 +48,10 @@
 }
 .aw-pool--over { background: var(--app-tint); }
 .aw-search { flex: none; padding: 10px 12px 8px; }
-/* trust-ui TextField, flattened to the mockup's single 1px rule (wrapper > input; footer hidden) */
-.aw-search > div > div:first-child {
+/* trust-ui 2.2 TextField has no prop for a bare single-rule field, so its box is restyled to the mockup's 1px rule.
+   The box is found as "the element holding the <input>" and the helper/counter footer (the box's sibling) is
+   hidden; neither depends on hashed class names or child positions. */
+.aw-search :has(> input) {
   height: auto;
   min-height: 0;
   border: 1px solid var(--app-rule);
@@ -57,8 +59,8 @@
   background: #fff;
   box-shadow: none;
 }
-.aw-search > div > div:first-child:focus-within { border-color: var(--app-accent); }
-.aw-search > div > div:not(:first-child) { display: none; }
+.aw-search :has(> input):focus-within { border-color: var(--app-accent); }
+.aw-search > div > :not(:has(> input)) { display: none; }
 .aw .aw-search input {
   width: 100%;
   font: inherit;
@@ -221,6 +223,7 @@
   padding: 6px 8px;
   text-align: center;
 }
+.aw-grid-wide { grid-column: 1 / -1; }
 .aw-newg {
   border: 1.5px dashed var(--app-rule-strong);
   color: var(--app-mute);
@@ -376,10 +379,10 @@
 .aw-mtabs { display: none; }
 .aw-massign { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
 .aw-massign > :first-child:not(button) { flex: 1; min-width: 0; }
-/* the mockup's .massign: 13px, 1px navy rule, white, square corners (trust-ui controls restyled to match) */
+/* the mockup's .massign: 13px, 1px navy rule, white, square corners (trust-ui controls restyled to match).
+   The Select trigger is addressed by its ARIA role (public contract), not by the library's internal DOM. */
 .aw-massign button,
-.aw-massign [role='combobox'],
-.aw-massign [aria-haspopup] {
+.aw-massign [role='combobox'] {
   font: inherit;
   font-size: 13px;
   line-height: 1.5;
@@ -394,11 +397,6 @@
 }
 .aw-sheet { height: auto; display: block; overflow: visible; background: transparent; padding: 0 14px 16px; }
 .aw-sheet .aw-detail { border-top: 0; padding: 0; min-height: 0; overflow: visible; }
-
-/* trust-ui portals Select lists to <body> at z-dropdown, which sits below the bottom sheet. */
-@media (max-width: 819.98px) {
-  body > [role='listbox'] { z-index: calc(var(--tui-z-bottom-sheet) + 5) !important; /* beats the inline z-index */ }
-}
 
 @media (max-width: 819.98px) {
   .aw { font-size: 14px; }

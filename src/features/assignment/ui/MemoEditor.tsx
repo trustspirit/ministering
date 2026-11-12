@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, TextField, useToast } from 'trust-ui-react';
+import { Button, TextArea, useToast } from 'trust-ui-react';
 import { T } from '@/shared/copy';
 
 /** A free-text memo shown as a note, edited in place. `onSave` rejects when the save failed. */
@@ -37,13 +37,15 @@ export function MemoEditor({
       <p className="aw-eye">{label}</p>
       {editing ? (
         <>
-          <TextField
-            multiline
+          <TextArea
             fullWidth
             rows={4}
-            aria-label={label}
+            autoResize
+            maxRows={12}
+            label={label}
+            hideLabel
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onValueChange={setDraft}
             disabled={saving}
           />
           <div className="aw-eb">
