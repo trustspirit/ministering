@@ -156,73 +156,67 @@
 .ro-errlist div { padding: 3px 8px; border-top: 1px solid var(--app-rule); }
 .ro-errlist div:first-child { border-top: 0; }
 
-/* Narrower than wide (breakpoints.ts): a fixed layout that can never be wider than .ro-scroll, whatever the data.
-   Short columns get fixed widths and the memo takes what is left. The phone number and the two companionship
-   columns get computed widths: the phone column starts to shrink only when the memo is down to --ro-memo-min, and
-   the companionship columns only when the phone column is down to its minimum. Names keep at least 70px (~5em).
-   Cut text (.ro-cut, above) ends in an ellipsis and keeps its full text in a title.
-   It always fits from 70 + 320 + 2 × 56 + 56 + 30 = 588px of container (the 820px window gives 764px). */
+/* Compact (1024–1279px, breakpoints.ts; below 1024px RosterPage shows RosterList instead): a fixed layout whose
+   widths do not depend on the data, so the table can never be wider than .ro-scroll. Short columns get fixed widths,
+   name and companionship columns a share of the container, the phone 110px; the memo gets the rest, at least
+   968 - (320 + 116 + 2 × 126 + 110) = 170px at 1024px. Cut text (.ro-cut, above) ends in an ellipsis with the full
+   text in a title. */
 @media (max-width: 1279.98px) {
   .ro-scroll { container-type: inline-size; }
-  .ro-table {
-    table-layout: fixed;
-    --ro-fixed: 320px; /* age 44 + gender 44 + status 76 + org 86 + actions 70 */
-    --ro-name: clamp(70px, 12cqw, 160px);
-    --ro-label-min: 56px;
-    --ro-label-max: clamp(100px, 14cqw, 160px);
-    --ro-tel-min: 56px;
-    --ro-tel-max: 110px;
-    --ro-memo-min: 30px;
-  }
-  .ro-c-name { width: var(--ro-name); }
+  .ro-table { table-layout: fixed; }
+  .ro-c-name { width: 12cqw; }
   .ro-c-age,
   .ro-c-gender { width: 44px; }
   .ro-c-status { width: 76px; }
   .ro-c-org { width: 86px; }
+  .ro-c-label { width: 13cqw; }
+  .ro-c-tel { width: 110px; }
   .ro-c-act { width: 70px; }
-  .ro-c-tel {
-    width: clamp(
-      var(--ro-tel-min),
-      100cqw - var(--ro-fixed) - var(--ro-name) - 2 * var(--ro-label-max) - var(--ro-memo-min),
-      var(--ro-tel-max)
-    );
-  }
-  .ro-c-label {
-    width: clamp(
-      var(--ro-label-min),
-      (100cqw - var(--ro-fixed) - var(--ro-name) - var(--ro-tel-min) - var(--ro-memo-min)) / 2,
-      var(--ro-label-max)
-    );
-  }
   .ro-table thead th { overflow: hidden; text-overflow: ellipsis; }
   .ro-memo { max-width: none; }
 }
 
-/* phone list (RosterList): the table's rows stacked */
+/* RosterList (below 1024px): the table's rows stacked. Its rules only match the list's own classes, so they are not
+   wrapped in a media query (the list is rendered only in the tabbed range, see RosterPage). Each row is a grid:
+   phone = details / second line / memo, with the edit link at the right of the first line; tablet = details and
+   second line side by side on one line, edit link at the end, memo below. */
 .ro-list ul { margin: 0; padding: 0; list-style: none; }
 .ro-lgroup { border-top: 1px solid var(--app-rule-strong); }
 .ro-lgroup:last-child { border-bottom: 1px solid var(--app-rule); }
+.ro-lhh,
+.ro-lm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 12px;
+}
 .ro-lhh { background: var(--app-soft); padding: 7px 10px; border-bottom: 1px solid var(--app-rule); }
 .ro-lhh h3 { font-family: var(--app-font-serif); margin: 0; color: var(--app-navy); font-size: 15px; font-weight: 700; line-height: 1.4; }
 .ro-lm { padding: 7px 10px 8px; border-bottom: 1px solid var(--app-rule); }
 .ro-lm:last-child { border-bottom: 0; }
-.ro-l1 { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; min-width: 0; }
+.ro-l1 { grid-column: 1; grid-row: 1; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; min-width: 0; }
 .ro-l1 b { font-weight: 700; }
 .ro-l1 .aw-st { align-self: center; margin-right: 0; }
 .ro-mute { color: var(--app-mute); font-size: 12.5px; }
 /* ~36px touch target without making the row taller */
-.ro .ro-lact { margin: -9px 0 -9px auto; padding: 9px 0 9px 14px; font-size: 12.5px; }
-.ro-l2 { display: flex; flex-wrap: wrap; color: var(--app-ink-soft); font-size: 12.5px; overflow-wrap: anywhere; }
+.ro .ro-lact { grid-column: -2; grid-row: 1; margin: -9px 0; padding: 9px 0 9px 14px; font-size: 12.5px; }
+.ro-l2 { grid-column: 1 / -1; display: flex; flex-wrap: wrap; color: var(--app-ink-soft); font-size: 12.5px; overflow-wrap: anywhere; }
 .ro-l2 > * + *::before { content: '·'; margin: 0 6px; color: var(--app-mute); }
 .ro-l2 i { font-style: normal; color: var(--app-mute); }
 .ro-l2 a { color: var(--app-accent); }
 .ro-lmemo {
+  grid-column: 1 / -1;
   margin: 2px 0 0;
   color: var(--app-mute);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+@media (min-width: 820px) {
+  .ro-lhh,
+  .ro-lm { grid-template-columns: minmax(0, 16em) minmax(0, 1fr) auto; }
+  .ro-l2 { grid-column: 2; grid-row: 1; }
 }
 
 @media (max-width: 819.98px) {

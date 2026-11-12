@@ -29,17 +29,17 @@ function MemberItem({ member, info, onEdit }: { member: Member; info: MinistryIn
         ) : (
           <StatusText status={member.active_status} />
         )}
-        {onEdit && (
-          <button
-            type="button"
-            className="ro-link ro-lact"
-            aria-label={T.roster.editMemberOf(member.full_name)}
-            onClick={() => onEdit(member)}
-          >
-            {T.roster.editMember}
-          </button>
-        )}
       </div>
+      {onEdit && (
+        <button
+          type="button"
+          className="ro-link ro-lact"
+          aria-label={T.roster.editMemberOf(member.full_name)}
+          onClick={() => onEdit(member)}
+        >
+          {T.roster.editMember}
+        </button>
+      )}
       <div className="ro-l2">
         <span>{org ? ORG_LABEL[org] : T.roster.noOrg}</span>
         {org && <span>{serves ?? dash}</span>}
@@ -63,7 +63,7 @@ function MemberItem({ member, info, onEdit }: { member: Member; info: MinistryIn
   );
 }
 
-/** Phone roster (< 820px): the table's rows stacked as a list, with the same data and edit links. */
+/** Roster below 1024px (phone and tablet): the table's rows stacked as a list, with the same data and edit links. */
 export function RosterList({ groups, info, onEditMember, onEditHousehold }: RosterViewProps) {
   return (
     <div className="ro-list" role="region" aria-label={T.roster.tableLabel}>
@@ -76,17 +76,17 @@ export function RosterList({ groups, info, onEditMember, onEditHousehold }: Rost
             <header className="ro-lhh">
               <div className="ro-l1">
                 <h3>{hh?.name ?? T.roster.noHouseholdGroup}</h3>
-                {hh && onEditHousehold && (
-                  <button
-                    type="button"
-                    className="ro-link ro-lact"
-                    aria-label={T.roster.editHouseholdOf(hh.name)}
-                    onClick={() => onEditHousehold(hh)}
-                  >
-                    {T.roster.editHousehold}
-                  </button>
-                )}
               </div>
+              {hh && onEditHousehold && (
+                <button
+                  type="button"
+                  className="ro-link ro-lact"
+                  aria-label={T.roster.editHouseholdOf(hh.name)}
+                  onClick={() => onEditHousehold(hh)}
+                >
+                  {T.roster.editHousehold}
+                </button>
+              )}
               <div className="ro-l2">
                 <span>{[hh?.address, T.roster.headcount(g.members.length)].filter(Boolean).join(' · ')}</span>
                 {hh && (

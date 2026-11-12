@@ -18,7 +18,7 @@ import { RosterList } from '@/features/roster/ui/RosterList';
 import { RosterTable } from '@/features/roster/ui/RosterTable';
 import '@/features/roster/ui/roster.css';
 import { usePermission } from '@/shared/auth/usePermission';
-import { useLayout } from '@/shared/hooks/useIsMobile';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import { useRealtimeSync } from '@/shared/hooks/useRealtimeSync';
 import { GENDER_LABEL, ORG_LABEL, PERSONALITY_LABEL, STATUS_LABEL, T } from '@/shared/copy';
 import '@/shared/ui/subbar.css';
@@ -73,7 +73,8 @@ export default function RosterPage() {
   const setActiveStatus = useMemberFilterStore((s) => s.setActiveStatus);
   const setPersonality = useMemberFilterStore((s) => s.setPersonality);
 
-  const isPhone = useLayout() === 'phone';
+  // phone and tablet (< 1024px): the table would leave the memo column too narrow there
+  const stacked = useIsMobile();
   // the bar shows counts only; their digits are what can change its width
   const fitRef = useSubbarFit(`${householdsQuery.data?.length}|${membersQuery.data?.length}`);
   const [dialog, setDialog] = useState<Dialogs>({ kind: 'none' });
@@ -121,8 +122,8 @@ export default function RosterPage() {
     downloadCsv(exportMembersCsv(groups.flatMap((g) => g.members), names));
   };
 
-  // Phones get the rows stacked as a list; tablets and wider keep the table.
-  const RosterView = isPhone ? RosterList : RosterTable;
+  // Phones and tablets get the rows stacked as a list; 1024px and wider keep the table.
+  const RosterView = stacked ? RosterList : RosterTable;
 
   return (
     <div className="ro">

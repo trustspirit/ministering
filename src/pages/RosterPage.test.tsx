@@ -11,7 +11,9 @@ vi.mock('@/shared/auth/usePermission', () => ({
   usePermission: () => ({ canEditMembers: mocks.canEditMembers }),
 }));
 vi.mock('@/shared/hooks/useRealtimeSync', () => ({ useRealtimeSync: () => {} }));
-vi.mock('@/shared/hooks/useIsMobile', () => ({ useLayout: () => mocks.layout }));
+vi.mock('@/shared/hooks/useIsMobile', () => ({
+  useIsMobile: () => mocks.layout === 'phone' || mocks.layout === 'tablet',
+}));
 vi.mock('@/features/assignment/hooks/useAssignmentBoard', () => ({
   useAssignmentBoard: () => ({ data: undefined }),
 }));
@@ -45,15 +47,15 @@ describe('RosterPage', () => {
     mocks.layout = 'wide';
   });
 
-  it('phones get the stacked list instead of the table', () => {
-    mocks.layout = 'phone';
+  it.each(['phone', 'tablet'])('%s gets the stacked list instead of the table', (layout) => {
+    mocks.layout = layout;
     open();
     expect(screen.queryByRole('table')).toBeNull();
     expect(screen.getByRole('region', { name: '명부' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '한상철 가정' })).toBeInTheDocument();
   });
 
-  it.each(['tablet', 'compact', 'wide'])('%s keeps the table', (layout) => {
+  it.each(['compact', 'wide'])('%s keeps the table', (layout) => {
     mocks.layout = layout;
     open();
     expect(screen.getByRole('table', { name: '명부' })).toBeInTheDocument();
