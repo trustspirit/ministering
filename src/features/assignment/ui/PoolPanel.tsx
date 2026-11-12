@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, type DragEvent } from 'react';
 import clsx from 'clsx';
 import { TextField } from 'trust-ui-react';
 import type { Household } from '@/features/households/types';
 import { T } from '@/shared/copy';
 import { ministryOf, unassignedCandidates, unassignedRecipients, type AssignRole } from '../domain/board';
-import { getDrag, overKey, useDragStore, useDropHandler } from '../dnd';
+import { dragOf, overKey, useDragStore, useDropHandler } from '../dnd';
 import { useWorkspaceStore } from '../store';
 import { useWorkspace } from '../workspaceContext';
 import { HouseholdCard } from './HouseholdCard';
@@ -25,12 +25,12 @@ export function PoolPanel({ households }: { households: Household[] }) {
   const handleDrop = useDropHandler(org);
 
   const candidates = useMemo(
-    () => unassignedCandidates(board, members).sort((a, b) => byName(a.full_name, b.full_name)),
+    () => [...unassignedCandidates(board, members)].sort((a, b) => byName(a.full_name, b.full_name)),
     [board, members],
   );
   const recipients = useMemo(
     () =>
-      unassignedRecipients(board, members, households).sort((a, b) =>
+      [...unassignedRecipients(board, members, households)].sort((a, b) =>
         byName('full_name' in a ? a.full_name : a.name, 'full_name' in b ? b.full_name : b.name),
       ),
     [board, members, households],
@@ -46,8 +46,8 @@ export function PoolPanel({ households }: { households: Household[] }) {
   );
 
   /** Only cards that are currently assigned on this board can be dropped back to unassign them. */
-  const isAssigned = () => {
-    const item = getDrag();
+  const isAssigned = (e: DragEvent) => {
+    const item = dragOf(e);
     if (!item) return false;
     const roles: AssignRole[] =
       org === 'EQ'
@@ -68,7 +68,7 @@ export function PoolPanel({ households }: { households: Household[] }) {
       onDragOver={
         canEdit
           ? (e) => {
-              if (!isAssigned()) return;
+              if (!isAssigned(e)) return;
               e.preventDefault();
               e.dataTransfer.dropEffect = 'move';
               setOver(overKey.pool);
@@ -82,7 +82,7 @@ export function PoolPanel({ households }: { households: Household[] }) {
         canEdit
           ? (e) => {
               e.preventDefault();
-              handleDrop({ type: 'pool' });
+              handleDrop(e, { type: 'pool' });
             }
           : undefined
       }

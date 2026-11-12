@@ -1,11 +1,11 @@
-import { useEffect, useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMembers } from '@/features/members/hooks/useMembers';
 import { useHouseholds } from '@/features/households/hooks/useHouseholds';
 import type { Organization } from '@/features/ministries/types';
 import { useAssignmentBoard } from '@/features/assignment/hooks/useAssignmentBoard';
 import { useBoardActions } from '@/features/assignment/hooks/useBoardActions';
-import { endDrag } from '@/features/assignment/dnd';
+import { endDrag, isOurDrag } from '@/features/assignment/dnd';
 import { useWorkspaceStore } from '@/features/assignment/store';
 import { buildLookups, WorkspaceContext, type WorkspaceData } from '@/features/assignment/workspaceContext';
 import { BoardPanel } from '@/features/assignment/ui/BoardPanel';
@@ -34,16 +34,30 @@ export default function AssignmentPage() {
   const org: Organization = orgParam === 'eq' ? 'EQ' : 'RS';
 
   const setOrg = useWorkspaceStore((s) => s.setOrg);
-  const sideWidth = useWorkspaceStore((s) => s.sideWidth);
   useEffect(() => setOrg(org), [org, setOrg]);
 
-  // A drag whose source card unmounted mid-drag never gets its own dragend.
+  // The right column width is applied straight to the DOM so resizing does not re-render the board.
+  const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const apply = (width: string) => rootRef.current?.style.setProperty('--side', width);
+    apply(useWorkspaceStore.getState().sideWidth);
+    return useWorkspaceStore.subscribe((s) => apply(s.sideWidth));
+  }, []);
+
+  // Drag state cleanup. When the source card unmounts mid-drag (e.g. a realtime refetch), its
+  // dragend is dispatched on the detached node and never arrives here; the next foreign
+  // dragover (a file or selected text) then clears the stale item.
+  useEffect(() => {
+    const clearIfForeign = (e: DragEvent) => {
+      if (!isOurDrag(e)) endDrag();
+    };
     document.addEventListener('dragend', endDrag);
     document.addEventListener('drop', endDrag);
+    document.addEventListener('dragover', clearIfForeign);
     return () => {
       document.removeEventListener('dragend', endDrag);
       document.removeEventListener('drop', endDrag);
+      document.removeEventListener('dragover', clearIfForeign);
     };
   }, []);
 
@@ -65,15 +79,18 @@ export default function AssignmentPage() {
     [members, households],
   );
 
-  const value: WorkspaceData | null =
-    board && members && lookups && board.organization === org
-      ? { org, board, canEdit, members, ...lookups, actions, onShare: noShare }
-      : null;
+  const value = useMemo<WorkspaceData | null>(
+    () =>
+      board && members && lookups && board.organization === org
+        ? { org, board, canEdit, members, ...lookups, actions, onShare: noShare }
+        : null,
+    [org, board, canEdit, members, lookups, actions],
+  );
 
   const failed = boardQuery.isError || membersQuery.isError || householdsQuery.isError;
 
   return (
-    <div className="aw" style={{ '--side': sideWidth } as CSSProperties}>
+    <div className="aw" ref={rootRef}>
       {!value || !households ? (
         <p className="aw-status-msg">{failed ? T.assign.loadFailed : T.assign.loading}</p>
       ) : (

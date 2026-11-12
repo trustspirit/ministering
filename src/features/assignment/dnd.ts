@@ -5,6 +5,9 @@ import type { Organization } from '@/features/ministries/types';
 import { resolveDrop, type DragItem, type DropTarget } from './domain/resolveDrop';
 import { useWorkspace } from './workspaceContext';
 
+/** Marks a drag as one of ours; foreign drags (files, selected text) never carry it. */
+export const DRAG_MIME = 'application/x-ministering-item';
+
 let current: DragItem | null = null;
 
 interface DragState {
@@ -27,11 +30,18 @@ export const overKey = {
   zone: (ministryId: string, zone: string) => `${ministryId}:${zone}`,
 };
 
+type DragEventLike = Pick<React.DragEvent | DragEvent, 'dataTransfer'>;
+
 export function startDrag(e: React.DragEvent, item: DragItem): void {
   current = item;
   e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData(DRAG_MIME, item.id);
   e.dataTransfer.setData('text/plain', item.id);
-  useDragStore.setState({ item, over: null });
+  // Defer the render-facing update: the browser snapshots the drag image after dragstart, and
+  // the source card must not already be faded in that snapshot.
+  setTimeout(() => {
+    if (current === item) useDragStore.setState({ item, over: null });
+  });
 }
 
 export function getDrag(): DragItem | null {
@@ -39,17 +49,40 @@ export function getDrag(): DragItem | null {
 }
 
 export function endDrag(): void {
+  if (!current && !useDragStore.getState().item && !useDragStore.getState().over) return;
   current = null;
   useDragStore.setState({ item: null, over: null });
 }
 
-/** Resolves the drag in progress against `target`; rejections become a toast, accepted drops are performed. */
-export function useDropHandler(org: Organization): (target: DropTarget) => void {
+export function isOurDrag(e: DragEventLike): boolean {
+  return Array.from(e.dataTransfer?.types ?? []).includes(DRAG_MIME);
+}
+
+/**
+ * For dragover: the drag in progress when `e` belongs to it. A foreign drag means any
+ * remembered item is stale (its dragend was lost), so the state is cleared.
+ */
+export function dragOf(e: DragEventLike): DragItem | null {
+  if (!isOurDrag(e)) {
+    endDrag();
+    return null;
+  }
+  return current;
+}
+
+/** For drop: like `dragOf`, but always ends the drag. */
+export function takeDrag(e: DragEventLike): DragItem | null {
+  const item = isOurDrag(e) ? current : null;
+  endDrag();
+  return item;
+}
+
+/** Resolves the dropped item against `target`; rejections become a toast, accepted drops are performed. */
+export function useDropHandler(org: Organization): (e: DragEventLike, target: DropTarget) => void {
   const { board, members, actions } = useWorkspace();
   const { toast } = useToast();
-  return (target) => {
-    const item = getDrag();
-    endDrag();
+  return (e, target) => {
+    const item = takeDrag(e);
     if (!item || board.organization !== org) return;
     const result = resolveDrop({ board, item, target, members });
     if (!result.ok) {

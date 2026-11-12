@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { T } from '@/shared/copy';
-import { getDrag, overKey, useDragStore, useDropHandler } from '../dnd';
+import { dragOf, overKey, useDragStore, useDropHandler } from '../dnd';
 import { useWorkspace } from '../workspaceContext';
 import { MinistryCard } from './MinistryCard';
 
@@ -20,7 +20,7 @@ export function BoardPanel() {
           <div
             className={clsx('aw-newg', over && 'aw-newg--over')}
             onDragOver={(e) => {
-              if (!getDrag()) return;
+              if (!dragOf(e)) return;
               e.preventDefault();
               e.dataTransfer.dropEffect = 'move';
               setOver(overKey.newMinistry);
@@ -30,7 +30,7 @@ export function BoardPanel() {
             }}
             onDrop={(e) => {
               e.preventDefault();
-              handleDrop({ type: 'new' });
+              handleDrop(e, { type: 'new' });
             }}
           >
             <div>

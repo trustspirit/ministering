@@ -100,3 +100,10 @@ export function ministryWarnings(m: BoardMinistry): {
 export function ministryLabel(m: Pick<BoardMinistry, 'number' | 'name'>): string {
   return m.name || T.ministry.defaultLabel(m.number);
 }
+
+/** Ids given to optimistically created ministries until the server returns the real one. */
+export const PENDING_MINISTRY_PREFIX = 'tmp-';
+
+export function isPendingMinistry(id: string): boolean {
+  return id.startsWith(PENDING_MINISTRY_PREFIX);
+}

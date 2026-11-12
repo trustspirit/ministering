@@ -58,6 +58,48 @@ describe('MinistryCard', () => {
     expect(screen.getByText('김도현').closest('[draggable]')).toBeNull();
   });
 
+  it('keeps × in the accessibility tree for an editor (hidden only visually)', () => {
+    renderCard();
+    const x = screen.getByRole('button', { name: '지명 해제' });
+    x.focus();
+    expect(x).toHaveFocus();
+  });
+
+  it('selects a card with Enter and toggles the highlight from the title with Enter/Space', () => {
+    useWorkspaceStore.setState({ selected: null, hotMinistryId: null });
+    renderCard();
+    const card = screen.getByRole('button', { name: /^김도현 / });
+    card.focus();
+    fireEvent.keyDown(card, { key: 'Enter' });
+    expect(useWorkspaceStore.getState().selected).toEqual({ kind: 'member', id: 'm1' });
+
+    const title = screen.getByRole('button', { name: '성역 동반자 1' });
+    fireEvent.keyDown(title, { key: 'Enter' });
+    expect(useWorkspaceStore.getState().hotMinistryId).toBe('g1');
+    fireEvent.keyDown(title, { key: ' ' });
+    expect(useWorkspaceStore.getState().hotMinistryId).toBeNull();
+  });
+
+  it('Enter on × is left to the button and does not select the card', () => {
+    useWorkspaceStore.setState({ selected: null });
+    renderCard();
+    const x = screen.getByRole('button', { name: '지명 해제' });
+    fireEvent.keyDown(x, { key: 'Enter' });
+    expect(useWorkspaceStore.getState().selected).toBeNull();
+  });
+
+  it('renders an unsaved (tmp-) ministry as pending: no menu, no ×, no drag, no drop', () => {
+    const value = renderCard({ ministry: ministry({ id: 'tmp-1-0' }) });
+    const card = screen.getByRole('region', { name: '성역 동반자 1' });
+    expect(card).toHaveAttribute('aria-busy', 'true');
+    expect(card).toHaveClass('aw-mcard--pending');
+    expect(screen.queryByRole('button', { name: '이름 바꾸기 · 삭제' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '지명 해제' })).toBeNull();
+    expect(screen.getByText('김도현').closest('[draggable]')).toBeNull();
+    fireEvent.drop(card, { dataTransfer: { types: ['application/x-ministering-item'] } });
+    expect(value.actions.perform).not.toHaveBeenCalled();
+  });
+
   it('toggles the highlighted ministry when the card is clicked', () => {
     useWorkspaceStore.setState({ hotMinistryId: null });
     renderCard();

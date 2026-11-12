@@ -1,13 +1,13 @@
-import { useState } from 'react';
 import clsx from 'clsx';
 import type { Household } from '@/features/households/types';
 import { computeAge } from '@/features/members/domain/computeAge';
 import type { Member } from '@/features/members/types';
-import { GENDER_LABEL, T } from '@/shared/copy';
+import { GENDER_LABEL, STATUS_LABEL, T } from '@/shared/copy';
 import { sortFamily } from '../domain/familyOrder';
-import { endDrag, startDrag } from '../dnd';
+import { endDrag, startDrag, useDragStore } from '../dnd';
 import { useWorkspaceStore } from '../store';
 import { useWorkspace } from '../workspaceContext';
+import { onActivateKey } from './keyboard';
 import { StatusMark, StatusText } from './StatusMark';
 
 export function HouseholdCard({
@@ -25,8 +25,25 @@ export function HouseholdCard({
     (s) => s.selected?.kind === 'household' && s.selected.id === household.id,
   );
   const setSelected = useWorkspaceStore((s) => s.setSelected);
-  const [dragging, setDragging] = useState(false);
+  // Derived from the shared drag state so any endDrag (drop, lost dragend) clears it.
+  const dragging = useDragStore(
+    (s) => s.item?.kind === 'household' && s.item.id === household.id && s.item.from === 'recipient',
+  );
   const family = sortFamily(members);
+  const select = () => setSelected({ kind: 'household', id: household.id });
+  // role="button" makes the content presentational, so the family goes into the name.
+  const label = [
+    `${household.name} ${T.assign.headcount(family.length)}`,
+    ...family.map((m) =>
+      [
+        m.full_name,
+        `${computeAge(m.birth_date)}·${GENDER_LABEL[m.gender]}`,
+        m.active_status !== 'active' && STATUS_LABEL[m.active_status],
+      ]
+        .filter(Boolean)
+        .join(' '),
+    ),
+  ].join(', ');
 
   return (
     <div
@@ -36,15 +53,16 @@ export function HouseholdCard({
         canEdit
           ? (e) => {
               startDrag(e, { kind: 'household', id: household.id, from: 'recipient' });
-              setDragging(true);
             }
           : undefined
       }
-      onDragEnd={() => {
-        setDragging(false);
-        endDrag();
-      }}
-      onClick={() => setSelected({ kind: 'household', id: household.id })}
+      onDragEnd={endDrag}
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+      aria-pressed={selected}
+      onClick={select}
+      onKeyDown={onActivateKey(select)}
     >
       <div className="aw-row">
         <span className="aw-nm">{household.name}</span>

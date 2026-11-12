@@ -1,6 +1,7 @@
 import type { Database } from '@/types/database.types';
 
-type Organization = Database['public']['Enums']['organization'];type ActiveStatus = Database['public']['Enums']['active_status'];
+type Organization = Database['public']['Enums']['organization'];
+type ActiveStatus = Database['public']['Enums']['active_status'];
 type Gender = Database['public']['Enums']['gender'];
 
 export const ORG_LABEL: Record<Organization, string> = {

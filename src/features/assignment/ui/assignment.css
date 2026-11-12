@@ -161,6 +161,7 @@
 .aw-chip--sel { border-color: var(--app-accent); box-shadow: inset 3px 0 0 var(--app-accent); }
 .aw-chip--sel:hover { border-color: var(--app-accent); }
 .aw-chip--dragging { opacity: .3; }
+.aw-chip:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 .aw-row { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
 .aw-row .aw-st { margin-right: 0; }
 .aw-nm { font-weight: 700; white-space: nowrap; }
@@ -186,12 +187,15 @@
   color: var(--app-mute);
   font-size: 13px;
   line-height: 1;
-  display: none;
+  /* Hidden but focusable: revealed on hover and on keyboard focus within the card. */
+  opacity: 0;
 }
 .aw .aw-x:hover { color: var(--app-ink); }
+.aw .aw-x:focus-visible { outline: 2px solid var(--app-accent); outline-offset: -2px; }
 .aw-mcard .aw-chip:hover .aw-x,
-.aw-mcard .aw-x:focus-visible { display: block; }
-.aw-mcard .aw-chip:hover .aw-cnt { visibility: hidden; }
+.aw-mcard .aw-chip:focus-within .aw-x { opacity: 1; }
+.aw-mcard .aw-chip:hover:has(.aw-x) .aw-cnt,
+.aw-mcard .aw-chip:focus-within:has(.aw-x) .aw-cnt { visibility: hidden; }
 
 /* board */
 .aw-board { min-height: 0; overflow: auto; padding: 12px 14px 20px; }
@@ -209,6 +213,7 @@
   cursor: pointer;
 }
 .aw-mcard--bad { border-top-color: var(--app-bad); }
+.aw-mcard--pending { opacity: .55; cursor: progress; }
 .aw-mcard--hot {
   border-color: var(--app-accent);
   border-top-color: var(--app-accent);
@@ -216,6 +221,7 @@
 }
 .aw-mcard h3 { display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 700; line-height: 1.5; }
 .aw-mtitle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aw-mtitle:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 .aw-mtools { margin-left: auto; display: flex; align-items: baseline; gap: 8px; flex: none; }
 .aw .aw-shr {
   font-size: 11px;

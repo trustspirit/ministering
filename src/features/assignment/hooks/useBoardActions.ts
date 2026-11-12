@@ -1,18 +1,16 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from 'trust-ui-react';
 import { ministryRepository } from '@/repositories/MinistryRepository';
 import type { Organization } from '@/features/ministries/types';
 import { nextMinistryNumber } from '@/features/ministries/domain/nextMinistryNumber';
 import { T } from '@/shared/copy';
-import type { Board } from '../domain/board';
+import { isPendingMinistry, PENDING_MINISTRY_PREFIX, type Board } from '../domain/board';
 import { applyOps } from '../domain/applyOps';
 import type { Op } from '../domain/resolveDrop';
 import { executeOps } from './executeOps';
 import { createSerialQueue } from './serialQueue';
 import { assignmentBoardKey } from './useAssignmentBoard';
-
-const TMP_PREFIX = 'tmp-';
 
 export interface BoardActions {
   /** Resolves (never rejects) after a handled failure: the board is restored, a toast shown and the board refetched. */
@@ -30,55 +28,61 @@ export function useBoardActions(org: Organization): BoardActions {
   const queueRef = useRef<ReturnType<typeof createSerialQueue>>();
   queueRef.current ??= createSerialQueue();
   const queue = queueRef.current;
-  const key = assignmentBoardKey(org);
+  // Stable across renders (only org/client/toast change them), so consumers can memoise on them.
+  const operations = useMemo(() => {
+    const key = assignmentBoardKey(org);
 
-  const enqueue = (job: () => Promise<void>): Promise<void> => {
-    setPendingCount((n) => n + 1);
-    return queue(job).finally(() => setPendingCount((n) => n - 1));
-  };
+    const enqueue = (job: () => Promise<void>): Promise<void> => {
+      setPendingCount((n) => n + 1);
+      return queue(job).finally(() => setPendingCount((n) => n - 1));
+    };
 
-  // Awaits the refetch so the cache has converged to server truth before the next job runs.
-  const refetch = () => qc.invalidateQueries({ queryKey: key });
+    // Awaits the refetch so the cache has converged to server truth before the next job runs.
+    const refetch = () => qc.invalidateQueries({ queryKey: key });
 
-  const perform = (ops: Op[]): Promise<void> => {
-    if (ops.length === 0) return Promise.resolve();
-    return enqueue(async () => {
-      await qc.cancelQueries({ queryKey: key });
-      const previous = qc.getQueryData<Board>(key);
-      if (previous) {
-        const tmpId = `${TMP_PREFIX}${Date.now()}-${seq.current++}`;
-        const number = nextMinistryNumber(previous.ministries.map((m) => m.number));
-        qc.setQueryData<Board>(key, applyOps(previous, ops, { id: tmpId, number }));
-      }
-      try {
-        if (ops.some((op) => op.type !== 'createMinistry' && op.ministryId.startsWith(TMP_PREFIX))) {
-          throw new Error('Op references an unsaved ministry');
+    const perform = (ops: Op[]): Promise<void> => {
+      if (ops.length === 0) return Promise.resolve();
+      return enqueue(async () => {
+        await qc.cancelQueries({ queryKey: key });
+        const previous = qc.getQueryData<Board>(key);
+        if (previous) {
+          const tmpId = `${PENDING_MINISTRY_PREFIX}${Date.now()}-${seq.current++}`;
+          const number = nextMinistryNumber(previous.ministries.map((m) => m.number));
+          qc.setQueryData<Board>(key, applyOps(previous, ops, { id: tmpId, number }));
         }
-        await executeOps(ops, org, ministryRepository);
-      } catch {
-        qc.setQueryData(key, previous);
-        toast({ variant: 'danger', message: T.saveFailed });
-      }
-      await refetch();
-    });
-  };
+        try {
+          if (ops.some((op) => op.type !== 'createMinistry' && isPendingMinistry(op.ministryId))) {
+            throw new Error('Op references an unsaved ministry');
+          }
+          await executeOps(ops, org, ministryRepository);
+        } catch {
+          qc.setQueryData(key, previous);
+          toast({ variant: 'danger', message: T.saveFailed });
+        }
+        await refetch();
+      });
+    };
 
-  const simple = (run: () => Promise<unknown>): Promise<void> =>
-    enqueue(async () => {
-      try {
-        await run();
-      } catch {
-        toast({ variant: 'danger', message: T.saveFailed });
-      }
-      await refetch();
-    });
+    const simple = (run: () => Promise<unknown>): Promise<void> =>
+      enqueue(async () => {
+        try {
+          await run();
+        } catch {
+          toast({ variant: 'danger', message: T.saveFailed });
+        }
+        await refetch();
+      });
 
-  const renameMinistry = (id: string, name: string | null) => {
-    const trimmed = name?.trim();
-    return simple(() => ministryRepository.update(id, { name: trimmed ? trimmed : null }));
-  };
+    const renameMinistry = (id: string, name: string | null) => {
+      const trimmed = name?.trim();
+      return simple(() => ministryRepository.update(id, { name: trimmed ? trimmed : null }));
+    };
 
-  const deleteMinistry = (id: string) => simple(() => ministryRepository.remove(id));
+    const deleteMinistry = (id: string) => simple(() => ministryRepository.remove(id));
 
-  return { perform, renameMinistry, deleteMinistry, pending: pendingCount > 0 };
+    return { perform, renameMinistry, deleteMinistry };
+  }, [qc, toast, org, queue]);
+
+  const pending = pendingCount > 0;
+  return useMemo(() => ({ ...operations, pending }), [operations, pending]);
 }

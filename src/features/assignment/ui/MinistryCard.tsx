@@ -1,13 +1,20 @@
-import { useRef, useState, type DragEvent } from 'react';
+import { useMemo, useRef, useState, type DragEvent } from 'react';
 import clsx from 'clsx';
 import { Button, Dialog, Menu } from 'trust-ui-react';
 import type { Organization } from '@/features/ministries/types';
 import { T } from '@/shared/copy';
-import { ministryLabel, ministryWarnings, type AssignRole, type BoardMinistry } from '../domain/board';
-import { getDrag, overKey, useDragStore, useDropHandler } from '../dnd';
+import {
+  isPendingMinistry,
+  ministryLabel,
+  ministryWarnings,
+  type AssignRole,
+  type BoardMinistry,
+} from '../domain/board';
+import { dragOf, overKey, useDragStore, useDropHandler } from '../dnd';
 import { useWorkspaceStore } from '../store';
-import { useWorkspace } from '../workspaceContext';
+import { useWorkspace, WorkspaceContext } from '../workspaceContext';
 import { HouseholdCard } from './HouseholdCard';
+import { onActivateKey } from './keyboard';
 import { PersonCard } from './PersonCard';
 
 function Warning({ text, soft }: { text: string; soft?: boolean }) {
@@ -28,7 +35,15 @@ export function MinistryCard({
   org: Organization;
   canEdit: boolean;
 }) {
-  const { memberById, householdById, familyOf, actions, onShare } = useWorkspace();
+  const workspace = useWorkspace();
+  const { memberById, householdById, familyOf, actions, onShare } = workspace;
+  // An optimistic card (not yet saved) is shown but takes no drops or edits until the refetch replaces it.
+  const pending = isPendingMinistry(ministry.id);
+  const editable = canEdit && !pending;
+  const innerWorkspace = useMemo(
+    () => (pending ? { ...workspace, canEdit: false } : workspace),
+    [pending, workspace],
+  );
   const hot = useWorkspaceStore((s) => s.hotMinistryId === ministry.id);
   const setHot = useWorkspaceStore((s) => s.setHotMinistryId);
   const toggleHot = useWorkspaceStore((s) => s.toggleHotMinistry);
@@ -46,7 +61,7 @@ export function MinistryCard({
 
   /** EQ: the item's kind decides the zone, wherever it is dropped. RS: the zone under the pointer. */
   const zoneAt = (e: DragEvent): AssignRole | null => {
-    const item = getDrag();
+    const item = dragOf(e);
     if (!item) return null;
     if (org === 'EQ') return item.kind === 'member' ? 'companion' : 'recipient';
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-zone]');
@@ -71,16 +86,22 @@ export function MinistryCard({
   return (
     <>
       <section
-        className={clsx('aw-mcard', warnings.tooFewCompanions && 'aw-mcard--bad', hot && 'aw-mcard--hot')}
+        className={clsx(
+          'aw-mcard',
+          warnings.tooFewCompanions && 'aw-mcard--bad',
+          hot && 'aw-mcard--hot',
+          pending && 'aw-mcard--pending',
+        )}
         aria-label={label}
+        aria-busy={pending || undefined}
         onClick={(e) => {
           if ((e.target as HTMLElement).closest('.aw-chip')) setHot(ministry.id);
           else toggleHot(ministry.id);
         }}
         onDragOver={
-          canEdit
+          editable
             ? (e) => {
-                if (!getDrag()) return;
+                if (!dragOf(e)) return;
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
                 const zone = zoneAt(e);
@@ -92,10 +113,10 @@ export function MinistryCard({
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(null);
         }}
         onDrop={
-          canEdit
+          editable
             ? (e) => {
                 e.preventDefault();
-                handleDrop({ type: 'ministry', ministryId: ministry.id, zone: zoneAt(e) });
+                handleDrop(e, { type: 'ministry', ministryId: ministry.id, zone: zoneAt(e) });
               }
             : undefined
         }
@@ -116,9 +137,17 @@ export function MinistryCard({
               onBlur={(e) => finishRename(e.currentTarget.value)}
             />
           ) : (
-            <span className="aw-mtitle">{label}</span>
+            <span
+              className="aw-mtitle"
+              role="button"
+              tabIndex={0}
+              aria-pressed={hot}
+              onKeyDown={onActivateKey(() => toggleHot(ministry.id))}
+            >
+              {label}
+            </span>
           )}
-          {canEdit && !editing && (
+          {editable && !editing && (
             <span className="aw-mtools" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
@@ -154,44 +183,46 @@ export function MinistryCard({
         {warnings.tooFewCompanions && <Warning text={T.assign.warnTooFewCompanions} />}
         {warnings.noRecipients && <Warning text={T.assign.warnNoRecipients[org]} soft />}
 
-        <div className={zoneClass('companion')} data-zone="companion">
-          <p className="aw-lab">{T.assign.zoneCompanions(companionNoun)}</p>
-          {ministry.companionIds.length === 0 ? (
-            <div className="aw-empty">{T.assign.emptyCompanions(companionNoun)}</div>
-          ) : (
-            ministry.companionIds.map((id) => {
-              const m = memberById.get(id);
-              return m ? (
-                <PersonCard key={id} member={m} role="companion" onRemove={() => remove('companion', id)} />
-              ) : null;
-            })
-          )}
-        </div>
-
-        <div className={zoneClass('recipient')} data-zone="recipient">
-          <p className="aw-lab">{T.assign.zoneRecipients(recipientNoun)}</p>
-          {ministry.recipientIds.length === 0 ? (
-            <div className="aw-empty">{T.assign.emptyRecipients[org]}</div>
-          ) : (
-            ministry.recipientIds.map((id) => {
-              if (org === 'EQ') {
-                const h = householdById.get(id);
-                return h ? (
-                  <HouseholdCard
-                    key={id}
-                    household={h}
-                    members={familyOf.get(id) ?? []}
-                    onRemove={() => remove('recipient', id)}
-                  />
+        <WorkspaceContext.Provider value={innerWorkspace}>
+          <div className={zoneClass('companion')} data-zone="companion">
+            <p className="aw-lab">{T.assign.zoneCompanions(companionNoun)}</p>
+            {ministry.companionIds.length === 0 ? (
+              <div className="aw-empty">{T.assign.emptyCompanions(companionNoun)}</div>
+            ) : (
+              ministry.companionIds.map((id) => {
+                const m = memberById.get(id);
+                return m ? (
+                  <PersonCard key={id} member={m} role="companion" onRemove={() => remove('companion', id)} />
                 ) : null;
-              }
-              const m = memberById.get(id);
-              return m ? (
-                <PersonCard key={id} member={m} role="recipient" onRemove={() => remove('recipient', id)} />
-              ) : null;
-            })
-          )}
-        </div>
+              })
+            )}
+          </div>
+
+          <div className={zoneClass('recipient')} data-zone="recipient">
+            <p className="aw-lab">{T.assign.zoneRecipients(recipientNoun)}</p>
+            {ministry.recipientIds.length === 0 ? (
+              <div className="aw-empty">{T.assign.emptyRecipients[org]}</div>
+            ) : (
+              ministry.recipientIds.map((id) => {
+                if (org === 'EQ') {
+                  const h = householdById.get(id);
+                  return h ? (
+                    <HouseholdCard
+                      key={id}
+                      household={h}
+                      members={familyOf.get(id) ?? []}
+                      onRemove={() => remove('recipient', id)}
+                    />
+                  ) : null;
+                }
+                const m = memberById.get(id);
+                return m ? (
+                  <PersonCard key={id} member={m} role="recipient" onRemove={() => remove('recipient', id)} />
+                ) : null;
+              })
+            )}
+          </div>
+        </WorkspaceContext.Provider>
       </section>
 
       {canEdit && (

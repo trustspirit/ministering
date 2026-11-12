@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type PointerEvent } from 'react';
 import clsx from 'clsx';
 import { T } from '@/shared/copy';
 import { useWorkspaceStore } from '../store';
@@ -9,8 +9,17 @@ const MIN_REST = 640;
 
 /** Vertical bar between the board and the right column; dragging it sets the right column width. */
 export function ResizeBar() {
+  const previewSideWidth = useWorkspaceStore((s) => s.previewSideWidth);
   const setSideWidth = useWorkspaceStore((s) => s.setSideWidth);
   const [active, setActive] = useState(false);
+
+  // Persist once, when the drag ends (or is cancelled by the browser).
+  const finish = (e: PointerEvent<HTMLDivElement>) => {
+    if (!active) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    setActive(false);
+    setSideWidth(useWorkspaceStore.getState().sideWidth);
+  };
 
   return (
     <div
@@ -26,12 +35,10 @@ export function ResizeBar() {
       onPointerMove={(e) => {
         if (!active) return;
         const width = Math.min(Math.max(window.innerWidth - e.clientX, MIN_SIDE), window.innerWidth - MIN_REST);
-        setSideWidth(`${Math.round(width)}px`);
+        previewSideWidth(`${Math.round(width)}px`);
       }}
-      onPointerUp={(e) => {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-        setActive(false);
-      }}
+      onPointerUp={finish}
+      onPointerCancel={finish}
     />
   );
 }

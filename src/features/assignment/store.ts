@@ -7,9 +7,16 @@ export type MobileTab = 'pool' | 'board' | 'map';
 export const SIDE_WIDTH_KEY = 'ministering.sideWidth';
 export const DEFAULT_SIDE_WIDTH = '45vw';
 
+const SIDE_WIDTH_PATTERN = /^\d+(\.\d+)?(px|vw)$/;
+
+/** A stored width is only trusted when it is a plain px/vw length; anything else falls back to the default. */
+export function parseSideWidth(value: string | null | undefined): string {
+  return value && SIDE_WIDTH_PATTERN.test(value) ? value : DEFAULT_SIDE_WIDTH;
+}
+
 function readSideWidth(): string {
   try {
-    return window.localStorage.getItem(SIDE_WIDTH_KEY) || DEFAULT_SIDE_WIDTH;
+    return parseSideWidth(window.localStorage.getItem(SIDE_WIDTH_KEY));
   } catch {
     return DEFAULT_SIDE_WIDTH;
   }
@@ -28,7 +35,10 @@ export interface WorkspaceState {
   setHotMinistryId: (id: string | null) => void;
   toggleHotMinistry: (id: string) => void;
   setSearch: (search: string) => void;
+  /** Sets and persists the right column width. */
   setSideWidth: (width: string) => void;
+  /** Sets the width without persisting it (while the resize bar is being dragged). */
+  previewSideWidth: (width: string) => void;
   setMobileTab: (tab: MobileTab) => void;
 }
 
@@ -45,7 +55,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   setHotMinistryId: (hotMinistryId) => set({ hotMinistryId }),
   toggleHotMinistry: (id) => set((s) => ({ hotMinistryId: s.hotMinistryId === id ? null : id })),
   setSearch: (search) => set({ search }),
-  setSideWidth: (sideWidth) => {
+  setSideWidth: (width) => {
+    const sideWidth = parseSideWidth(width);
     try {
       window.localStorage.setItem(SIDE_WIDTH_KEY, sideWidth);
     } catch {
@@ -53,5 +64,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
     }
     set({ sideWidth });
   },
+  previewSideWidth: (width) => set({ sideWidth: parseSideWidth(width) }),
   setMobileTab: (mobileTab) => set({ mobileTab }),
 }));
