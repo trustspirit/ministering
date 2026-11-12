@@ -40,7 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // A session the server no longer knows (e.g. after a database reset) makes the global sign-out fail; the user
+    // must still end up signed out in this browser.
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (!error) return;
+    } catch {
+      // fall through to the local sign-out
+    }
+    await supabase.auth.signOut({ scope: 'local' });
   };
 
   return (

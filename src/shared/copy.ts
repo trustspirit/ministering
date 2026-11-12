@@ -43,6 +43,7 @@ export const T = {
     symbolAlt: '',
     navLabel: '주 메뉴',
     unknownRole: '알 수 없음',
+    userMenu: '사용자 메뉴',
   },
   ministry: {
     defaultLabel: (number: number) => `성역 동반자 ${number}`,
