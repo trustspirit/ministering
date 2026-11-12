@@ -37,6 +37,9 @@ export const T = {
     navLabel: '주 메뉴',
     unknownRole: '알 수 없음',
   },
+  ministry: {
+    defaultLabel: (number: number) => `성역 동반자 ${number}`,
+  },
   role: {
     bishopric: '감독단',
     eq_president: '장로 정원회 회장단',
