@@ -113,6 +113,8 @@ export const T = {
     disableTitle: '링크 끄기',
     disableConfirm: '이 링크는 더 이상 열리지 않습니다. 링크를 끌까요?',
     disabled: '링크를 껐습니다',
+    loading: '링크를 불러오는 중…',
+    loadFailed: '링크를 불러오지 못했습니다. 다시 시도해 주세요.',
     cancel: '취소',
     close: '닫기',
     page: {

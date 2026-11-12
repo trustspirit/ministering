@@ -37,11 +37,11 @@ const lone = member({ id: 'x', full_name: '독거인', gender: 'F', birth_date: 
 
 const eqBoard: Board = {
   organization: 'EQ',
-  ministries: [{ id: 'm1', number: 1, name: null, shareToken: null, companionIds: ['x'], recipientIds: ['h6'] }],
+  ministries: [{ id: 'm1', number: 1, name: null, companionIds: ['x'], recipientIds: ['h6'] }],
 };
 const rsBoard: Board = {
   organization: 'RS',
-  ministries: [{ id: 'm2', number: 2, name: null, shareToken: null, companionIds: ['w'], recipientIds: ['x'] }],
+  ministries: [{ id: 'm2', number: 2, name: null, companionIds: ['w'], recipientIds: ['x'] }],
 };
 
 function open(sel: { kind: 'member' | 'household'; id: string } | null, opts: Parameters<typeof renderWorkspace>[1] = {}) {

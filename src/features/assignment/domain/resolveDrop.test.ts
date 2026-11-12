@@ -8,7 +8,7 @@ function member(id: string, gender: 'M' | 'F', birth_date: string, household_id 
   return { id, gender, birth_date, household_id, household_role: null } as unknown as Member;
 }
 function ministry(over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry {
-  return { name: null, shareToken: null, companionIds: [], recipientIds: [], ...over };
+  return { name: null, companionIds: [], recipientIds: [], ...over };
 }
 
 const m1 = member('m1', 'M', '1984-01-01');

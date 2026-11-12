@@ -5,13 +5,13 @@ import { buildMinistryInfo } from './ministryInfo';
 const eq: Board = {
   organization: 'EQ',
   ministries: [
-    { id: 'm1', number: 1, name: null, shareToken: null, companionIds: ['a', 'b'], recipientIds: ['h1'] },
-    { id: 'm2', number: 2, name: '새벽반', shareToken: null, companionIds: ['c'], recipientIds: ['h1', 'h2'] },
+    { id: 'm1', number: 1, name: null, companionIds: ['a', 'b'], recipientIds: ['h1'] },
+    { id: 'm2', number: 2, name: '새벽반', companionIds: ['c'], recipientIds: ['h1', 'h2'] },
   ],
 };
 const rs: Board = {
   organization: 'RS',
-  ministries: [{ id: 'm3', number: 1, name: null, shareToken: null, companionIds: ['s1'], recipientIds: ['s2'] }],
+  ministries: [{ id: 'm3', number: 1, name: null, companionIds: ['s1'], recipientIds: ['s2'] }],
 };
 
 describe('buildMinistryInfo', () => {

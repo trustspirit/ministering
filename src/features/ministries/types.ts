@@ -1,8 +1,9 @@
 import type { Database } from '@/types/database.types';
 
-export type Ministry = Database['public']['Tables']['ministries']['Row'];
-export type MinistryInsert = Database['public']['Tables']['ministries']['Insert'];
-export type MinistryUpdate = Database['public']['Tables']['ministries']['Update'];
+/** share_token is never part of what the app reads or writes directly: it is reachable only through the role-checked RPCs. */
+export type Ministry = Omit<Database['public']['Tables']['ministries']['Row'], 'share_token'>;
+export type MinistryInsert = Omit<Database['public']['Tables']['ministries']['Insert'], 'share_token'>;
+export type MinistryUpdate = Omit<Database['public']['Tables']['ministries']['Update'], 'share_token'>;
 export type Organization = Database['public']['Enums']['organization'];
 
 export type MinistryCompanion = Database['public']['Tables']['ministry_companions']['Row'];

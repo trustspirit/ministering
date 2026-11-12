@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Dialog, TextField, useToast } from 'trust-ui-react';
 import { ministryLabel, type BoardMinistry } from '@/features/assignment/domain/board';
 import { useWorkspace } from '@/features/assignment/workspaceContext';
 import { T } from '@/shared/copy';
 import { generateShareToken, shareUrl } from '../shareToken';
+import { useShareToken } from '../useShareToken';
 import './share.css';
 
 type Confirm = 'regenerate' | 'disable' | null;
@@ -21,32 +22,47 @@ export function ShareDialog({
   const { toast } = useToast();
   const S = T.share;
   const [confirm, setConfirm] = useState<Confirm>(null);
+  const [writing, setWriting] = useState(false);
+  const writingRef = useRef(false);
   const fieldRef = useRef<HTMLInputElement>(null);
-  const token = ministry.shareToken;
+  const query = useShareToken(ministry.id, open);
+  const token = query.data ?? null;
   const url = token ? shareUrl(token) : '';
+  const loading = query.isPending || writing;
+
+  const failed = query.isError;
+  useEffect(() => {
+    if (open && failed) toast({ variant: 'danger', message: S.loadFailed });
+  }, [open, failed, toast, S.loadFailed]);
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url);
       toast({ variant: 'success', message: S.copied });
     } catch {
-      // No clipboard permission (or an insecure origin): select the address so Ctrl/Cmd+C works.
+      // No clipboard (insecure origin, denied permission): select the address so Ctrl/Cmd+C works.
       fieldRef.current?.focus();
       fieldRef.current?.select();
       toast({ variant: 'warning', message: S.copyFailed });
     }
   };
 
-  const create = () => {
-    void actions.setShareToken(ministry.id, generateShareToken());
-  };
-
-  const change = async (next: string | null, message: string) => {
+  /** One write at a time; the new address is shown only after it has been read back from the server. */
+  const write = async (next: string | null, message?: string) => {
+    if (writingRef.current) return;
+    writingRef.current = true;
+    setWriting(true);
     setConfirm(null);
-    if (await actions.setShareToken(ministry.id, next)) toast({ variant: 'success', message });
+    try {
+      if (await actions.setShareToken(ministry.id, next)) {
+        await query.refetch();
+        if (message) toast({ variant: 'success', message });
+      }
+    } finally {
+      writingRef.current = false;
+      setWriting(false);
+    }
   };
-  const regenerate = () => void change(generateShareToken(), S.regenerated);
-  const disable = () => void change(null, S.disabled);
 
   return (
     <>
@@ -54,7 +70,8 @@ export function ShareDialog({
         <Dialog.Title onClose={onClose}>{S.dialogTitleOf(ministryLabel(ministry))}</Dialog.Title>
         <Dialog.Content>
           <p className="aw-dialog-text">{S.description}</p>
-          {token && (
+          {loading && !failed && <p className="aw-dialog-text sh-status">{S.loading}</p>}
+          {!loading && token && (
             <div className="sh-url">
               <TextField
                 ref={fieldRef}
@@ -69,15 +86,19 @@ export function ShareDialog({
           )}
         </Dialog.Content>
         <Dialog.Actions>
-          {token ? (
+          {failed ? (
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              {S.close}
+            </Button>
+          ) : token ? (
             <>
-              <Button variant="ghost" size="sm" onClick={() => setConfirm('disable')}>
+              <Button variant="ghost" size="sm" disabled={loading} onClick={() => setConfirm('disable')}>
                 {S.disable}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setConfirm('regenerate')}>
+              <Button variant="outline" size="sm" disabled={loading} onClick={() => setConfirm('regenerate')}>
                 {S.regenerate}
               </Button>
-              <Button size="sm" onClick={() => void copy()}>
+              <Button size="sm" disabled={loading} onClick={() => void copy()}>
                 {S.copy}
               </Button>
             </>
@@ -86,7 +107,7 @@ export function ShareDialog({
               <Button variant="ghost" size="sm" onClick={onClose}>
                 {S.close}
               </Button>
-              <Button size="sm" onClick={create}>
+              <Button size="sm" disabled={loading} onClick={() => void write(generateShareToken())}>
                 {S.create}
               </Button>
             </>
@@ -105,7 +126,15 @@ export function ShareDialog({
           <Button variant="ghost" size="sm" onClick={() => setConfirm(null)}>
             {S.cancel}
           </Button>
-          <Button variant="danger" size="sm" onClick={confirm === 'disable' ? disable : regenerate}>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() =>
+              confirm === 'disable'
+                ? void write(null, S.disabled)
+                : void write(generateShareToken(), S.regenerated)
+            }
+          >
             {confirm === 'disable' ? S.disable : S.regenerate}
           </Button>
         </Dialog.Actions>

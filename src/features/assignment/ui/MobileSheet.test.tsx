@@ -22,7 +22,7 @@ const h3 = household({ id: 'h3', name: '박민수 가정' });
 const board: Board = {
   organization: 'EQ',
   ministries: [
-    { id: 'g1', number: 1, name: null, shareToken: null, companionIds: ['m1', 'm2'], recipientIds: ['h2'] },
+    { id: 'g1', number: 1, name: null, companionIds: ['m1', 'm2'], recipientIds: ['h2'] },
   ],
 };
 

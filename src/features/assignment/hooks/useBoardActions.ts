@@ -86,7 +86,7 @@ export function useBoardActions(org: Organization): BoardActions {
       let saved = false;
       return enqueue(async () => {
         try {
-          await ministryRepository.update(id, { share_token: token });
+          await ministryRepository.setShareToken(id, token);
           saved = true;
         } catch {
           toast({ variant: 'danger', message: T.saveFailed });

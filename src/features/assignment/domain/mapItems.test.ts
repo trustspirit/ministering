@@ -23,7 +23,7 @@ function household(id: string, lat: number | null, lng: number | null): Househol
   return { id, name: `${id} 가정`, lat, lng } as Household;
 }
 function ministry(over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry {
-  return { name: null, shareToken: null, companionIds: [], recipientIds: [], ...over };
+  return { name: null, companionIds: [], recipientIds: [], ...over };
 }
 
 const hA = household('hA', 37.5, 127.0);

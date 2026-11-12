@@ -5,8 +5,8 @@ import { NEW_MINISTRY } from './resolveDrop';
 const base = (): Board => ({
   organization: 'EQ',
   ministries: [
-    { id: 'A', number: 1, name: null, shareToken: null, companionIds: ['m1'], recipientIds: [] },
-    { id: 'B', number: 2, name: null, shareToken: null, companionIds: [], recipientIds: [] },
+    { id: 'A', number: 1, name: null, companionIds: ['m1'], recipientIds: [] },
+    { id: 'B', number: 2, name: null, companionIds: [], recipientIds: [] },
   ],
 });
 const created = { id: 'N', number: 3 };
@@ -42,7 +42,6 @@ describe('applyOps', () => {
       id: 'N',
       number: 3,
       name: null,
-      shareToken: null,
       companionIds: [],
       recipientIds: ['h9'],
     });

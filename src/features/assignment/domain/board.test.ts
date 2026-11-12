@@ -19,7 +19,7 @@ function household(id: string): Household {
   return { id } as Household;
 }
 function ministry(over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry {
-  return { name: null, shareToken: null, companionIds: [], recipientIds: [], ...over };
+  return { name: null, companionIds: [], recipientIds: [], ...over };
 }
 
 const m42 = member('m42', 'M', '1984-01-01');

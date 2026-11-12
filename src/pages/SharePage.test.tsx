@@ -67,6 +67,27 @@ describe('SharePage', () => {
     expect(screen.getAllByText('—')).toHaveLength(2);
   });
 
+  it('renders hostile phone values only as text and inside a tel: href', async () => {
+    const evil = 'javascript:alert(1)';
+    const quote = '010-1"><img src=x onerror=alert(1)>';
+    mocks.rpc.mockResolvedValue({
+      data: {
+        ...eqShare,
+        companions: [
+          { name: '정원석', phone: evil },
+          { name: '박민수', phone: quote },
+        ],
+      },
+      error: null,
+    });
+    const { container } = open(TOKEN);
+    await screen.findByRole('heading', { name: '장로 정원회 성역 임무 지명' });
+    expect(screen.getByRole('link', { name: evil })).toHaveAttribute('href', `tel:${evil}`);
+    expect(screen.getByRole('link', { name: quote })).toHaveAttribute('href', `tel:${quote}`);
+    expect(container.querySelector('img[src="x"]')).toBeNull();
+    for (const a of container.querySelectorAll('a')) expect(a.getAttribute('href')).toMatch(/^tel:/);
+  });
+
   it('uses the named title and the RS wording', async () => {
     mocks.rpc.mockResolvedValue({
       data: {

@@ -21,7 +21,7 @@ export function useAssignmentBoard(org: Organization): UseQueryResult<Board> {
     queryFn: async (): Promise<Board> => {
       const { data: ministries, error } = await supabase
         .from('ministries')
-        .select('id, number, name, share_token')
+        .select('id, number, name')
         .eq('organization', org)
         .order('number');
       if (error) throw error;
@@ -59,7 +59,6 @@ export function useAssignmentBoard(org: Organization): UseQueryResult<Board> {
           id: m.id,
           number: m.number,
           name: m.name,
-          shareToken: m.share_token,
           companionIds: companionMap.get(m.id) ?? [],
           recipientIds: recipientMap.get(m.id) ?? [],
         })),

@@ -5,7 +5,6 @@ import { assignOptions, canBeAssigned } from './assignOptions';
 
 const ministry = (over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry => ({
   name: null,
-  shareToken: null,
   companionIds: [],
   recipientIds: [],
   ...over,

@@ -86,8 +86,10 @@ FROM (VALUES
 JOIN households h ON h.name = v.hname
 ON CONFLICT (full_name, birth_date) DO NOTHING;
 
+-- seed.sql is local-only (never run against a real project). EQ 1 gets a random 64-hex share token
+-- generated at seed time, so no fixed or guessable token exists in the repository.
 INSERT INTO ministries (id, organization, number, name, share_token) VALUES
-  ('b0000000-0000-0000-0000-000000000001', 'EQ', 1, NULL, 'seed-share-token-eq1-0123456789abcdef0123456789abcdef0123456789abcdef'),
+  ('b0000000-0000-0000-0000-000000000001', 'EQ', 1, NULL, encode(gen_random_bytes(32), 'hex')),
   ('b0000000-0000-0000-0000-000000000002', 'EQ', 2, NULL, NULL),
   ('b0000000-0000-0000-0000-000000000003', 'RS', 1, NULL, NULL),
   ('b0000000-0000-0000-0000-000000000004', 'RS', 2, NULL, NULL)

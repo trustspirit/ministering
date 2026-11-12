@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { BoardMinistry } from '../domain/board';
 import { useWorkspaceStore } from '../store';
@@ -9,7 +9,7 @@ const m1 = member({ id: 'm1', full_name: '김도현', birth_date: '1990-01-25', 
 const h1 = household({ id: 'h1', name: '김도현 가정' });
 
 function ministry(over: Partial<BoardMinistry> = {}): BoardMinistry {
-  return { id: 'g1', number: 1, name: null, shareToken: null, companionIds: ['m1'], recipientIds: [], ...over };
+  return { id: 'g1', number: 1, name: null, companionIds: ['m1'], recipientIds: [], ...over };
 }
 
 function renderCard(opts: { canEdit?: boolean; ministry?: BoardMinistry; org?: 'EQ' | 'RS' } = {}) {
@@ -22,6 +22,9 @@ function renderCard(opts: { canEdit?: boolean; ministry?: BoardMinistry; org?: '
   render(wrapper);
   return value;
 }
+
+const rpc = vi.hoisted(() => ({ getShareToken: vi.fn(async () => null) }));
+vi.mock('@/repositories/MinistryRepository', () => ({ ministryRepository: { getShareToken: rpc.getShareToken } }));
 
 describe('MinistryCard', () => {
   it('shows red and yellow warnings and no "2–4명" hint', () => {
@@ -56,6 +59,7 @@ describe('MinistryCard', () => {
     expect(screen.queryByRole('button', { name: '이름 바꾸기 · 삭제' })).toBeNull();
     expect(screen.queryByText('공유')).toBeNull();
     expect(screen.queryByRole('button', { name: '링크 만들기' })).toBeNull();
+    expect(rpc.getShareToken).not.toHaveBeenCalled();
     expect(screen.getByText('김도현').closest('[draggable]')).toBeNull();
   });
 

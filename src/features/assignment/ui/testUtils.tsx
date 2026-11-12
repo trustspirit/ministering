@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { vi } from 'vitest';
 import { ToastProvider } from 'trust-ui-react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { Household } from '@/features/households/types';
 import type { Member } from '@/features/members/types';
 import type { Organization } from '@/features/ministries/types';
@@ -52,12 +53,15 @@ export function renderWorkspace(
       pending: false,
     },
   };
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return {
     value,
     wrapper: (
-      <ToastProvider>
-        <WorkspaceContext.Provider value={value}>{ui}</WorkspaceContext.Provider>
-      </ToastProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <WorkspaceContext.Provider value={value}>{ui}</WorkspaceContext.Provider>
+        </ToastProvider>
+      </QueryClientProvider>
     ),
   };
 }

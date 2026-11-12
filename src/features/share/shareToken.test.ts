@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { generateShareToken, isShareTokenShape, shareUrl } from './shareToken';
 
 describe('generateShareToken', () => {
@@ -23,8 +23,6 @@ describe('isShareTokenShape', () => {
 });
 
 describe('shareUrl', () => {
-  afterEach(() => vi.unstubAllGlobals());
-
   it('joins the origin and /s/<token>', () => {
     expect(shareUrl('abc')).toBe(`${window.location.origin}/s/abc`);
   });

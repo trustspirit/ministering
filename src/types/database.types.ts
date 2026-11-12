@@ -284,6 +284,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_edit_ministry_org: {
+        Args: { p_ministry_id: string }
+        Returns: boolean
+      }
       current_user_role: { Args: never; Returns: string }
       get_app_users: {
         Args: never
@@ -296,6 +300,14 @@ export type Database = {
         }[]
       }
       get_ministry_share: { Args: { p_token: string }; Returns: Json }
+      get_ministry_share_token: {
+        Args: { p_ministry_id: string }
+        Returns: string
+      }
+      set_ministry_share_token: {
+        Args: { p_ministry_id: string; p_token: string }
+        Returns: undefined
+      }
     }
     Enums: {
       active_status: "active" | "less_active" | "new_member"

@@ -8,7 +8,6 @@ export interface BoardMinistry {
   id: string;
   number: number;
   name: string | null;
-  shareToken: string | null;
   companionIds: string[];
   /** EQ: household ids, RS: member ids */
   recipientIds: string[];
