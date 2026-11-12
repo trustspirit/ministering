@@ -1,18 +1,27 @@
 /* Sub bar under the header, legend and status dots shared by the assignment and roster screens. */
 
+/* Never scrolls sideways: items wrap (one 36px row while everything fits, as on the approved desktop) and the
+   lowest-priority items are hidden first — see useSubbarFit.ts and the media queries below. The figures are laid
+   out as the bar's own items (.aw-sum is display: contents) so they wrap one by one; the gaps keep the desktop
+   spacing: 14px between figures, 16px after the unit badge. */
 .aw-sub {
   flex: none;
-  height: 36px;
+  min-height: 36px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  padding: 0 18px;
+  align-content: center;
+  column-gap: 14px;
+  row-gap: 4px;
+  padding: 4px 18px;
   background: var(--app-soft);
   border-bottom: 1px solid var(--app-rule);
   font-size: 12px;
   white-space: nowrap;
 }
+.aw-sub[data-fit='tight'] .aw-legend { display: none; }
 .aw-unit {
+  margin-right: 2px;
   border: 1px solid var(--app-navy);
   color: var(--app-navy);
   font-weight: 700;
@@ -20,7 +29,7 @@
   padding: 0 8px;
   line-height: 18px;
 }
-.aw-sum { display: flex; align-items: center; gap: 14px; }
+.aw-sum { display: contents; }
 .aw-sum b { font-weight: 700; }
 .aw-wr {
   background: var(--app-warn-bg);
@@ -55,7 +64,10 @@
 .aw-stx--less_active { color: var(--app-less-active); }
 .aw-stx--new_member { color: var(--app-accent); }
 
+/* Compact and narrower (breakpoints.ts): the unit description goes first. */
+@media (max-width: 1279.98px) {
+  .aw-desc { display: none; }
+}
 @media (max-width: 819.98px) {
-  .aw-sub { overflow-x: auto; padding: 0 12px; gap: 12px; }
-  .aw-sub > *, .aw-sum > * { flex: none; }
+  .aw-sub { padding: 4px 12px; column-gap: 12px; }
 }

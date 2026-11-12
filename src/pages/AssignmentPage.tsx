@@ -8,6 +8,7 @@ import { useAssignmentBoard } from '@/features/assignment/hooks/useAssignmentBoa
 import { useBoardActions } from '@/features/assignment/hooks/useBoardActions';
 import { endDrag, isOurDrag } from '@/features/assignment/dnd';
 import { summarize } from '@/features/assignment/domain/board';
+import { clampSideWidth, poolWidthFor } from '@/features/assignment/domain/clampSideWidth';
 import { useWorkspaceStore } from '@/features/assignment/store';
 import { buildLookups, WorkspaceContext, type WorkspaceData } from '@/features/assignment/workspaceContext';
 import { BoardPanel } from '@/features/assignment/ui/BoardPanel';
@@ -40,12 +41,24 @@ export default function AssignmentPage() {
   const setOrg = useWorkspaceStore((s) => s.setOrg);
   useEffect(() => setOrg(org), [org, setOrg]);
 
-  // The right column width is applied straight to the DOM so resizing does not re-render the board.
+  // The right column width is applied straight to the DOM so resizing does not re-render the board. It is always
+  // clamped to the window, so a preset or a stored px width never pushes the map column past the edge.
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const apply = (width: string) => rootRef.current?.style.setProperty('--side', width);
-    apply(useWorkspaceStore.getState().sideWidth);
-    return useWorkspaceStore.subscribe((s) => apply(s.sideWidth));
+    const apply = () => {
+      const w = window.innerWidth;
+      const px = clampSideWidth(useWorkspaceStore.getState().sideWidth, w, poolWidthFor(w));
+      rootRef.current?.style.setProperty('--side', `${px}px`);
+    };
+    apply();
+    window.addEventListener('resize', apply);
+    const unsubscribe = useWorkspaceStore.subscribe((s, prev) => {
+      if (s.sideWidth !== prev.sideWidth) apply();
+    });
+    return () => {
+      window.removeEventListener('resize', apply);
+      unsubscribe();
+    };
   }, []);
 
   // Drag state cleanup. When the source card unmounts mid-drag (e.g. a realtime refetch), its

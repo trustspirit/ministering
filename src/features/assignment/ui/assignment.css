@@ -26,6 +26,7 @@
 .aw-status-msg { padding: 24px 18px; color: var(--app-mute); }
 
 /* summary bar, legend and status marks live in src/shared/ui/subbar.css */
+.aw-subend { margin-left: auto; display: flex; align-items: center; gap: 16px; }
 .aw-seg { display: flex; border: 1px solid var(--app-rule); background: #fff; }
 .aw .aw-seg button { padding: 1px 10px; font-size: 11.5px; color: var(--app-mute); }
 .aw .aw-seg button[aria-pressed='true'] { background: var(--app-navy); color: #fff; }
@@ -35,7 +36,12 @@
   flex: 1;
   min-height: 0;
   display: grid;
+  /* --side is set by AssignmentPage, already clamped (clampSideWidth) so the board keeps its 300px minimum. */
   grid-template-columns: 286px minmax(300px, 1fr) 7px var(--side, 45vw);
+}
+/* compact (1024–1279px, see src/shared/ui/breakpoints.ts): same three columns, narrower pool */
+@media (max-width: 1279.98px) {
+  .aw-work { grid-template-columns: 240px minmax(300px, 1fr) 7px var(--side, 45vw); }
 }
 
 /* pool */
@@ -75,7 +81,11 @@
   color: var(--app-ink);
 }
 .aw .aw-search input::placeholder { color: #757575; }
-.aw-plist { min-height: 0; overflow: auto; padding: 0 12px 10px; }
+.aw-plist { min-height: 0; overflow: auto; padding: 0 12px 7px; display: flex; flex-direction: column; }
+/* Scroll panes end with 3px of their bottom space as a shrinkable spacer: content that only just fits (within 3px)
+   eats into it instead of making the pane scroll by a pixel or two. */
+.aw-plist::after,
+.aw-board::after { content: ''; flex: 0 1 3px; }
 .aw-plist--cand { flex: none; max-height: 42%; }
 .aw-plist--tgt { flex: 1; border-top: 1px solid var(--app-rule); }
 .aw-ph {
@@ -147,7 +157,7 @@
 .aw-mcard .aw-chip:focus-within:has(.aw-x) .aw-cnt { visibility: hidden; }
 
 /* board */
-.aw-board { min-height: 0; overflow: auto; padding: 12px 14px 20px; }
+.aw-board { min-height: 0; overflow: auto; padding: 12px 14px 17px; display: flex; flex-direction: column; }
 .aw-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
@@ -355,7 +365,8 @@
 .aw-detail a { color: var(--app-accent); }
 .aw-detail-empty { margin: 0; color: var(--app-mute); }
 .aw-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; }
-@media (max-width: 819px) { .aw-cols { grid-template-columns: 1fr; gap: 10px; } }
+/* tabbed layouts: the detail sits in a sheet of at most 560px */
+@media (max-width: 1023.98px) { .aw-cols { grid-template-columns: 1fr; gap: 10px; } }
 .aw-meta { color: var(--app-mute); font-size: 12px; margin: 2px 0 8px; }
 .aw-eye { font-size: 10.5px; font-weight: 700; color: var(--app-mute); letter-spacing: .04em; margin: 0 0 4px; }
 .aw-kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 12.5px; margin: 0 0 10px; }
@@ -376,7 +387,7 @@
 /* trust-ui overlays used by the board */
 .aw-dialog-text { margin: 0; font-size: 13px; line-height: 1.6; }
 
-/* ---- phone layout: strictly below 820px (see useIsMobile) ---- */
+/* ---- tabbed layout: phone and tablet, strictly below 1024px (useIsMobile; values in src/shared/ui/breakpoints.ts) ---- */
 .aw-mtabs { display: none; }
 .aw-massign { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
 .aw-massign > :first-child:not(button) { flex: 1; min-width: 0; }
@@ -399,16 +410,17 @@
 .aw-sheet { height: auto; display: block; overflow: visible; background: transparent; padding: 0 14px 16px; }
 .aw-sheet .aw-detail { border-top: 0; padding: 0; min-height: 0; overflow: visible; }
 
-@media (max-width: 819.98px) {
-  .aw { font-size: 14px; }
+@media (max-width: 1023.98px) {
   .aw-seg { display: none; }
+  /* with the size switch gone, a hidden legend leaves the group empty: drop it so it cannot start an empty row */
+  .aw-sub[data-fit='tight'] .aw-subend { display: none; }
   /* One panel at a time; all stay mounted so the map keeps its state. */
   .aw-work { display: flex; flex-direction: column; }
   .aw-bar { display: none; }
   .aw-side { display: contents; }
   .aw-pool, .aw-board, .aw-map { display: none; flex: 1; min-height: 0; }
   .aw[data-mtab='pool'] .aw-pool { display: flex; border-right: 0; }
-  .aw[data-mtab='board'] .aw-board { display: block; }
+  .aw[data-mtab='board'] .aw-board { display: flex; }
   .aw[data-mtab='map'] .aw-map { display: block; }
   .aw-plist--cand { max-height: 45%; }
   .aw-mtabs { display: flex; flex: none; height: 48px; border-top: 1px solid var(--app-rule); background: #fff; }
@@ -428,4 +440,16 @@
   /* The × is always visible; it replaces the headcount/household label on the card. */
   .aw .aw-x { opacity: 1; width: 28px; height: 28px; right: 2px; top: 2px; font-size: 16px; }
   .aw-mcard .aw-chip:has(.aw-x) .aw-cnt { visibility: hidden; }
+}
+/* phone (< 820px): 14px text; the sub bar keeps the unit badge, the assigned count and the warnings (the number of
+   companionships is on the 동반자 tab) */
+@media (max-width: 819.98px) {
+  .aw { font-size: 14px; }
+  .aw-mcount,
+  .aw-subend { display: none; }
+}
+/* tablet (820–1023px): companionship cards in two columns, the sheet centred at most 560px wide */
+@media (min-width: 820px) and (max-width: 1023.98px) {
+  .aw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .aw-msheet { max-width: 560px; margin: 0 auto; }
 }

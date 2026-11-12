@@ -14,12 +14,15 @@ import { groupRoster } from '@/features/roster/domain/groupRoster';
 import { buildMinistryInfo } from '@/features/roster/domain/ministryInfo';
 import { HouseholdFormDialog } from '@/features/roster/ui/HouseholdFormDialog';
 import { MemberFormDialog } from '@/features/roster/ui/MemberFormDialog';
+import { RosterList } from '@/features/roster/ui/RosterList';
 import { RosterTable } from '@/features/roster/ui/RosterTable';
 import '@/features/roster/ui/roster.css';
 import { usePermission } from '@/shared/auth/usePermission';
+import { useLayout } from '@/shared/hooks/useIsMobile';
 import { useRealtimeSync } from '@/shared/hooks/useRealtimeSync';
 import { GENDER_LABEL, ORG_LABEL, PERSONALITY_LABEL, STATUS_LABEL, T } from '@/shared/copy';
 import '@/shared/ui/subbar.css';
+import { useSubbarFit } from '@/shared/ui/useSubbarFit';
 
 const REALTIME_TABLES = [
   'members',
@@ -70,6 +73,8 @@ export default function RosterPage() {
   const setActiveStatus = useMemberFilterStore((s) => s.setActiveStatus);
   const setPersonality = useMemberFilterStore((s) => s.setPersonality);
 
+  const isPhone = useLayout() === 'phone';
+  const fitRef = useSubbarFit();
   const [dialog, setDialog] = useState<Dialogs>({ kind: 'none' });
   const [csvOpen, setCsvOpen] = useState(false);
 
@@ -115,9 +120,12 @@ export default function RosterPage() {
     downloadCsv(exportMembersCsv(groups.flatMap((g) => g.members), names));
   };
 
+  // Phones get the rows stacked as a list; tablets and wider keep the table.
+  const RosterView = isPhone ? RosterList : RosterTable;
+
   return (
     <div className="ro">
-      <div className="aw-sub">
+      <div className="aw-sub" ref={fitRef}>
         <span className="aw-sum">
           <span>
             {T.roster.countHouseholds} <b>{households.length}</b>
@@ -184,24 +192,26 @@ export default function RosterPage() {
             onChange={(v) => setPersonality(v as Personality | 'all')}
           />
         </div>
-        <span className="ro-sp" />
-        {canEditMembers && (
-          <button type="button" className="ro-btn" onClick={() => setCsvOpen(true)}>
-            {T.roster.csvImport}
+        {/* the actions stay together at the right end, also when they wrap onto another row */}
+        <div className="ro-acts">
+          {canEditMembers && (
+            <button type="button" className="ro-btn" onClick={() => setCsvOpen(true)}>
+              {T.roster.csvImport}
+            </button>
+          )}
+          <button type="button" className="ro-btn" onClick={exportCsv} disabled={groups.length === 0}>
+            {T.roster.csvExport}
           </button>
-        )}
-        <button type="button" className="ro-btn" onClick={exportCsv} disabled={groups.length === 0}>
-          {T.roster.csvExport}
-        </button>
-        {canEditMembers && (
-          <button
-            type="button"
-            className="ro-btn ro-btn--pri"
-            onClick={() => setDialog({ kind: 'member', member: null })}
-          >
-            {T.roster.addPerson}
-          </button>
-        )}
+          {canEditMembers && (
+            <button
+              type="button"
+              className="ro-btn ro-btn--pri"
+              onClick={() => setDialog({ kind: 'member', member: null })}
+            >
+              {T.roster.addPerson}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="ro-scroll">
@@ -213,7 +223,7 @@ export default function RosterPage() {
             description={members.length === 0 && canEditMembers ? T.roster.emptyAllHint : undefined}
           />
         ) : (
-          <RosterTable
+          <RosterView
             groups={groups}
             info={info}
             onEditMember={canEditMembers ? (member) => setDialog({ kind: 'member', member }) : undefined}

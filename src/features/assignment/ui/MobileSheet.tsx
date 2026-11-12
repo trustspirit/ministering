@@ -12,8 +12,8 @@ import { DetailPanel } from './DetailPanel';
 const SNAP_POINTS = [0.72];
 
 /**
- * Phone layout only: the selected card or pin opens as a bottom sheet with the assign row on top
- * and the background information below. Closing the sheet clears the selection.
+ * Tabbed layout only (phone and tablet, below 1024px): the selected card or pin opens as a bottom sheet with the
+ * assign row on top and the background information below. Closing the sheet clears the selection.
  */
 export function MobileSheet() {
   const isMobile = useIsMobile();
@@ -36,6 +36,8 @@ export function MobileSheet() {
       open={selected !== null}
       onClose={() => setSelected(null)}
       snapPoints={SNAP_POINTS}
+      // centred, at most 560px wide on tablets (assignment.css)
+      className="aw-msheet"
       aria-label={T.mobile.sheetLabel}
     >
       {selected && (

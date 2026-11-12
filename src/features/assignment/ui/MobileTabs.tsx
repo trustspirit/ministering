@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { T } from '@/shared/copy';
 import type { MobileTab } from '../store';
 
-/** Bottom tab bar of the phone layout; one panel is shown at a time. */
+/** Bottom tab bar of the tabbed layout (phone and tablet, below 1024px); one panel is shown at a time. */
 export function MobileTabs({
   tab,
   onChange,

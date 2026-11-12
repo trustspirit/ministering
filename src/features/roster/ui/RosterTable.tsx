@@ -3,26 +3,13 @@ import { memberOrganization } from '@/features/assignment/domain/orgMembership';
 import { StatusMark, StatusText } from '@/features/assignment/ui/StatusMark';
 import { computeAge } from '@/features/members/domain/computeAge';
 import type { Member } from '@/features/members/types';
-import type { Household } from '@/features/households/types';
 import { GENDER_LABEL, ORG_LABEL, STATUS_LABEL, T } from '@/shared/copy';
 import type { MinistryInfo } from '../domain/ministryInfo';
-import type { RosterGroup } from '../domain/groupRoster';
+import { Phone, type RosterViewProps } from './rosterCells';
+import { firstLine } from './text';
 import './roster.css';
 
-const firstLine = (text: string | null) => (text ? text.split('\n')[0] : '');
 const dash = T.roster.noValue;
-
-interface RosterTableProps {
-  groups: RosterGroup[];
-  info: MinistryInfo;
-  /** Edit links show only when set (viewers get none). */
-  onEditMember?: (member: Member) => void;
-  onEditHousehold?: (household: Household) => void;
-}
-
-function Phone({ phone }: { phone: string | null }) {
-  return phone ? <a href={`tel:${phone}`}>{phone}</a> : <>{dash}</>;
-}
 
 function MemberRow({
   member,
@@ -56,7 +43,7 @@ function MemberRow({
         <Phone phone={member.phone} />
       </td>
       <td className="ro-memo" title={member.memo ?? undefined}>
-        {firstLine(member.memo)}
+        <span className="ro-fit">{firstLine(member.memo)}</span>
       </td>
       <td className="ro-act">
         {onEdit && (
@@ -74,7 +61,8 @@ function MemberRow({
   );
 }
 
-export function RosterTable({ groups, info, onEditMember, onEditHousehold }: RosterTableProps) {
+/** Roster table (tablet and wider). Narrow windows shorten the memo with an ellipsis instead of scrolling. */
+export function RosterTable({ groups, info, onEditMember, onEditHousehold }: RosterViewProps) {
   const c = T.roster.columns;
   return (
     <table className="ro-table" aria-label={T.roster.tableLabel}>
@@ -106,7 +94,7 @@ export function RosterTable({ groups, info, onEditMember, onEditHousehold }: Ros
                 <td>{info.householdAssigned.get(g.household.id) ?? dash}</td>
                 <td />
                 <td className="ro-memo" title={g.household.memo ?? undefined}>
-                  {firstLine(g.household.memo)}
+                  <span className="ro-fit">{firstLine(g.household.memo)}</span>
                 </td>
                 <td className="ro-act">
                   {onEditHousehold && (
