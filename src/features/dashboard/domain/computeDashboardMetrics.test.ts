@@ -6,14 +6,14 @@ import type { Household } from '@/features/households/types';
 const m = (p: Partial<Member>): Member => ({
   id: 'm', full_name: 'X', gender: 'M', birth_date: '1990-01-01',
   address: null, lat: null, lng: null, active_status: 'active',
-  personality: 'moderate', memo: null, household_id: null,
+  personality: 'moderate', phone: null, memo: null, household_id: null,
   household_role: 'other', is_deleted: false,
   created_at: '2026-01-01', updated_at: '2026-01-01',
   ...p,
 });
 
 const h = (p: Partial<Household>): Household => ({
-  id: 'h', name: 'X', address: null, lat: null, lng: null,
+  id: 'h', name: 'X', address: null, lat: null, lng: null, memo: null,
   created_at: '2026-01-01', updated_at: '2026-01-01',
   ...p,
 });

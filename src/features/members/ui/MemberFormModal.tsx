@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Modal } from '@/shared/ui/Modal';
 import { useCreateMember, useUpdateMember, useDeleteMember } from '../hooks/useMemberMutations';
-import type { Member, MemberInsert } from '../types';
+import type { ActiveStatus, Member, MemberInsert } from '../types';
+import { STATUS_LABEL } from '@/shared/copy';
 
 type Mode =
   | { mode: 'create' }
@@ -21,7 +22,7 @@ export function MemberFormModal({ open, config, onClose }: MemberFormModalProps)
   const [gender, setGender] = useState<'M' | 'F'>(initial?.gender ?? 'M');
   const [birthDate, setBirthDate] = useState(initial?.birth_date ?? '');
   const [address, setAddress] = useState(initial?.address ?? '');
-  const [activeStatus, setActiveStatus] = useState<'active' | 'less_active'>(initial?.active_status ?? 'active');
+  const [activeStatus, setActiveStatus] = useState<ActiveStatus>(initial?.active_status ?? 'active');
   const [personality, setPersonality] = useState<'active' | 'moderate' | 'passive'>(initial?.personality ?? 'moderate');
   const [householdRole, setHouseholdRole] = useState<'husband' | 'wife' | 'child' | 'other'>(initial?.household_role ?? 'other');
   const [memo, setMemo] = useState(initial?.memo ?? '');
@@ -120,9 +121,10 @@ export function MemberFormModal({ open, config, onClose }: MemberFormModalProps)
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="활동 상태">
-            <select value={activeStatus} onChange={(e) => setActiveStatus(e.target.value as 'active' | 'less_active')} className="w-full border rounded px-2 py-1.5">
+            <select value={activeStatus} onChange={(e) => setActiveStatus(e.target.value as ActiveStatus)} className="w-full border rounded px-2 py-1.5">
               <option value="active">활동</option>
               <option value="less_active">저활동</option>
+              <option value="new_member">{STATUS_LABEL.new_member}</option>
             </select>
           </Field>
           <Field label="성향">

@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 
 // Node 22+ ships its own global `localStorage` that shadows jsdom's and warns when
 // used without --localstorage-file. Give tests a plain in-memory Storage instead.

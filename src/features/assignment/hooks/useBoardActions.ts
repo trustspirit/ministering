@@ -25,7 +25,7 @@ export function useBoardActions(org: Organization): BoardActions {
   const { toast } = useToast();
   const [pendingCount, setPendingCount] = useState(0);
   const seq = useRef(0);
-  const queueRef = useRef<ReturnType<typeof createSerialQueue>>();
+  const queueRef = useRef<ReturnType<typeof createSerialQueue> | undefined>(undefined);
   queueRef.current ??= createSerialQueue();
   const queue = queueRef.current;
   // Stable across renders (only org/client/toast change them), so consumers can memoise on them.

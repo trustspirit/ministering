@@ -12,6 +12,7 @@ const member = (p: Partial<Member>): Member => ({
   lng: null,
   active_status: 'active',
   personality: 'moderate',
+  phone: null,
   memo: null,
   household_id: null,
   household_role: 'other',
