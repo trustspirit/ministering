@@ -17,8 +17,8 @@ export interface ShareFamilyMember extends SharePhone {
 }
 
 export type ShareRecipient =
-  | { type: 'household'; name: string; members: ShareFamilyMember[] }
-  | { type: 'member'; name: string; phone: string | null };
+  | { type: 'household'; name: string; address: string | null; members: ShareFamilyMember[] }
+  | { type: 'member'; name: string; phone: string | null; address: string | null };
 
 /** The JSON returned by the get_ministry_share RPC (and nothing else is ever read). */
 export interface MinistryShare {

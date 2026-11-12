@@ -47,7 +47,7 @@ describe('ShareDialog', () => {
   it('without a link explains it and creates a 64-hex token once, even on a double click', async () => {
     const value = open(null);
     expect(
-      await screen.findByText('로그인 없이 누구나 이 링크로 볼 수 있습니다. 이름, 연락처, 가족의 나이와 성별이 표시됩니다.'),
+      await screen.findByText('로그인 없이 누구나 이 링크로 볼 수 있습니다. 이름, 연락처, 주소, 가족의 나이와 성별이 표시됩니다.'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '링크 복사' })).toBeNull();
     const create = await screen.findByRole('button', { name: '링크 만들기' });

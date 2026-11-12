@@ -22,6 +22,7 @@ const eqShare = {
     {
       type: 'household',
       name: '김도현 가정',
+      address: '서울 마포구 성미산로 150',
       members: [
         { name: '김도현', age: 41, gender: 'M', phone: '010-3333-4444' },
         { name: '이수진', age: 39, gender: 'F', phone: null },
@@ -113,9 +114,9 @@ describe('SharePage', () => {
     expect(await screen.findByText('아직 지명된 대상이 없습니다')).toBeInTheDocument();
   });
 
-  it('shows no memo, address or app navigation', async () => {
+  it('shows no memo or app navigation', async () => {
     mocks.rpc.mockResolvedValue({
-      data: { ...eqShare, memo: '비밀 메모', address: '서울시 비밀로 1' },
+      data: { ...eqShare, memo: '비밀 메모' },
       error: null,
     });
     open(TOKEN);
@@ -127,6 +128,77 @@ describe('SharePage', () => {
       expect(link.getAttribute('href')).toMatch(/^tel:/);
     }
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  describe('addresses', () => {
+    const rsShare = (address: string | null) => ({
+      organization: 'RS',
+      number: 1,
+      name: null,
+      companions: [{ name: '최지은', phone: '010-5555-6666' }],
+      recipients: [{ type: 'member', name: '한미래', phone: '010-7777-8888', address }],
+    });
+
+    it('shows a household address right under the household name', async () => {
+      mocks.rpc.mockResolvedValue({ data: eqShare, error: null });
+      open(TOKEN);
+      const address = await screen.findByText('서울 마포구 성미산로 150');
+      expect(screen.getByText('김도현 가정').nextElementSibling).toBe(address);
+      expect(screen.queryByRole('link', { name: /성미산로/ })).toBeNull();
+    });
+
+    it('shows a sister address below her name and phone row', async () => {
+      mocks.rpc.mockResolvedValue({ data: rsShare('서울 서대문구 연희로 7'), error: null });
+      open(TOKEN);
+      const address = await screen.findByText('서울 서대문구 연희로 7');
+      const row = screen.getByText('한미래').closest('tr');
+      expect(row).not.toBeNull();
+      expect(row).not.toContainElement(address);
+      expect(row?.compareDocumentPosition(address)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    it('renders no address line, not even a dash, when the address is null', async () => {
+      mocks.rpc.mockResolvedValue({
+        data: { ...eqShare, recipients: [{ ...eqShare.recipients[0], address: null }] },
+        error: null,
+      });
+      const { container } = open(TOKEN);
+      await screen.findByText('김도현 가정');
+      expect(container.querySelector('.sp-address')).toBeNull();
+      // only the two missing phones (박민수, 이수진) are dashes; no dash stands in for the address
+      expect(screen.getAllByText('—')).toHaveLength(2);
+
+      mocks.rpc.mockResolvedValue({ data: rsShare(null), error: null });
+      const second = open(TOKEN);
+      await screen.findAllByText('한미래');
+      expect(second.container.querySelector('.sp-address')).toBeNull();
+    });
+
+    it('shows no address for companions', async () => {
+      mocks.rpc.mockResolvedValue({
+        data: {
+          ...rsShare('서울 서대문구 연희로 7'),
+          companions: [{ name: '최지은', phone: '010-5555-6666', address: '서울 비밀동 9' }],
+        },
+        error: null,
+      });
+      open(TOKEN);
+      await screen.findByText('한미래');
+      expect(screen.queryByText('서울 비밀동 9')).toBeNull();
+      expect(screen.getAllByText(/서울/)).toHaveLength(1);
+    });
+
+    it('renders hostile address text only as text', async () => {
+      const evil = `<script>alert("x")</script> '"><img src=x onerror=alert(1)>`;
+      mocks.rpc.mockResolvedValue({
+        data: { ...eqShare, recipients: [{ ...eqShare.recipients[0], address: evil }] },
+        error: null,
+      });
+      const { container } = open(TOKEN);
+      expect(await screen.findByText(evil)).toBeInTheDocument();
+      expect(container.querySelector('script')).toBeNull();
+      expect(container.querySelector('img[src="x"]')).toBeNull();
+    });
   });
 
   it('shows only the invalid-link message when the RPC returns null', async () => {
