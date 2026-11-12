@@ -30,7 +30,7 @@ export default function SettingsPage() {
   if (!profileLoaded) {
     return (
       <div className="app-loading">
-        <Spinner size="sm" label={S.loading} showLabel />
+        <Spinner size="sm" label={T.loading} showLabel />
       </div>
     );
   }
@@ -70,7 +70,7 @@ export default function SettingsPage() {
       <p className="st-msg">{S.loadFailed}</p>
     ) : (
       <div className="app-loading">
-        <Spinner size="sm" label={S.loading} showLabel />
+        <Spinner size="sm" label={T.loading} showLabel />
       </div>
     );
   } else if (users.length === 0) {

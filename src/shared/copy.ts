@@ -57,12 +57,10 @@ export const T = {
     forgot: '비밀번호를 잊으셨나요? 관리자에게 변경 링크를 요청하세요.',
   },
   settings: {
-    title: '설정',
     countUsers: '사용자',
     tableLabel: '사용자 목록',
     columns: { name: '이름', email: '이메일', role: '역할', actions: '관리' },
     noName: '—',
-    loading: '불러오는 중…',
     loadFailed: '사용자 목록을 불러오지 못했습니다.',
     empty: '등록된 사용자가 없습니다',
     toolsLabel: '사용자 관리 도구',
@@ -260,6 +258,7 @@ export const T = {
     saveFailed: '저장하지 못했습니다. 다시 시도해 주세요.',
     rollbackFailed: '가정은 만들어졌지만 사람을 저장하지 못했습니다. 명부에서 가정을 확인해 주세요.',
     deleteFailed: '삭제하지 못했습니다. 다시 시도해 주세요.',
+    deleteMissing: '이미 삭제되었거나 찾을 수 없는 사람입니다.',
   },
   householdForm: {
     title: '가정 수정',

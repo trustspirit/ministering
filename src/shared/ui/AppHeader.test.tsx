@@ -4,9 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import AppHeader from './AppHeader';
 
-const mocks = vi.hoisted(() => ({ layout: 'wide' as string, signOut: vi.fn() }));
+const mocks = vi.hoisted(() => ({ layout: 'wide' as string, displayName: '홍길동' as string | null, signOut: vi.fn() }));
 vi.mock('@/features/auth/useAuth', () => ({
-  useAuth: () => ({ profile: { role: 'bishopric', display_name: '홍길동' }, signOut: mocks.signOut }),
+  useAuth: () => ({
+    profile: { role: 'bishopric', display_name: mocks.displayName },
+    user: { email: 'hong.gildong@test.local' },
+    signOut: mocks.signOut,
+  }),
 }));
 vi.mock('@/shared/hooks/useIsMobile', () => ({ useLayout: () => mocks.layout }));
 
@@ -20,6 +24,7 @@ const renderHeader = () =>
 describe('AppHeader user area', () => {
   beforeEach(() => {
     mocks.signOut.mockReset();
+    mocks.displayName = '홍길동';
   });
 
   it('shows name · role and 로그아웃 inline from 820px up', async () => {
@@ -40,5 +45,12 @@ describe('AppHeader user area', () => {
     expect(screen.getByText('홍길동')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '로그아웃' }));
     expect(mocks.signOut).toHaveBeenCalled();
+  });
+
+  it('without a display name the compact button uses the email local part', () => {
+    mocks.layout = 'phone';
+    mocks.displayName = null;
+    renderHeader();
+    expect(screen.getByRole('button', { name: '사용자 메뉴' })).toHaveTextContent('h');
   });
 });

@@ -37,6 +37,7 @@ function setup() {
 describe('signOut', () => {
   beforeEach(() => {
     signOutApi.mockReset();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   it('signs out globally when that works', async () => {
@@ -59,5 +60,26 @@ describe('signOut', () => {
     const get = setup();
     await act(async () => get().signOut());
     expect(signOutApi).toHaveBeenNthCalledWith(2, { scope: 'local' });
+  });
+
+  it('warns once (without details) when it has to fall back', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    signOutApi.mockResolvedValueOnce({ error: { message: 'secret-token-abc' } }).mockResolvedValueOnce({ error: null });
+    const get = setup();
+    await act(async () => get().signOut());
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0])).not.toContain('secret-token-abc');
+    warn.mockRestore();
+  });
+
+  it('never rejects, even when the local sign-out throws too, and clears the session state', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    signOutApi.mockResolvedValueOnce({ error: { message: 'x' } }).mockRejectedValueOnce(new Error('storage'));
+    const get = setup();
+    await act(async () => {
+      await expect(get().signOut()).resolves.toBeUndefined();
+    });
+    expect(get().session).toBeNull();
+    warn.mockRestore();
   });
 });

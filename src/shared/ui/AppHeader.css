@@ -87,3 +87,6 @@
   cursor: pointer;
 }
 .app-user-pop button:hover { background: var(--app-tint); }
+/* Design reference: no shadows except the mobile bottom sheet. The popover reads its shadow from this token, so it is
+   switched off on the popover surface only (the 1px rule border stays). */
+.app-user-popover { --tui-shadow-overlay: none; }

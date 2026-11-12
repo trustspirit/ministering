@@ -48,7 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // fall through to the local sign-out
     }
-    await supabase.auth.signOut({ scope: 'local' });
+    console.warn('Global sign-out failed; signing out locally.');
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      // Even if the library could not clear its storage, the app itself must show the signed-out state.
+    }
+    setSession(null);
+    setLoadedProfile(null);
   };
 
   return (

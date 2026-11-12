@@ -8,9 +8,9 @@ import './AppHeader.css';
 
 /** Who is signed in and the way out: inline text from 820px up, a compact button with a small popover below. */
 function UserMenu() {
-  const { profile, signOut } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const phone = useLayout() === 'phone';
-  const name = profile?.display_name ?? '—';
+  const name = profile?.display_name ?? user?.email?.split('@')[0] ?? '—';
   const role = profile ? T.role[profile.role] : T.header.unknownRole;
 
   if (!phone) {
@@ -31,6 +31,7 @@ function UserMenu() {
         placement="bottom"
         align="end"
         label={T.header.userMenu}
+        className="app-user-popover"
         content={
           <div className="app-user-pop">
             <p>
