@@ -274,6 +274,7 @@ export const T = {
     personalityFilter: '성향',
     csvImport: 'CSV 가져오기',
     csvExport: 'CSV 내보내기',
+    csvExportHint: '전체 회원을 내보냅니다(필터와 무관)',
     addPerson: '＋ 사람 등록',
     tableLabel: '명부',
     toolsLabel: '명부 도구',

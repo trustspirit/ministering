@@ -55,6 +55,8 @@ function downloadCsv(csv: string) {
   URL.revokeObjectURL(url);
 }
 
+const NO_FILTER = { search: '', gender: 'all', activeStatus: 'all', personality: 'all' } as const;
+
 export default function RosterPage() {
   useRealtimeSync([...REALTIME_TABLES], 'roster');
 
@@ -118,8 +120,9 @@ export default function RosterPage() {
   const exportCsv = () => {
     const names: Record<string, string> = {};
     for (const h of households) names[h.id] = h.name;
-    // Exactly the people the table lists.
-    downloadCsv(exportMembersCsv(groups.flatMap((g) => g.members), names));
+    // The CSV is the import/backup format: always everyone, in roster order, whatever the filters show.
+    const everyone = groupRoster(members, households, NO_FILTER).flatMap((g) => g.members);
+    downloadCsv(exportMembersCsv(everyone, names));
   };
 
   // Phones and tablets get the rows stacked as a list; 1024px and wider keep the table.
@@ -201,7 +204,13 @@ export default function RosterPage() {
               {T.roster.csvImport}
             </button>
           )}
-          <button type="button" className="ro-btn" onClick={exportCsv} disabled={groups.length === 0}>
+          <button
+            type="button"
+            className="ro-btn"
+            onClick={exportCsv}
+            disabled={members.length === 0}
+            title={T.roster.csvExportHint}
+          >
             {T.roster.csvExport}
           </button>
           {canEditMembers && (

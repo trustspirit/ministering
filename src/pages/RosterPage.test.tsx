@@ -1,12 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ToastProvider } from 'trust-ui-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { household, member } from '@/features/assignment/ui/testUtils';
+import { useMemberFilterStore } from '@/features/members/store';
+import { exportMembersCsv } from '@/features/members/domain/exportMembersCsv';
 import RosterPage from './RosterPage';
 
 const mocks = vi.hoisted(() => ({ canEditMembers: true, noMembers: false, layout: 'wide' as string }));
 
+vi.mock('@/features/members/domain/exportMembersCsv', () => ({
+  exportMembersCsv: vi.fn(() => 'csv'),
+}));
 vi.mock('@/shared/auth/usePermission', () => ({
   usePermission: () => ({ canEditMembers: mocks.canEditMembers }),
 }));
@@ -45,6 +51,8 @@ describe('RosterPage', () => {
     mocks.canEditMembers = true;
     mocks.noMembers = false;
     mocks.layout = 'wide';
+    useMemberFilterStore.getState().reset();
+    vi.mocked(exportMembersCsv).mockClear();
   });
 
   it.each(['phone', 'tablet'])('%s gets the stacked list instead of the table', (layout) => {
@@ -94,5 +102,20 @@ describe('RosterPage', () => {
     expect(screen.queryByRole('button', { name: 'CSV 가져오기' })).toBeNull();
     expect(screen.queryByRole('button', { name: /수정/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'CSV 내보내기' })).toBeInTheDocument();
+  });
+
+  it('exports every member even while a filter hides all rows, and says so in the tooltip', async () => {
+    URL.createObjectURL = vi.fn(() => 'blob:x');
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    useMemberFilterStore.getState().setSearch('일치하는 이름 없음');
+    open();
+    expect(screen.queryByText('한상철 가정')).toBeNull();
+    const button = screen.getByRole('button', { name: 'CSV 내보내기' });
+    expect(button).toBeEnabled();
+    expect(button).toHaveAttribute('title', '전체 회원을 내보냅니다(필터와 무관)');
+    await userEvent.click(button);
+    const exported = vi.mocked(exportMembersCsv).mock.calls[0][0];
+    expect(exported.map((m) => m.full_name)).toEqual(['한상철']);
   });
 });
