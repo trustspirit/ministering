@@ -1,4 +1,4 @@
-# 성역 편성 앱 — 배포 가이드
+# 성역 임무 지명 앱 — 배포 가이드
 
 ## 아키텍처
 
@@ -108,6 +108,12 @@ WHERE user_id = (SELECT id FROM auth.users WHERE email = 'admin@example.com');
    - `VITE_KAKAO_JS_KEY`: Kakao Developers JavaScript 키
    - `VITE_UNIT_NAME`: 머리말과 로그인 화면에 표시할 지역 단위 이름 (예: `OO 와드`). 비워 두면 표시하지 않는다.
 4. Deploy
+
+저장소 루트의 `vercel.json` 이 함께 적용된다.
+
+- **SPA 주소 되돌림:** 모든 경로를 `/index.html` 로 다시 쓴다. 메신저로 받은 `/s/<token>`(공유 링크)과 `/set-password?...`(비밀번호 링크)를 바로 열어도 404 가 나지 않게 하기 위해서다. Vercel 은 실제 파일(`/assets/*`, `/brand/*` 등)을 먼저 내어 주므로 정적 파일은 영향받지 않는다.
+- **응답 헤더:** `/s/*` 와 `/set-password` 에는 `Referrer-Policy: no-referrer`, `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store` 를 붙이고, 모든 경로에 `X-Content-Type-Options: nosniff` 를 붙인다. (두 화면은 실행 시 no-referrer 메타도 넣지만 헤더가 한 겹 더 막는다.)
+- 배포 후 확인: `curl -sI https://<your-vercel-domain>.vercel.app/s/probe` 가 200 과 위 헤더를 돌려주는지 본다.
 
 ### 8. Kakao Maps 설정
 
