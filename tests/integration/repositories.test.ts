@@ -1,15 +1,24 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { supabase } from '@/shared/lib/supabase';
 import { memberRepository } from '@/repositories/MemberRepository';
 import { householdRepository } from '@/repositories/HouseholdRepository';
 import { ministryRepository } from '@/repositories/MinistryRepository';
 
 /**
- * Smoke tests: the anon client can execute read queries against the local
- * Supabase stack without network or schema errors. Rows returned may be
- * empty (RLS restricts writes to authenticated users with specific roles).
+ * Smoke tests: the app's client, signed in as the seed viewer, can execute the
+ * repositories' read queries against the local Supabase stack without network or
+ * schema errors. (The ministries table is not readable by anonymous clients.)
  */
 
 describe('Repository smoke (local Supabase)', () => {
+  beforeAll(async () => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: 'viewer@test.local',
+      password: 'password',
+    });
+    if (error) throw new Error(`Cannot sign in as viewer@test.local: ${error.message}. Run 'npx supabase db reset'.`);
+  });
+
   it('memberRepository.listActive() returns array', async () => {
     const members = await memberRepository.listActive();
     expect(Array.isArray(members)).toBe(true);

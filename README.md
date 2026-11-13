@@ -47,6 +47,10 @@ npm run dev           # http://localhost:5173
 | `rs@test.local` | 상호부조회 회장단 |
 | `viewer@test.local` | 열람 |
 
+## 통합 테스트
+
+`npm run test:integration` 은 로컬 Supabase(`supabase start` + `supabase db reset` 로 시드된 상태)에 실제 로그인 토큰으로 HTTP 요청을 보내, 공유 토큰 접근 제한, 공개 공유 페이지의 응답 항목, 회원 삭제, 역할 보호(마지막 감독단), 공개 가입 거부를 확인합니다. 스택이 꺼져 있으면 한 줄 안내와 함께 바로 실패합니다. 테스트가 만든 성역·가정·회원은 끝나고 지우며, 소프트 삭제된 회원만 `ITEST` 이름으로 남지만 화면에는 보이지 않습니다. 완전히 비우려면 `supabase db reset` 을 실행하세요.
+
 ## 스크립트
 
 | 명령 | 설명 |
