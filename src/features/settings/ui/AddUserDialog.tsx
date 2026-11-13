@@ -4,6 +4,7 @@ import { T } from '@/shared/copy';
 import type { Database } from '@/types/database.types';
 import { adminErrorMessage } from '../adminErrorMessage';
 import { useAdminUsers, type PasswordLinkResult } from '../hooks/useAdminUsers';
+import { nameProblem, validateDisplayName } from '../domain/displayName';
 import { PasswordLinkView } from './UserLinkDialog';
 import './settings-dialogs.css';
 
@@ -13,7 +14,6 @@ const S = T.settings;
 const ROLE_OPTIONS = (Object.keys(T.role) as Role[]).map((value) => ({ value, label: T.role[value] }));
 // Same rules as the admin-users function, which checks them again.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_NAME = 50;
 
 /**
  * "사용자 추가": name, email and role — no password anywhere; on success the same Dialog shows the set-password link.
@@ -31,13 +31,8 @@ export function AddUserDialog({ open, onClose }: { open: boolean; onClose: () =>
 
   const cleanName = name.trim();
   const cleanEmail = email.trim().toLowerCase();
-  const nameError = !submitted
-    ? undefined
-    : !cleanName
-      ? S.nameRequired
-      : [...cleanName].length > MAX_NAME
-        ? S.nameTooLong
-        : undefined;
+  const nameCheck = validateDisplayName(name);
+  const nameError = submitted && !nameCheck.ok ? nameProblem(nameCheck.reason) : undefined;
   const emailError = submitted && !EMAIL.test(cleanEmail) ? S.emailInvalid : undefined;
 
   const submit = async (e: FormEvent) => {
@@ -45,7 +40,7 @@ export function AddUserDialog({ open, onClose }: { open: boolean; onClose: () =>
     if (busy) return;
     setSubmitted(true);
     setError(null);
-    if (!cleanName || [...cleanName].length > MAX_NAME || !EMAIL.test(cleanEmail)) return;
+    if (!nameCheck.ok || !EMAIL.test(cleanEmail)) return;
     try {
       const link = await createUser.mutateAsync({ email: cleanEmail, displayName: cleanName, role });
       setCreated({ link, name: cleanName, email: cleanEmail });

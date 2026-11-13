@@ -375,6 +375,38 @@ describe('role guards on app_user_profiles', () => {
   });
 });
 
+describe('app_user_profiles.display_name constraint', () => {
+  const RS_NAME = '상호부조회장';
+  const setOwnName = async (name: string | null) => {
+    const { data: session } = await rs.auth.getUser();
+    return rs.from('app_user_profiles').update({ display_name: name }).eq('user_id', session.user!.id);
+  };
+  afterAll(async () => {
+    if (rs) await setOwnName(RS_NAME);
+  });
+
+  it.each([
+    ['empty', ''],
+    ['blank', '   '],
+    ['51 characters', '가'.repeat(51)],
+    ['a control character', 'Kim\u0007'],
+    ['a newline', 'Kim\nLee'],
+    ['DEL', 'Kim\u007f'],
+    ['a bidi override', 'Kim\u202eLee'],
+    ['a bidi isolate', 'Kim\u2066Lee'],
+  ])('refuses %s with a check violation', async (_label, name) => {
+    const { error } = await setOwnName(name);
+    expect(error?.code).toBe('23514');
+  });
+
+  it('accepts 1 and 50 characters, Korean text, and NULL', async () => {
+    for (const name of ['가', '가'.repeat(50), 'Kim 김 Lee', null]) {
+      const { error } = await setOwnName(name);
+      expect(error, `name ${JSON.stringify(name)}`).toBeNull();
+    }
+  });
+});
+
 describe('public signup', () => {
   it('is refused', async () => {
     const { data, error } = await anon.auth.signUp({

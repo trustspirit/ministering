@@ -11,6 +11,7 @@ import {
   useUpdateProfileRole,
 } from '@/features/settings/hooks/useProfileMutations';
 import { AddUserDialog } from '@/features/settings/ui/AddUserDialog';
+import { validateDisplayName, nameProblem } from '@/features/settings/domain/displayName';
 import { UserLinkDialog } from '@/features/settings/ui/UserLinkDialog';
 import { usePermission } from '@/shared/auth/usePermission';
 import { T } from '@/shared/copy';
@@ -80,8 +81,13 @@ export default function SettingsPage() {
   const saveName = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing || !editing.draft.trim()) return;
+    const checked = validateDisplayName(editing.draft);
+    if (!checked.ok) {
+      toast({ variant: 'danger', message: nameProblem(checked.reason) });
+      return;
+    }
     try {
-      await updateName.mutateAsync({ userId: editing.userId, displayName: editing.draft.trim() });
+      await updateName.mutateAsync({ userId: editing.userId, displayName: checked.name });
       setEditing(null);
       toast({ variant: 'success', message: S.nameSaved });
     } catch {

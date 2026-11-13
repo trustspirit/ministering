@@ -96,6 +96,7 @@ export const T = {
     fieldRole: '역할',
     nameRequired: '이름을 입력해 주세요',
     nameTooLong: '이름은 50자 이내로 입력해 주세요',
+    nameUnsafe: '이름에 줄바꿈이나 제어 문자를 넣을 수 없습니다',
     emailInvalid: '이메일 형식이 맞지 않습니다',
     add: '추가',
     adding: '추가 중…',

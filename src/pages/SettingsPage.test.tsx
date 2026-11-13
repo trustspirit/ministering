@@ -115,6 +115,18 @@ describe('SettingsPage', () => {
     expect(mocks.mutateName).toHaveBeenCalledWith({ userId: 'u2', displayName: '새 이름' });
   });
 
+  it('refuses a name with a bidi override before saving and says why', async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    await user.click(screen.getByRole('button', { name: '열람자 이름 수정' }));
+    const field = screen.getByLabelText('viewer@test.local 표시 이름');
+    await user.clear(field);
+    await user.type(field, '김\u202e철수');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    expect(mocks.mutateName).not.toHaveBeenCalled();
+    expect(await screen.findByText('이름에 줄바꿈이나 제어 문자를 넣을 수 없습니다')).toBeInTheDocument();
+  });
+
   it('marks people who have not opened their invitation yet', () => {
     renderSettings();
     const rows = within(screen.getByRole('table', { name: '사용자 목록' })).getAllByRole('row');
