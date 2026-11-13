@@ -10,6 +10,29 @@ export type RealtimeTable =
   | 'ministry_member_recipients'
   | 'ministry_household_recipients';
 
+/**
+ * Which cached queries a change in `table` makes stale.
+ *
+ * A member soft delete reaches other users as an UPDATE that row-level security hides (the row is no longer
+ * selectable), so nothing arrives for the member itself. What does arrive is the DELETE of the member's companion or
+ * recipient row from the cleanup trigger; that must refresh the roster too, or the deleted person stays listed
+ * until the next refocus.
+ */
+export function queryKeysToRefresh(table: RealtimeTable, eventType?: string): readonly (readonly string[])[] {
+  switch (table) {
+    case 'members':
+      return [['members'], ['assignment-board']];
+    case 'households':
+      return [['households']];
+    case 'ministries':
+      return [['assignment-board']];
+    case 'ministry_companions':
+    case 'ministry_member_recipients':
+    case 'ministry_household_recipients':
+      return eventType === 'DELETE' ? [['assignment-board'], ['members']] : [['assignment-board']];
+  }
+}
+
 export function useRealtimeSync(tables: RealtimeTable[], channelKey: string) {
   const qc = useQueryClient();
 
@@ -20,23 +43,9 @@ export function useRealtimeSync(tables: RealtimeTable[], channelKey: string) {
       channel.on(
         'postgres_changes' as never,
         { event: '*', schema: 'public', table },
-        () => {
-          switch (table) {
-            case 'members':
-              qc.invalidateQueries({ queryKey: ['members'] });
-              qc.invalidateQueries({ queryKey: ['assignment-board'] });
-              break;
-            case 'households':
-              qc.invalidateQueries({ queryKey: ['households'] });
-              break;
-            case 'ministries':
-              qc.invalidateQueries({ queryKey: ['assignment-board'] });
-              break;
-            case 'ministry_companions':
-            case 'ministry_member_recipients':
-            case 'ministry_household_recipients':
-              qc.invalidateQueries({ queryKey: ['assignment-board'] });
-              break;
+        (payload: { eventType?: string }) => {
+          for (const queryKey of queryKeysToRefresh(table, payload?.eventType)) {
+            qc.invalidateQueries({ queryKey: [...queryKey] });
           }
         },
       );

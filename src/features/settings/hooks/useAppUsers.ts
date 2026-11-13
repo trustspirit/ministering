@@ -14,9 +14,11 @@ export interface AppUser {
 
 export const appUsersKey = ['app-users'] as const;
 
-export function useAppUsers() {
+/** `enabled` keeps anyone but the bishopric from calling the (bishopric-only) RPC and getting a 42501. */
+export function useAppUsers(enabled = true) {
   return useQuery({
     queryKey: appUsersKey,
+    enabled,
     queryFn: async (): Promise<AppUser[]> => {
       const { data, error } = await supabase.rpc('get_app_users');
       if (error) throw error;

@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   createUser: vi.fn(),
   createResetLink: vi.fn(),
   deleteUser: vi.fn(),
+  useAppUsers: vi.fn(),
 }));
 vi.mock('@/features/auth/useAuth', () => ({
   useAuth: () => ({
@@ -23,7 +24,10 @@ vi.mock('@/features/auth/useAuth', () => ({
   }),
 }));
 vi.mock('@/features/settings/hooks/useAppUsers', () => ({
-  useAppUsers: () => ({ data: mocks.users, isError: false }),
+  useAppUsers: (enabled?: boolean) => {
+    mocks.useAppUsers(enabled);
+    return { data: mocks.users, isError: false };
+  },
 }));
 vi.mock('@/features/settings/hooks/useProfileMutations', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/settings/hooks/useProfileMutations')>()),
@@ -65,6 +69,7 @@ describe('SettingsPage', () => {
     mocks.role = 'bishopric';
     mocks.profileLoaded = true;
     mocks.users = USERS;
+    mocks.useAppUsers.mockClear();
     mocks.mutateRole.mockReset().mockResolvedValue(undefined);
     mocks.mutateName.mockReset().mockResolvedValue(undefined);
     mocks.createUser.mockReset().mockResolvedValue({ userId: 'u9', tokenHash: HASH, type: 'invite' });
@@ -76,6 +81,22 @@ describe('SettingsPage', () => {
     mocks.role = 'rs_president';
     renderSettings();
     expect(screen.getByText('home page')).toBeInTheDocument();
+  });
+
+  it('does not query the user list for anyone but the bishopric, nor before the profile is loaded', () => {
+    mocks.role = 'rs_president';
+    const { unmount } = renderSettings();
+    expect(mocks.useAppUsers.mock.calls.every(([enabled]) => enabled === false)).toBe(true);
+    unmount();
+    mocks.useAppUsers.mockClear();
+    mocks.profileLoaded = false;
+    renderSettings();
+    expect(mocks.useAppUsers.mock.calls.every(([enabled]) => enabled === false)).toBe(true);
+  });
+
+  it('queries the user list for the bishopric', () => {
+    renderSettings();
+    expect(mocks.useAppUsers).toHaveBeenLastCalledWith(true);
   });
 
   it('waits for the profile instead of redirecting a bishopric home after a reload', () => {

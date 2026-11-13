@@ -89,7 +89,7 @@ export function CsvImportModal({ open, onClose }: CsvImportModalProps) {
             />
             {state.error && (
               <p className="ro-error" role="alert">
-                ⚠ {state.error}
+                {T.warnMark} {state.error}
               </p>
             )}
           </>
@@ -151,9 +151,9 @@ export function CsvImportModal({ open, onClose }: CsvImportModalProps) {
               <li>{C.householdsCreated(state.report.householdsCreated)}</li>
               <li>{C.created(state.report.created)}</li>
               <li>{C.updated(state.report.updated)}</li>
-              {state.report.failed.length > 0 && <li>⚠ {C.failed(state.report.failed.length)}</li>}
+              {state.report.failed.length > 0 && <li>{T.warnMark} {C.failed(state.report.failed.length)}</li>}
               {state.report.householdsFailed.length > 0 && (
-                <li>⚠ {C.householdsFailed(state.report.householdsFailed.length)}</li>
+                <li>{T.warnMark} {C.householdsFailed(state.report.householdsFailed.length)}</li>
               )}
             </ul>
             {(state.report.failed.length > 0 || state.report.householdsFailed.length > 0) && (

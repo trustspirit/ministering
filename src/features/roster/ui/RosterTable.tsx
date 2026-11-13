@@ -68,7 +68,7 @@ function MemberRow({
   );
 }
 
-/** Roster table (tablet and wider). Below 1280px it has a fixed layout that always fits its container: the memo shortens first, then the phone number, then the companionship columns. */
+/** Roster table (1024px and wider; phones and tablets get the stacked list). Below 1280px it has a fixed layout that always fits its container: the memo shortens first, then the phone number, then the companionship columns. */
 export function RosterTable({ groups, info, onEditMember, onEditHousehold }: RosterViewProps) {
   const c = T.roster.columns;
   return (

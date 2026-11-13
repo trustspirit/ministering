@@ -41,17 +41,17 @@ export function SummaryBar({ households }: { households: Household[] }) {
         </span>
         {s.shortMinistryCount > 0 && (
           <span className="aw-wr aw-wr--bad">
-            ⚠ {T.assign.warnShortMinistries} <b>{s.shortMinistryCount}</b>
+            {T.warnMark} {T.assign.warnShortMinistries} <b>{s.shortMinistryCount}</b>
           </span>
         )}
         {unassignedRecipients > 0 && (
           <span className="aw-wr">
-            ⚠ {T.assign.warnUnassignedRecipients(recipientNoun)} <b>{unassignedRecipients}</b>
+            {T.warnMark} {T.assign.warnUnassignedRecipients(recipientNoun)} <b>{unassignedRecipients}</b>
           </span>
         )}
         {s.unassignedCandidateCount > 0 && (
           <span className="aw-wr">
-            ⚠ {T.assign.warnUnassignedCandidates(T.assign.companionNoun[org])}{' '}
+            {T.warnMark} {T.assign.warnUnassignedCandidates(T.assign.companionNoun[org])}{' '}
             <b>{s.unassignedCandidateCount}</b>
           </span>
         )}

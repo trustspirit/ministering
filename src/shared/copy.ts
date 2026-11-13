@@ -101,7 +101,6 @@ export const T = {
     add: '추가',
     adding: '추가 중…',
     cancel: '취소',
-    added: '사용자를 추가했습니다',
     resetLink: '비밀번호 변경 링크',
     resetLinkOf: (name: string) => `${name} 비밀번호 변경 링크`,
     resetTitle: '비밀번호 변경 링크',
@@ -229,7 +228,6 @@ export const T = {
     resize: '끌어서 지도 크기 조절',
   },
   share: {
-    dialogTitle: '공개 링크',
     dialogTitleOf: (label: string) => `${label} 공개 링크`,
     description: '로그인 없이 누구나 이 링크로 볼 수 있습니다. 이름, 연락처, 주소, 가족의 나이와 성별이 표시됩니다.',
     create: '링크 만들기',

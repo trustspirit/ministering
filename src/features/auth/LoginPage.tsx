@@ -68,7 +68,7 @@ export default function LoginPage() {
           />
           {error && (
             <p className="lg-error" role="alert">
-              ⚠ {error}
+              {T.warnMark} {error}
             </p>
           )}
           <Button type="submit" size="sm" shape="square" fullWidth loading={busy} disabled={busy}>

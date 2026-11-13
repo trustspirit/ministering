@@ -294,7 +294,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
               </form>
               {error && (
                 <p className="ro-error" role="alert">
-                  ⚠ {error}
+                  {T.warnMark} {error}
                 </p>
               )}
             </Dialog.Content>

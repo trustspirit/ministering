@@ -30,7 +30,7 @@ export default function SettingsPage() {
   const perm = usePermission();
   const { user, profileLoaded } = useAuth();
   const { toast } = useToast();
-  const usersQuery = useAppUsers();
+  const usersQuery = useAppUsers(profileLoaded && perm.canManageUsers);
   const updateRole = useUpdateProfileRole();
   const updateName = useUpdateDisplayName();
   const { deleteUser } = useAdminUsers();

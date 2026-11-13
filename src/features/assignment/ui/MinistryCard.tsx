@@ -21,7 +21,7 @@ import { ShareDialog } from '@/features/share/ui/ShareDialog';
 function Warning({ text, soft }: { text: string; soft?: boolean }) {
   return (
     <div className={clsx('aw-gw', soft && 'aw-gw--soft')} role="status">
-      <span aria-hidden="true">⚠ </span>
+      <span aria-hidden="true">{T.warnMark} </span>
       <span>{text}</span>
     </div>
   );
