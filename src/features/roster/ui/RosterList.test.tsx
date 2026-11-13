@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import { household, member } from '@/features/assignment/ui/testUtils';
+import { household, member } from '@tests/testUtils';
 import { groupRoster } from '../domain/groupRoster';
 import { buildMinistryInfo } from '../domain/ministryInfo';
 import { RosterList } from './RosterList';

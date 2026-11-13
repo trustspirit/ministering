@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToastProvider } from 'trust-ui-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { household, member } from '@/features/assignment/ui/testUtils';
+import { household, member } from '@tests/testUtils';
 import { useMemberFilterStore } from '@/features/members/store';
 import { exportMembersCsv } from '@/features/members/domain/exportMembersCsv';
 import RosterPage from './RosterPage';

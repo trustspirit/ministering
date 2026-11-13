@@ -10,7 +10,8 @@
     /* Bundler mode */
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tests/*": ["./tests/*"]
     },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -25,5 +26,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "tests/testUtils.tsx"]
 }

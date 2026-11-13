@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { BoardMinistry } from '@/features/assignment/domain/board';
-import { renderWorkspace } from '@/features/assignment/ui/testUtils';
+import { renderWorkspace } from '@tests/testUtils';
 import { flushDialogClose } from '../../../../tests/dialogPolyfill';
 import { ShareDialog } from './ShareDialog';
 

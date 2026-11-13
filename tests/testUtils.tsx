@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { Household } from '@/features/households/types';
 import type { Member } from '@/features/members/types';
 import type { Organization } from '@/features/ministries/types';
-import type { Board } from '../domain/board';
-import { buildLookups, WorkspaceContext, type WorkspaceData } from '../workspaceContext';
+import type { Board } from '@/features/assignment/domain/board';
+import { buildLookups, WorkspaceContext, type WorkspaceData } from '@/features/assignment/workspaceContext';
 
 export function member(over: Partial<Member> & Pick<Member, 'id' | 'full_name'>): Member {
   return {

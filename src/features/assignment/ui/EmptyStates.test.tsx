@@ -3,7 +3,7 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import { useWorkspaceStore } from '../store';
 import { BoardPanel } from './BoardPanel';
 import { PoolPanel } from './PoolPanel';
-import { household, member, renderWorkspace } from './testUtils';
+import { household, member, renderWorkspace } from '@tests/testUtils';
 
 afterEach(() => {
   cleanup();

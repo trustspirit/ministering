@@ -3,7 +3,7 @@ import type React from 'react';
 import { render } from '@testing-library/react';
 import type { Organization } from '@/features/ministries/types';
 import { DRAG_MIME, dragOf, endDrag, getDrag, startDrag, useDragStore, useDropHandler } from './dnd';
-import { household, member, renderWorkspace } from './ui/testUtils';
+import { household, member, renderWorkspace } from '@tests/testUtils';
 
 const m1 = member({ id: 'm1', full_name: '김도현', gender: 'M', birth_date: '1990-01-25' });
 const board = {

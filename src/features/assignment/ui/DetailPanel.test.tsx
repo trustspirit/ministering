@@ -5,7 +5,7 @@ import type { Board } from '../domain/board';
 import { useWorkspaceStore } from '../store';
 import { DetailPanel } from './DetailPanel';
 import { MemoEditor } from './MemoEditor';
-import { household, member, renderWorkspace } from './testUtils';
+import { household, member, renderWorkspace } from '@tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   boards: {} as Record<string, unknown>,

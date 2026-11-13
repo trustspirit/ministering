@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { BoardMinistry } from '../domain/board';
 import { useWorkspaceStore } from '../store';
 import { MinistryCard } from './MinistryCard';
-import { household, member, renderWorkspace } from './testUtils';
+import { household, member, renderWorkspace } from '@tests/testUtils';
 
 const m1 = member({ id: 'm1', full_name: '김도현', birth_date: '1990-01-25', household_id: 'h1' });
 const h1 = household({ id: 'h1', name: '김도현 가정' });

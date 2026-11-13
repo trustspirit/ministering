@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { HouseholdCard } from './HouseholdCard';
-import { household, member, renderWorkspace } from './testUtils';
+import { household, member, renderWorkspace } from '@tests/testUtils';
 
 const han = household({ id: 'h6', name: '한상철 가정' });
 // Deliberately out of family order: child first, wife before husband.

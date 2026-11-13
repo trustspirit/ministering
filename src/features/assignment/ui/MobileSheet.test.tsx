@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { Board } from '../domain/board';
 import { useWorkspaceStore } from '../store';
 import { MobileSheet } from './MobileSheet';
-import { household, member, renderWorkspace } from './testUtils';
+import { household, member, renderWorkspace } from '@tests/testUtils';
 
 vi.mock('@/shared/hooks/useIsMobile', () => ({ useIsMobile: () => true }));
 vi.mock('../hooks/useAssignmentBoard', () => ({ useAssignmentBoard: () => ({ data: undefined }) }));
