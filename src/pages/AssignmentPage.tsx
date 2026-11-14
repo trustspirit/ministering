@@ -17,6 +17,7 @@ import { MobileSheet } from '@/features/assignment/ui/MobileSheet';
 import { MobileTabs } from '@/features/assignment/ui/MobileTabs';
 import { MapPanel } from '@/features/assignment/ui/MapPanel';
 import { PoolPanel } from '@/features/assignment/ui/PoolPanel';
+import { PresidencyBar } from '@/features/assignment/ui/PresidencyBar';
 import { ResizeBar } from '@/features/assignment/ui/ResizeBar';
 import { SummaryBar } from '@/features/assignment/ui/SummaryBar';
 import { usePermission } from '@/shared/auth/usePermission';
@@ -130,6 +131,7 @@ export default function AssignmentPage() {
       ) : (
         <WorkspaceContext.Provider value={value}>
           <SummaryBar households={households} />
+          <PresidencyBar />
           <div className="aw-work">
             <PoolPanel households={households} />
             <BoardPanel />
