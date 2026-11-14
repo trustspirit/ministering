@@ -66,7 +66,6 @@ export type Database = {
           lat: number | null
           lng: number | null
           memo: string | null
-          name: string
           updated_at: string
         }
         Insert: {
@@ -76,7 +75,6 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           memo?: string | null
-          name: string
           updated_at?: string
         }
         Update: {
@@ -86,7 +84,6 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           memo?: string | null
-          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -94,7 +91,6 @@ export type Database = {
       members: {
         Row: {
           active_status: Database["public"]["Enums"]["active_status"]
-          address: string | null
           birth_date: string
           created_at: string
           full_name: string
@@ -103,8 +99,6 @@ export type Database = {
           household_role: Database["public"]["Enums"]["household_role"]
           id: string
           is_deleted: boolean
-          lat: number | null
-          lng: number | null
           memo: string | null
           personality: Database["public"]["Enums"]["personality"]
           phone: string | null
@@ -112,7 +106,6 @@ export type Database = {
         }
         Insert: {
           active_status?: Database["public"]["Enums"]["active_status"]
-          address?: string | null
           birth_date: string
           created_at?: string
           full_name: string
@@ -121,8 +114,6 @@ export type Database = {
           household_role?: Database["public"]["Enums"]["household_role"]
           id?: string
           is_deleted?: boolean
-          lat?: number | null
-          lng?: number | null
           memo?: string | null
           personality?: Database["public"]["Enums"]["personality"]
           phone?: string | null
@@ -130,7 +121,6 @@ export type Database = {
         }
         Update: {
           active_status?: Database["public"]["Enums"]["active_status"]
-          address?: string | null
           birth_date?: string
           created_at?: string
           full_name?: string
@@ -139,14 +129,19 @@ export type Database = {
           household_role?: Database["public"]["Enums"]["household_role"]
           id?: string
           is_deleted?: boolean
-          lat?: number | null
-          lng?: number | null
           memo?: string | null
           personality?: Database["public"]["Enums"]["personality"]
           phone?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "members_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "household_list"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "members_household_id_fkey"
             columns: ["household_id"]
@@ -248,6 +243,13 @@ export type Database = {
             foreignKeyName: "ministry_household_recipients_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: true
+            referencedRelation: "household_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ministry_household_recipients_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: true
             referencedRelation: "households"
             referencedColumns: ["id"]
           },
@@ -318,7 +320,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      household_list: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          id: string | null
+          lat: number | null
+          lng: number | null
+          memo: string | null
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          id?: string | null
+          lat?: number | null
+          lng?: number | null
+          memo?: string | null
+          name?: never
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          id?: string | null
+          lat?: number | null
+          lng?: number | null
+          memo?: string | null
+          name?: never
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_edit_ministry_org: {
@@ -340,6 +374,10 @@ export type Database = {
       get_ministry_share: { Args: { p_token: string }; Returns: Json }
       get_ministry_share_token: {
         Args: { p_ministry_id: string }
+        Returns: string
+      }
+      household_display_name: {
+        Args: { p_household_id: string }
         Returns: string
       }
       set_ministry_share_token: {

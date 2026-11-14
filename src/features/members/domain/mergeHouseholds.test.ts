@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractHouseholdPlan } from './mergeHouseholds';
+import { extractHouseholdPlan, householdKey } from './mergeHouseholds';
 import type { ParsedMemberRow } from './parseMemberCsv';
 
 const row = (p: Partial<ParsedMemberRow>): ParsedMemberRow => ({
@@ -16,7 +16,7 @@ const row = (p: Partial<ParsedMemberRow>): ParsedMemberRow => ({
 });
 
 describe('extractHouseholdPlan', () => {
-  it('household_name 이 없으면 빈 plan', () => {
+  it('household_name 도 주소도 없으면 빈 plan', () => {
     const rows = [row({ household_name: null }), row({ household_name: null })];
     const plan = extractHouseholdPlan(rows, []);
     expect(plan.toCreate).toEqual([]);
@@ -52,5 +52,11 @@ describe('extractHouseholdPlan', () => {
     ];
     const plan = extractHouseholdPlan(rows, []);
     expect(plan.toCreate).toEqual([{ name: 'A 가정', address: '첫주소' }]);
+  });
+
+  it('household_name 이 없어도 주소가 있으면 그 사람의 가정을 만든다 (주소는 가정에만 저장되므로)', () => {
+    const rows = [row({ full_name: '홍길동', household_name: null, address: '서울' })];
+    expect(householdKey(rows[0])).toBe('홍길동 가정');
+    expect(extractHouseholdPlan(rows, []).toCreate).toEqual([{ name: '홍길동 가정', address: '서울' }]);
   });
 });

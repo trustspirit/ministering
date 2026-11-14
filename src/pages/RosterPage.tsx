@@ -118,11 +118,11 @@ export default function RosterPage() {
   }
 
   const exportCsv = () => {
-    const names: Record<string, string> = {};
-    for (const h of households) names[h.id] = h.name;
+    const byId: Record<string, { name: string; address: string | null }> = {};
+    for (const h of households) byId[h.id] = { name: h.name, address: h.address };
     // The CSV is the import/backup format: always everyone, in roster order, whatever the filters show.
     const everyone = groupRoster(members, households, NO_FILTER).flatMap((g) => g.members);
-    downloadCsv(exportMembersCsv(everyone, names));
+    downloadCsv(exportMembersCsv(everyone, byId));
   };
 
   // Phones and tablets get the rows stacked as a list; 1024px and wider keep the table.

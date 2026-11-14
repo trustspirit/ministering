@@ -28,22 +28,26 @@ function protectCells<T extends Record<string, string>>(row: T): T {
   ) as T;
 }
 
+/** A member's address is their household's; `households` maps household id to its name and address. */
 export function exportMembersCsv(
   members: Member[],
-  householdIdToName: Record<string, string>,
+  households: Record<string, { name: string; address: string | null }>,
 ): string {
-  const rows = members.map((m) => ({
-    full_name: m.full_name,
-    gender: m.gender,
-    birth_date: m.birth_date,
-    address: m.address ?? '',
-    연락처: m.phone ?? '',
-    active_status: STATUS_LABEL[m.active_status],
-    personality: m.personality,
-    memo: m.memo ?? '',
-    household_name: m.household_id ? (householdIdToName[m.household_id] ?? '') : '',
-    household_role: m.household_role,
-  }));
+  const rows = members.map((m) => {
+    const h = m.household_id ? households[m.household_id] : undefined;
+    return {
+      full_name: m.full_name,
+      gender: m.gender,
+      birth_date: m.birth_date,
+      address: h?.address ?? '',
+      연락처: m.phone ?? '',
+      active_status: STATUS_LABEL[m.active_status],
+      personality: m.personality,
+      memo: m.memo ?? '',
+      household_name: h?.name ?? '',
+      household_role: m.household_role,
+    };
+  });
 
   return Papa.unparse({ fields: HEADERS, data: rows.map(protectCells) });
 }

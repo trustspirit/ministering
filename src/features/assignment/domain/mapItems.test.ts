@@ -13,8 +13,6 @@ function member(
     id,
     full_name: id,
     household_id: null,
-    lat: null,
-    lng: null,
     active_status: 'active',
     ...over,
   } as Member;
@@ -29,19 +27,24 @@ function ministry(over: Partial<BoardMinistry> & { id: string; number: number })
 const hA = household('hA', 37.5, 127.0);
 const hB = household('hB', null, null);
 const hC = household('hC', 37.6, 126.9);
+const hD = household('hD', 37.53, 127.03);
+const hE = household('hE', 37.54, 127.04);
+const hF = household('hF', 37.52, 127.02);
 
-const m42 = member('m42', { gender: 'M', birth_date: '1984-01-01', lat: 37.51, lng: 127.01, household_id: 'hA' });
-/** No own coordinates: falls back to household hC. */
+const m42 = member('m42', { gender: 'M', birth_date: '1984-01-01', household_id: 'hA' });
+/** Placed at household hC. */
 const m50 = member('m50', { gender: 'M', birth_date: '1976-01-01', household_id: 'hC', active_status: 'less_active' });
-/** No coordinates anywhere. */
+/** Household without coordinates: not on the map. */
 const m30 = member('m30', { gender: 'M', birth_date: '1996-01-01', household_id: 'hB' });
-const m17 = member('m17', { gender: 'M', birth_date: '2009-06-01', lat: 37.52, lng: 127.02 });
-const f40 = member('f40', { gender: 'F', birth_date: '1986-01-01', lat: 37.53, lng: 127.03, active_status: 'new_member' });
+const m17 = member('m17', { gender: 'M', birth_date: '2009-06-01', household_id: 'hF' });
+const f40 = member('f40', { gender: 'F', birth_date: '1986-01-01', household_id: 'hD', active_status: 'new_member' });
 const f35 = member('f35', { gender: 'F', birth_date: '1991-01-01', household_id: 'hC' });
-const f12 = member('f12', { gender: 'F', birth_date: '2014-01-01', lat: 37.54, lng: 127.04 });
+const f12 = member('f12', { gender: 'F', birth_date: '2014-01-01', household_id: 'hE' });
+/** No household: nowhere to place her. */
+const f50 = member('f50', { gender: 'F', birth_date: '1976-01-01' });
 
-const members = [m42, m50, m30, m17, f40, f35, f12];
-const households = [hA, hB, hC];
+const members = [m42, m50, m30, m17, f40, f35, f12, f50];
+const households = [hA, hB, hC, hD, hE, hF];
 
 const ids = (items: MapItem[]) => items.map((i) => `${i.kind}:${i.id}`);
 
@@ -57,15 +60,24 @@ describe('buildMapItems — EQ', () => {
   const items = buildMapItems({ board, members, households, today });
 
   it('keeps households and EQ members with coordinates, without throwing on missing ones', () => {
-    expect(ids(items)).toEqual(['household:hA', 'household:hC', 'member:m42', 'member:m50']);
+    expect(ids(items)).toEqual([
+      'household:hA',
+      'household:hC',
+      'household:hD',
+      'household:hE',
+      'household:hF',
+      'member:m42',
+      'member:m50',
+    ]);
   });
   it('excludes women and members under 18', () => {
     expect(ids(items)).not.toContain('member:f40');
     expect(ids(items)).not.toContain('member:m17');
   });
-  it('uses the household coordinates when the member has none', () => {
-    const m = items.find((i) => i.id === 'm50')!;
-    expect([m.lat, m.lng]).toEqual([37.6, 126.9]);
+  it("places every member at their household's coordinates", () => {
+    const at = (id: string) => items.find((i) => i.id === id)!;
+    expect([at('m42').lat, at('m42').lng]).toEqual([37.5, 127.0]);
+    expect([at('m50').lat, at('m50').lng]).toEqual([37.6, 126.9]);
   });
   it('takes companion and recipient numbers from the board', () => {
     const by = (id: string) => items.find((i) => i.id === id)!;
@@ -84,10 +96,10 @@ describe('buildMapItems — RS', () => {
   };
   const items = buildMapItems({ board, members, households, today });
 
-  it('shows only RS members (no households, men or girls)', () => {
+  it('shows only RS members (no households, men, girls or anyone without a household)', () => {
     expect(ids(items)).toEqual(['member:f40', 'member:f35']);
   });
-  it('uses household coordinates as fallback and board numbers', () => {
+  it('uses household coordinates and board numbers', () => {
     const f35Item = items.find((i) => i.id === 'f35')!;
     expect(f35Item).toMatchObject({ lat: 37.6, lng: 126.9, companionNo: null, recipientNo: 2 });
     expect(items.find((i) => i.id === 'f40')).toMatchObject({

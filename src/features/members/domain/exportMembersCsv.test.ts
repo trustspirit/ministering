@@ -9,9 +9,6 @@ const member = (p: Partial<Member>): Member => ({
   full_name: '홍길동',
   gender: 'M',
   birth_date: '1990-01-01',
-  address: null,
-  lat: null,
-  lng: null,
   active_status: 'active',
   personality: 'moderate',
   phone: null,
@@ -31,10 +28,10 @@ describe('exportMembersCsv', () => {
     expect(csv.split('\n').filter((l) => l.trim()).length).toBe(1);
   });
 
-  it('단일 회원 → 헤더 + 1행', () => {
+  it("단일 회원 → 헤더 + 1행, 주소는 그 가정의 주소", () => {
     const csv = exportMembersCsv(
-      [member({ full_name: '김성도', address: '서울시 강남구' })],
-      {},
+      [member({ full_name: '김성도', household_id: 'h1' })],
+      { h1: { name: '김성도 가정', address: '서울시 강남구' } },
     );
     const lines = csv.split('\n').filter((l) => l.trim());
     expect(lines).toHaveLength(2);
@@ -45,7 +42,7 @@ describe('exportMembersCsv', () => {
   it('household_name 맵으로 가정 이름 포함', () => {
     const csv = exportMembersCsv(
       [member({ household_id: 'h1' })],
-      { h1: '김성도 가정' },
+      { h1: { name: '김성도 가정', address: null } },
     );
     expect(csv).toContain('김성도 가정');
   });
@@ -73,7 +70,7 @@ describe('exportMembersCsv', () => {
   it('내보낸 CSV를 다시 읽으면 같은 값이 된다', () => {
     const csv = exportMembersCsv(
       [member({ full_name: '새신자', active_status: 'new_member', phone: '010-1111-2222', household_id: 'h1', household_role: 'wife', gender: 'F' })],
-      { h1: '새 가정' },
+      { h1: { name: '새 가정', address: null } },
     );
     const res = parseMemberCsv(csv);
     expect(res.errors).toEqual([]);
@@ -94,11 +91,10 @@ describe('exportMembersCsv', () => {
           full_name: '@관리자',
           memo: '=HYPERLINK("http://x","y")\n둘째 줄',
           phone: '+82-10-1234-5678',
-          address: '-1 거리',
           household_id: 'h1',
         }),
       ],
-      { h1: '=가정' },
+      { h1: { name: '=가정', address: '-1 거리' } },
     );
     const parsed = Papa.parse<Record<string, string>>(csv, { header: true });
     const cells = Object.values(parsed.data[0]);
@@ -127,8 +123,8 @@ describe('exportMembersCsv', () => {
 
   it('쉼표가 들어간 필드는 quote', () => {
     const csv = exportMembersCsv(
-      [member({ address: '서울, 강남구' })],
-      {},
+      [member({ household_id: 'h1' })],
+      { h1: { name: '가정', address: '서울, 강남구' } },
     );
     expect(csv).toContain('"서울, 강남구"');
   });

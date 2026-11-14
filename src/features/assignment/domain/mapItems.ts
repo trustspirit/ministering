@@ -20,16 +20,13 @@ export interface MapItem {
 
 type Coords = { lat: number | null; lng: number | null };
 
-function coordsOf(...candidates: (Coords | undefined)[]): { lat: number; lng: number } | null {
-  for (const c of candidates) {
-    if (c && c.lat !== null && c.lng !== null) return { lat: c.lat, lng: c.lng };
-  }
-  return null;
+function coordsOf(c: Coords | undefined): { lat: number; lng: number } | null {
+  return c && c.lat !== null && c.lng !== null ? { lat: c.lat, lng: c.lng } : null;
 }
 
 /**
- * Pins for the board's organization: EQ = households + EQ members, RS = RS members. A member
- * without coordinates takes their household's; anything still without coordinates is left out.
+ * Pins for the board's organization: EQ = households + EQ members, RS = RS members. A member stands at their
+ * household (the one place an address lives); anything without coordinates is left out.
  */
 export function buildMapItems({
   board,
@@ -66,7 +63,7 @@ export function buildMapItems({
   const householdById = new Map(households.map((h) => [h.id, h]));
   for (const m of members) {
     if (!isOrgMember(m, board.organization, today)) continue;
-    const at = coordsOf(m, m.household_id ? householdById.get(m.household_id) : undefined);
+    const at = coordsOf(m.household_id ? householdById.get(m.household_id) : undefined);
     if (!at) continue;
     items.push({
       kind: 'member',

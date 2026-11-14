@@ -140,7 +140,7 @@ describe('DetailPanel', () => {
     await user.type(ta, '새 메모  ');
     await user.click(within(section).getByRole('button', { name: '저장' }));
     await waitFor(() => expect(mocks.updateMember).toHaveBeenCalledTimes(1));
-    expect(mocks.updateMember).toHaveBeenCalledWith({ id: 'w', patch: { memo: '새 메모' }, previousAddress: null });
+    expect(mocks.updateMember).toHaveBeenCalledWith({ id: 'w', patch: { memo: '새 메모' } });
   });
 
   it('clears the selection when the selected record no longer exists', async () => {

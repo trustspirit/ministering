@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Combobox, DatePicker, Dialog, Select, TextArea, TextField, useToast } from 'trust-ui-react';
-import { householdDefaultName } from '@/features/households/domain/householdDefaultName';
 import { HOUSEHOLDS_QUERY_KEY } from '@/features/households/hooks/useHouseholds';
-import { useCreateHousehold } from '@/features/households/hooks/useHouseholdMutations';
+import { useCreateHousehold, useUpdateHousehold } from '@/features/households/hooks/useHouseholdMutations';
 import type { Household } from '@/features/households/types';
 import {
   useCreateMember,
@@ -37,11 +36,17 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
   const [fullName, setFullName] = useState(member?.full_name ?? '');
   const [gender, setGender] = useState<Gender | ''>(member?.gender ?? '');
   const [birthDate, setBirthDate] = useState(member?.birth_date ?? '');
-  const [address, setAddress] = useState(member?.address ?? '');
   const [phone, setPhone] = useState(member?.phone ?? '');
   const [status, setStatus] = useState<ActiveStatus>(member?.active_status ?? 'active');
   const [personality, setPersonality] = useState<Personality>(member?.personality ?? 'moderate');
   const [householdChoice, setHouseholdChoice] = useState(member?.household_id ?? NONE);
+  // The address belongs to the household (one place for every member): this field shows and edits it.
+  const addressOf = (choice: string) => households.find((h) => h.id === choice)?.address ?? '';
+  const [address, setAddress] = useState(() => addressOf(member?.household_id ?? NONE));
+  const chooseHousehold = (choice: string) => {
+    setHouseholdChoice(choice);
+    if (choice !== NEW) setAddress(addressOf(choice));
+  };
   const [role, setRole] = useState<HouseholdRole>(member?.household_role ?? 'other');
   const [memo, setMemo] = useState(member?.memo ?? '');
   const [submitted, setSubmitted] = useState(false);
@@ -60,8 +65,13 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
   const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
   const createHousehold = useCreateHousehold();
+  const updateHousehold = useUpdateHousehold();
   const busy =
-    createMember.isPending || updateMember.isPending || deleteMember.isPending || createHousehold.isPending;
+    createMember.isPending ||
+    updateMember.isPending ||
+    deleteMember.isPending ||
+    createHousehold.isPending ||
+    updateHousehold.isPending;
 
   const nameError = submitted && !fullName.trim() ? F.nameRequired : undefined;
   const genderError = submitted && !gender ? F.genderRequired : undefined;
@@ -91,20 +101,23 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
     try {
       let householdId: string | null = householdChoice === NONE ? null : householdChoice;
       if (householdChoice === NEW) {
-        const created = await createHousehold.mutateAsync({
-          name: householdDefaultName([
-            { full_name: name, household_role: role, birth_date: birthDate, gender },
-          ]),
-          address: trimmedAddress,
-        });
+        const created = await createHousehold.mutateAsync({ address: trimmedAddress });
         createdHouseholdId = created.id;
         householdId = created.id;
+      } else if (householdId) {
+        const previousAddress = households.find((h) => h.id === householdId)?.address ?? null;
+        if (trimmedAddress !== previousAddress) {
+          await updateHousehold.mutateAsync({
+            id: householdId,
+            patch: { address: trimmedAddress },
+            previousAddress,
+          });
+        }
       }
       const fields = {
         full_name: name,
         gender,
         birth_date: birthDate,
-        address: trimmedAddress,
         phone: phone.trim() || null,
         active_status: status,
         personality,
@@ -113,7 +126,7 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
         memo: memo.trim() ? memo.trimEnd() : null,
       };
       if (member) {
-        await updateMember.mutateAsync({ id: member.id, patch: fields, previousAddress: member.address });
+        await updateMember.mutateAsync({ id: member.id, patch: fields });
       } else {
         await createMember.mutateAsync(fields);
       }
@@ -219,16 +232,6 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                     error={!!birthError}
                     errorMessage={birthError}
                   />
-                  <div className="ro-wide">
-                    <TextField
-                      size="sm"
-                      fullWidth
-                      label={F.address}
-                      placeholder={F.addressPlaceholder}
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                    />
-                  </div>
                   <TextField
                     size="sm"
                     fullWidth
@@ -276,9 +279,22 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                         ...households.map((h) => ({ value: h.id, label: h.name })),
                       ]}
                       // The "가정 없음" item is the way to clear, so an emptied field falls back to it.
-                      onChange={(v) => setHouseholdChoice(v ?? NONE)}
+                      onChange={(v) => chooseHousehold(v ?? NONE)}
                     />
                   </div>
+                  {householdChoice !== NONE && (
+                    <div className="ro-wide">
+                      <TextField
+                        size="sm"
+                        fullWidth
+                        label={F.address}
+                        placeholder={F.addressPlaceholder}
+                        helperText={householdChoice === NEW ? undefined : F.addressShared}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
+                    </div>
+                  )}
                   <div className="ro-wide">
                     <TextArea
                       size="sm"

@@ -21,8 +21,9 @@ export type RealtimeTable =
  */
 export function queryKeysToRefresh(table: RealtimeTable, eventType?: string): readonly (readonly string[])[] {
   switch (table) {
+    // Household names are derived from their members, so a member change can rename a household.
     case 'members':
-      return [['members'], ['assignment-board']];
+      return [['members'], ['assignment-board'], ['households']];
     case 'households':
       return [['households']];
     case 'ministries':

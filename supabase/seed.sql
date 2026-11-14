@@ -40,21 +40,22 @@ UPDATE app_user_profiles SET role = 'eq_president' WHERE user_id = '33333333-333
 -- ---------------------------------------------------------------
 -- 샘플 데이터: 가정 9개, 회원 26명, 성역 동반자 4개
 -- ---------------------------------------------------------------
-INSERT INTO households (id, name, address, lat, lng, memo) VALUES
-  ('a0000000-0000-0000-0000-000000000001', '서동욱 가정', '서울 마포구 월드컵로 212', 37.5663, 126.9019, '아이들이 어려서 저녁 시간에 방문하는 것이 좋음'),
-  ('a0000000-0000-0000-0000-000000000002', '김도현 가정', '서울 마포구 성미산로 150', 37.5615, 126.9230, NULL),
-  ('a0000000-0000-0000-0000-000000000003', '문정자 가정', '서울 서대문구 연희로 45', 37.5698, 126.9328, '혼자 거주. 무릎이 불편하심'),
-  ('a0000000-0000-0000-0000-000000000004', '최영수 가정', '서울 은평구 통일로 684', 37.6176, 126.9227, NULL),
-  ('a0000000-0000-0000-0000-000000000005', '한상철 가정', '서울 은평구 증산로 17', 37.5833, 126.9102, '몇 해째 모임에 나오지 못하심'),
-  ('a0000000-0000-0000-0000-000000000006', '윤재호 가정', '서울 영등포구 당산로 120', 37.5345, 126.9024, '지난달 침례 받음'),
-  ('a0000000-0000-0000-0000-000000000007', '임호진 가정', '서울 영등포구 여의대방로 62', 37.5036, 126.9246, NULL),
-  ('a0000000-0000-0000-0000-000000000008', '노진수 가정', '서울 동작구 상도로 369', 37.4988, 126.9531, NULL),
-  ('a0000000-0000-0000-0000-000000000009', '조은지 가정', '서울 관악구 관악로 1', 37.4784, 126.9516, '직장 때문에 주말에만 시간이 됨')
+-- Household names are derived from their members (household_display_name); the seed keys households by id.
+INSERT INTO households (id, address, lat, lng, memo) VALUES
+  ('a0000000-0000-0000-0000-000000000001', '서울 마포구 월드컵로 212', 37.5663, 126.9019, '아이들이 어려서 저녁 시간에 방문하는 것이 좋음'),
+  ('a0000000-0000-0000-0000-000000000002', '서울 마포구 성미산로 150', 37.5615, 126.9230, NULL),
+  ('a0000000-0000-0000-0000-000000000003', '서울 서대문구 연희로 45', 37.5698, 126.9328, '혼자 거주. 무릎이 불편하심'),
+  ('a0000000-0000-0000-0000-000000000004', '서울 은평구 통일로 684', 37.6176, 126.9227, NULL),
+  ('a0000000-0000-0000-0000-000000000005', '서울 은평구 증산로 17', 37.5833, 126.9102, '몇 해째 모임에 나오지 못하심'),
+  ('a0000000-0000-0000-0000-000000000006', '서울 영등포구 당산로 120', 37.5345, 126.9024, '지난달 침례 받음'),
+  ('a0000000-0000-0000-0000-000000000007', '서울 영등포구 여의대방로 62', 37.5036, 126.9246, NULL),
+  ('a0000000-0000-0000-0000-000000000008', '서울 동작구 상도로 369', 37.4988, 126.9531, NULL),
+  ('a0000000-0000-0000-0000-000000000009', '서울 관악구 관악로 1', 37.4784, 126.9516, '직장 때문에 주말에만 시간이 됨')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO members (full_name, gender, birth_date, active_status, personality, memo, phone, household_id, household_role, address, lat, lng)
+INSERT INTO members (full_name, gender, birth_date, active_status, personality, memo, phone, household_id, household_role)
 SELECT v.full_name, v.gender::gender, v.birth_date::date, v.status::active_status, v.personality::personality,
-       v.memo, v.phone, h.id, v.hrole::household_role, h.address, h.lat, h.lng
+       v.memo, v.phone, h.id::uuid, v.hrole::household_role
 FROM (VALUES
   ('서동욱', 'M', '1985-03-12', 'active',      'active',   NULL,                 '010-0000-0101', '서동욱 가정', 'husband'),
   ('박미영', 'F', '1987-07-30', 'active',      'active',   NULL,                 '010-0000-0102', '서동욱 가정', 'wife'),
@@ -83,7 +84,17 @@ FROM (VALUES
   ('조은지', 'F', '1978-05-18', 'active',      'moderate', NULL,                 '010-0000-0801', '조은지 가정', 'wife'),
   ('조현우', 'M', '2009-09-09', 'active',      'moderate', NULL,                 NULL,            '조은지 가정', 'child')
 ) AS v(full_name, gender, birth_date, status, personality, memo, phone, hname, hrole)
-JOIN households h ON h.name = v.hname
+JOIN (VALUES
+  ('a0000000-0000-0000-0000-000000000001', '서동욱 가정'),
+  ('a0000000-0000-0000-0000-000000000002', '김도현 가정'),
+  ('a0000000-0000-0000-0000-000000000003', '문정자 가정'),
+  ('a0000000-0000-0000-0000-000000000004', '최영수 가정'),
+  ('a0000000-0000-0000-0000-000000000005', '한상철 가정'),
+  ('a0000000-0000-0000-0000-000000000006', '윤재호 가정'),
+  ('a0000000-0000-0000-0000-000000000007', '임호진 가정'),
+  ('a0000000-0000-0000-0000-000000000008', '노진수 가정'),
+  ('a0000000-0000-0000-0000-000000000009', '조은지 가정')
+) AS h(id, hname) ON h.hname = v.hname
 ON CONFLICT (full_name, birth_date) DO NOTHING;
 
 -- seed.sql is local-only (never run against a real project). EQ 1 gets a random 64-hex share token
@@ -115,7 +126,7 @@ SELECT v.mid, h.id FROM (VALUES
   ('b0000000-0000-0000-0000-000000000001'::uuid, '한상철 가정'),
   ('b0000000-0000-0000-0000-000000000002'::uuid, '노진수 가정'),
   ('b0000000-0000-0000-0000-000000000002'::uuid, '조은지 가정')
-) AS v(mid, hname) JOIN households h ON h.name = v.hname;
+) AS v(mid, hname) JOIN household_list h ON h.name = v.hname;
 
 INSERT INTO ministry_member_recipients (ministry_id, member_id)
 SELECT v.mid, mem.id FROM (VALUES

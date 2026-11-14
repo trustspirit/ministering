@@ -1,49 +1,35 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from 'trust-ui-react';
 import { memberRepository } from '@/repositories/MemberRepository';
 import type { MemberInsert, MemberUpdate } from '@/features/members/types';
 import { T } from '@/shared/copy';
-import { geocodeAddress } from '@/shared/lib/geocode';
+import { HOUSEHOLDS_QUERY_KEY } from '@/features/households/hooks/useHouseholds';
 import { MEMBERS_QUERY_KEY } from './useMembers';
 
 /** Deleting a person also drops their assignments in the database, so boards must reload too. */
 const BOARD_QUERY_KEY = ['assignment-board'] as const;
 
+/** Household names are derived from their members, so the household list reloads with the members. */
+function refreshAfterMemberChange(qc: QueryClient) {
+  return Promise.all([
+    qc.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY }),
+    qc.invalidateQueries({ queryKey: HOUSEHOLDS_QUERY_KEY }),
+  ]);
+}
+
 export function useCreateMember() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: MemberInsert) => {
-      const geo = await geocodeAddress(input.address);
-      return memberRepository.create({
-        ...input,
-        lat: geo.lat,
-        lng: geo.lng,
-      });
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY }),
+    mutationFn: (input: MemberInsert) => memberRepository.create(input),
+    onSuccess: () => refreshAfterMemberChange(qc),
   });
 }
 
 export function useUpdateMember() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      patch,
-      previousAddress,
-    }: {
-      id: string;
-      patch: MemberUpdate;
-      previousAddress: string | null;
-    }) => {
-      const addressChanged = 'address' in patch && patch.address !== previousAddress;
-      if (addressChanged) {
-        const geo = await geocodeAddress(patch.address ?? null);
-        return memberRepository.update(id, { ...patch, lat: geo.lat, lng: geo.lng });
-      }
-      return memberRepository.update(id, patch);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY }),
+    mutationFn: ({ id, patch }: { id: string; patch: MemberUpdate }) => memberRepository.update(id, patch),
+    onSuccess: () => refreshAfterMemberChange(qc),
   });
 }
 
@@ -60,10 +46,6 @@ export function useDeleteMember() {
         toast({ variant: 'warning', message: T.memberForm.deleteMissing });
       }
     },
-    onSuccess: () =>
-      Promise.all([
-        qc.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY }),
-        qc.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
-      ]),
+    onSuccess: () => Promise.all([refreshAfterMemberChange(qc), qc.invalidateQueries({ queryKey: BOARD_QUERY_KEY })]),
   });
 }

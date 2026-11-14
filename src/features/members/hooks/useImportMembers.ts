@@ -3,7 +3,7 @@ import pThrottle from 'p-throttle';
 import { memberRepository } from '@/repositories/MemberRepository';
 import { householdRepository } from '@/repositories/HouseholdRepository';
 import { geocodeAddress } from '@/shared/lib/geocode';
-import { extractHouseholdPlan } from '../domain/mergeHouseholds';
+import { extractHouseholdPlan, householdKey } from '../domain/mergeHouseholds';
 import type { ParsedMemberRow } from '../domain/parseMemberCsv';
 import { MEMBERS_QUERY_KEY } from './useMembers';
 
@@ -53,8 +53,8 @@ export function useImportMembers() {
         const h = plan.toCreate[i];
         try {
           const geo = await geocodeAddress(h.address);
+          // The household's name is derived from its members; h.name is only the CSV grouping key.
           const created = await householdRepository.create({
-            name: h.name,
             address: h.address,
             lat: geo.lat,
             lng: geo.lng,
@@ -77,18 +77,13 @@ export function useImportMembers() {
             row.full_name,
             row.birth_date,
           );
-          const geo = await geocodeAddress(row.address);
-          const householdId = row.household_name
-            ? plan.existingNameToId[row.household_name] ?? null
-            : null;
+          const key = householdKey(row);
+          const householdId = key ? (plan.existingNameToId[key] ?? null) : null;
 
           const payload = {
             full_name: row.full_name,
             gender: row.gender,
             birth_date: row.birth_date,
-            address: row.address,
-            lat: geo.lat,
-            lng: geo.lng,
             ...(row.phone === undefined ? {} : { phone: row.phone }),
             active_status: row.active_status,
             personality: row.personality,

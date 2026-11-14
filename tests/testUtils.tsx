@@ -11,15 +11,12 @@ import { buildLookups, WorkspaceContext, type WorkspaceData } from '@/features/a
 export function member(over: Partial<Member> & Pick<Member, 'id' | 'full_name'>): Member {
   return {
     active_status: 'active',
-    address: null,
     birth_date: '1976-01-01',
     created_at: '',
     gender: 'M',
     household_id: null,
     household_role: 'other',
     is_deleted: false,
-    lat: null,
-    lng: null,
     memo: null,
     personality: 'moderate',
     phone: null,

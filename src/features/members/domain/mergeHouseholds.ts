@@ -10,6 +10,14 @@ export interface ExistingHousehold {
   name: string;
 }
 
+/**
+ * The CSV household a row belongs to. A row without household_name but with an address gets a household of its own:
+ * an address is stored only on a household, so otherwise it would be lost.
+ */
+export function householdKey(row: Pick<ParsedMemberRow, 'household_name' | 'address' | 'full_name'>): string | null {
+  return row.household_name ?? (row.address ? `${row.full_name} 가정` : null);
+}
+
 export function extractHouseholdPlan(
   rows: ParsedMemberRow[],
   existing: ExistingHousehold[],
@@ -19,13 +27,11 @@ export function extractHouseholdPlan(
 
   const toCreateMap = new Map<string, { name: string; address: string | null }>();
   for (const row of rows) {
-    if (!row.household_name) continue;
-    if (existingNameToId[row.household_name]) continue;
-    if (toCreateMap.has(row.household_name)) continue;
-    toCreateMap.set(row.household_name, {
-      name: row.household_name,
-      address: row.address,
-    });
+    const key = householdKey(row);
+    if (!key) continue;
+    if (existingNameToId[key]) continue;
+    if (toCreateMap.has(key)) continue;
+    toCreateMap.set(key, { name: key, address: row.address });
   }
 
   return {

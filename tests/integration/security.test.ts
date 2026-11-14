@@ -58,12 +58,12 @@ async function mkMinistry(organization: 'RS' | 'EQ') {
 async function mkHousehold(address: string | null = '서울 테스트구 1') {
   const { data, error } = await bishop
     .from('households')
-    .insert({ name: uniq('household'), address, memo: 'SECRET-HOUSEHOLD-MEMO', lat: 37.5, lng: 127.0 })
-    .select('id, name')
+    .insert({ address, memo: 'SECRET-HOUSEHOLD-MEMO', lat: 37.5, lng: 127.0 })
+    .select('id')
     .single();
   if (error) throw new Error(`mkHousehold: ${error.message}`);
   cleanup.households.push(data.id);
-  return data as { id: string; name: string };
+  return data as { id: string };
 }
 
 async function mkMember(
@@ -71,7 +71,6 @@ async function mkMember(
     gender: 'M' | 'F';
     household_id: string;
     household_role: 'husband' | 'wife' | 'child' | 'other';
-    address: string | null;
     birth_date: string;
   }> = {},
 ) {
@@ -83,9 +82,6 @@ async function mkMember(
       birth_date: '1985-05-05',
       phone: '010-0000-0000',
       memo: 'SECRET-MEMO',
-      address: '서울 테스트구 2',
-      lat: 37.5,
-      lng: 127.0,
       personality: 'passive',
       active_status: 'less_active',
       ...extra,
@@ -268,7 +264,7 @@ describe('get_ministry_share (anonymous)', () => {
     const rec = data.recipients[0];
     expect(Object.keys(rec).sort()).toEqual(['address', 'members', 'name', 'type']);
     expect(rec.type).toBe('household');
-    expect(rec.name).toBe(household.name);
+    expect(rec.name).toBe(`${husband.full_name} 가정`);
     expect(rec.address).toBe('서울 테스트구 99');
     expect(rec.members).toHaveLength(1);
     expect(rec.members[0].name).toBe(husband.full_name);

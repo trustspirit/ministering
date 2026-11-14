@@ -15,7 +15,7 @@ describe('queryKeysToRefresh', () => {
   });
 
   it('keeps the existing mapping for the other tables', () => {
-    expect(queryKeysToRefresh('members', 'UPDATE')).toEqual([['members'], ['assignment-board']]);
+    expect(queryKeysToRefresh('members', 'UPDATE')).toEqual([['members'], ['assignment-board'], ['households']]);
     expect(queryKeysToRefresh('households', 'DELETE')).toEqual([['households']]);
     expect(queryKeysToRefresh('ministries', 'UPDATE')).toEqual([['assignment-board']]);
   });

@@ -10,6 +10,7 @@ import { MemberFormDialog } from './MemberFormDialog';
 const mocks = vi.hoisted(() => ({
   order: [] as string[],
   createHousehold: vi.fn(),
+  updateHousehold: vi.fn(),
   createMember: vi.fn(),
   updateMember: vi.fn(),
   deleteMember: vi.fn(),
@@ -39,6 +40,7 @@ vi.mock('trust-ui-react', async (importOriginal) => {
 });
 vi.mock('@/features/households/hooks/useHouseholdMutations', () => ({
   useCreateHousehold: () => ({ mutateAsync: mocks.createHousehold, isPending: false }),
+  useUpdateHousehold: () => ({ mutateAsync: mocks.updateHousehold, isPending: false }),
 }));
 vi.mock('@/features/members/hooks/useMemberMutations', () => ({
   useCreateMember: () => ({ mutateAsync: mocks.createMember, isPending: false }),
@@ -49,7 +51,7 @@ vi.mock('@/repositories/HouseholdRepository', () => ({
   householdRepository: { remove: mocks.removeHousehold },
 }));
 
-const hans = household({ id: 'h1', name: '한상철 가정' });
+const hans = household({ id: 'h1', name: '한상철 가정', address: '서울 은평구 증산로 17' });
 
 function renderDialog(props: Partial<Parameters<typeof MemberFormDialog>[0]> = {}) {
   const onClose = vi.fn();
@@ -86,6 +88,7 @@ describe('MemberFormDialog', () => {
       return {};
     });
     mocks.updateMember.mockReset().mockResolvedValue({});
+    mocks.updateHousehold.mockReset().mockResolvedValue({});
     mocks.deleteMember.mockReset().mockResolvedValue(undefined);
     mocks.removeHousehold.mockClear();
   });
@@ -105,15 +108,15 @@ describe('MemberFormDialog', () => {
     const { onClose } = renderDialog({ member: null });
     await user.type(screen.getByLabelText(/이름/), '김새롬');
     await choose(user, '성별', '여');
-    await user.type(screen.getByPlaceholderText('서울시 강남구 …'), '서울 중구 세종대로 110');
     await user.type(screen.getByLabelText('연락처'), '010-5555-6666');
     fireEvent.change(screen.getByLabelText('생년월일'), { target: { value: '1990-05-06' } });
     await choose(user, '소속 가정', '새 가정 만들기');
+    await user.type(screen.getByLabelText('가정 주소'), '서울 중구 세종대로 110');
     await user.click(screen.getByRole('button', { name: '저장' }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(mocks.order).toEqual(['household', 'member']);
-    expect(mocks.createHousehold).toHaveBeenCalledWith({ name: '김새롬 가정', address: '서울 중구 세종대로 110' });
+    expect(mocks.createHousehold).toHaveBeenCalledWith({ address: '서울 중구 세종대로 110' });
     expect(mocks.createMember).toHaveBeenCalledWith(
       expect.objectContaining({
         full_name: '김새롬',
@@ -123,6 +126,39 @@ describe('MemberFormDialog', () => {
         household_id: 'new-h',
       }),
     );
+  });
+
+  it('the address belongs to the household: it shows that household\'s address and saves changes to the household', async () => {
+    const user = userEvent.setup();
+    const han = member({ id: 'm1', full_name: '한상철', household_id: 'h1', household_role: 'husband' });
+    const { onClose } = renderDialog({ member: han });
+    const field = screen.getByLabelText('가정 주소');
+    expect(field).toHaveValue('서울 은평구 증산로 17');
+    await user.clear(field);
+    await user.type(field, '서울 강동구 상일로 55');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(mocks.updateHousehold).toHaveBeenCalledWith({
+      id: 'h1',
+      patch: { address: '서울 강동구 상일로 55' },
+      previousAddress: '서울 은평구 증산로 17',
+    });
+    expect(mocks.updateMember.mock.calls[0][0].patch).not.toHaveProperty('address');
+  });
+
+  it('leaves the household alone when its address was not changed', async () => {
+    const user = userEvent.setup();
+    const han = member({ id: 'm1', full_name: '한상철', household_id: 'h1', household_role: 'husband' });
+    const { onClose } = renderDialog({ member: han });
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(mocks.updateHousehold).not.toHaveBeenCalled();
+  });
+
+  it('has no address field for a person without a household', () => {
+    renderDialog({ member: null });
+    expect(screen.queryByLabelText('가정 주소')).toBeNull();
   });
 
   it('the household field searches by name and keeps 새 가정 만들기 / 가정 없음 as items', async () => {

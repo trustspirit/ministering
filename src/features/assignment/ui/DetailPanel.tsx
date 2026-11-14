@@ -129,7 +129,6 @@ function HouseholdDetail({
                 await updateMember.mutateAsync({
                   id: m.id,
                   patch: { memo: text || null },
-                  previousAddress: m.address,
                 });
               }}
             />
@@ -158,7 +157,7 @@ function MemberDetail({ member, boards, canEdit }: { member: Member; boards: Boa
             GENDER_LABEL[member.gender],
             STATUS_LABEL[member.active_status],
             PERSONALITY_LABEL[member.personality],
-            member.address || household?.address || dash,
+            household?.address || dash,
           ].join(' · ')}
           {' · '}
           <Phone phone={member.phone} />
@@ -187,7 +186,6 @@ function MemberDetail({ member, boards, canEdit }: { member: Member; boards: Boa
             await updateMember.mutateAsync({
               id: member.id,
               patch: { memo: text || null },
-              previousAddress: member.address,
             });
           }}
         />

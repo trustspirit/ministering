@@ -27,7 +27,13 @@ describe('useDeleteMember', () => {
     const { result, invalidate } = setup();
     await result.current.mutateAsync('m1');
     expect(mocks.toast).toHaveBeenCalledWith({ variant: 'warning', message: '이미 삭제되었거나 찾을 수 없는 사람입니다.' });
-    await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(invalidate.mock.calls.map(([f]) => f?.queryKey)).toEqual([
+        ['members', 'active'],
+        ['households'],
+        ['assignment-board'],
+      ]),
+    );
   });
 
   it('rethrows other errors without a toast', async () => {

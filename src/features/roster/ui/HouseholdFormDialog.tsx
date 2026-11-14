@@ -15,25 +15,18 @@ interface HouseholdFormDialogProps {
 
 /** Mount with a `key` per household so every opening starts from that household's values. */
 export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormDialogProps) {
-  const [name, setName] = useState(household.name);
   const [address, setAddress] = useState(household.address ?? '');
   const [memo, setMemo] = useState(household.memo ?? '');
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const update = useUpdateHousehold();
 
-  const nameError = submitted && !name.trim() ? F.nameRequired : undefined;
-
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
     setError(null);
-    if (!name.trim()) return;
     try {
       await update.mutateAsync({
         id: household.id,
         patch: {
-          name: name.trim(),
           address: address.trim() || null,
           memo: memo.trim() ? memo.trimEnd() : null,
         },
@@ -47,22 +40,11 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
 
   return (
     <Dialog open={open} onClose={onClose} size="md">
-      <Dialog.Title onClose={onClose}>{F.title}</Dialog.Title>
+      <Dialog.Title onClose={onClose}>{F.titleOf(household.name)}</Dialog.Title>
       <Dialog.Content>
+        <p className="ro-form-note">{F.nameNote}</p>
         <form id="household-form" onSubmit={submit} noValidate>
           <div className="ro-form">
-            <div className="ro-wide">
-              <TextField
-                size="sm"
-                fullWidth
-                label={F.name}
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                error={!!nameError}
-                errorMessage={nameError}
-              />
-            </div>
             <div className="ro-wide">
               <TextField
                 size="sm"

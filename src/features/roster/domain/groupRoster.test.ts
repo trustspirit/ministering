@@ -6,9 +6,6 @@ import { groupRoster } from './groupRoster';
 const member = (p: Partial<Member> & Pick<Member, 'id' | 'full_name'>): Member => ({
   gender: 'M',
   birth_date: '1980-01-01',
-  address: null,
-  lat: null,
-  lng: null,
   active_status: 'active',
   personality: 'moderate',
   phone: null,
