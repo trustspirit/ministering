@@ -12,6 +12,7 @@ import type { Op } from '../domain/resolveDrop';
 import { executeOps } from './executeOps';
 import { createSerialQueue } from './serialQueue';
 import { assignmentBoardKey } from './useAssignmentBoard';
+import { useWorkspaceStore } from '../store';
 
 export interface BoardActions {
   /** Resolves (never rejects) after a handled failure: the board is restored, a toast shown and the board refetched. */
@@ -50,6 +51,8 @@ export function useBoardActions(org: Organization): BoardActions {
 
     const perform = (ops: Op[]): Promise<void> => {
       if (ops.length === 0) return Promise.resolve();
+      // A new ministry starts without a supervisor; under a supervisor filter it would vanish from the board.
+      if (ops.some((op) => op.type === 'createMinistry')) useWorkspaceStore.getState().setSupervisorFilter(null);
       return enqueue(async () => {
         await qc.cancelQueries({ queryKey: key });
         const previous = qc.getQueryData<Board>(key);
