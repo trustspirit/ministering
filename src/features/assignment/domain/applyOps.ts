@@ -15,6 +15,7 @@ export function applyOps(board: Board, ops: Op[], newMinistry: { id: string; num
           id: newMinistry.id,
           number: newMinistry.number,
           name: null,
+          supervisorId: null,
           companionIds: [],
           recipientIds: [],
         },

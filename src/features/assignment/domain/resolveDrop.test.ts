@@ -8,7 +8,7 @@ function member(id: string, gender: 'M' | 'F', birth_date: string, household_id 
   return { id, gender, birth_date, household_id, household_role: null } as unknown as Member;
 }
 function ministry(over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry {
-  return { name: null, companionIds: [], recipientIds: [], ...over };
+  return { name: null, supervisorId: null, companionIds: [], recipientIds: [], ...over };
 }
 
 const m1 = member('m1', 'M', '1984-01-01');
@@ -24,8 +24,8 @@ const f31 = member('f31', 'F', '1995-01-01');
 const f12 = member('f12', 'F', '2014-01-01');
 const members = [m1, m2, m3, m4, m5, m6, m17, f40, f30, f31, f12];
 
-const eq = (ms: BoardMinistry[]): Board => ({ organization: 'EQ', ministries: ms });
-const rs = (ms: BoardMinistry[]): Board => ({ organization: 'RS', ministries: ms });
+const eq = (ms: BoardMinistry[]): Board => ({ organization: 'EQ', presidencyIds: [], ministries: ms });
+const rs = (ms: BoardMinistry[]): Board => ({ organization: 'RS', presidencyIds: [], ministries: ms });
 const at = (ministryId: string, zone: 'companion' | 'recipient' | null = null): DropTarget => ({
   type: 'ministry',
   ministryId,

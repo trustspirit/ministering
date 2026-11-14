@@ -23,7 +23,7 @@ function household(id: string, lat: number | null, lng: number | null): Househol
   return { id, name: `${id} 가정`, lat, lng } as Household;
 }
 function ministry(over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry {
-  return { name: null, companionIds: [], recipientIds: [], ...over };
+  return { name: null, supervisorId: null, companionIds: [], recipientIds: [], ...over };
 }
 
 const hA = household('hA', 37.5, 127.0);
@@ -48,6 +48,7 @@ const ids = (items: MapItem[]) => items.map((i) => `${i.kind}:${i.id}`);
 describe('buildMapItems — EQ', () => {
   const board: Board = {
     organization: 'EQ',
+    presidencyIds: [],
     ministries: [
       ministry({ id: 'x', number: 1, companionIds: ['m42'], recipientIds: ['hC'] }),
       ministry({ id: 'y', number: 3, companionIds: ['m50'], recipientIds: ['hA', 'hB'] }),
@@ -78,6 +79,7 @@ describe('buildMapItems — EQ', () => {
 describe('buildMapItems — RS', () => {
   const board: Board = {
     organization: 'RS',
+    presidencyIds: [],
     ministries: [ministry({ id: 'r', number: 2, companionIds: ['f40'], recipientIds: ['f35'] })],
   };
   const items = buildMapItems({ board, members, households, today });
@@ -100,6 +102,7 @@ describe('buildMapItems — RS', () => {
 describe('hotLines', () => {
   const board: Board = {
     organization: 'EQ',
+    presidencyIds: [],
     ministries: [
       ministry({ id: 'x', number: 1, companionIds: ['m42', 'm30'], recipientIds: ['hA', 'hB', 'hC'] }),
       ministry({ id: 'y', number: 2, companionIds: ['m50'], recipientIds: [] }),
@@ -120,6 +123,7 @@ describe('hotLines', () => {
   it('joins RS companions to recipient members', () => {
     const rs: Board = {
       organization: 'RS',
+      presidencyIds: [],
       ministries: [ministry({ id: 'r', number: 2, companionIds: ['f40'], recipientIds: ['f35', 'f12'] })],
     };
     const rsItems = buildMapItems({ board: rs, members, households, today });

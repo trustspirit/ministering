@@ -4,6 +4,7 @@ import {
   ministryLabel,
   ministryWarnings,
   summarize,
+  supervisionCounts,
   unassignedCandidates,
   unassignedRecipients,
   type Board,
@@ -19,7 +20,7 @@ function household(id: string): Household {
   return { id } as Household;
 }
 function ministry(over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry {
-  return { name: null, companionIds: [], recipientIds: [], ...over };
+  return { name: null, supervisorId: null, companionIds: [], recipientIds: [], ...over };
 }
 
 const m42 = member('m42', 'M', '1984-01-01');
@@ -32,6 +33,7 @@ describe('EQ board', () => {
   const households = [household('hA'), household('hB')];
   const board: Board = {
     organization: 'EQ',
+    presidencyIds: [],
     ministries: [ministry({ id: 'x', number: 1, companionIds: ['m42'], recipientIds: ['hA'] })],
   };
   const members = [m42, m17, f40];
@@ -54,6 +56,7 @@ describe('EQ board', () => {
   it('does not throw when companionIds hold a woman and a minor', () => {
     const odd: Board = {
       organization: 'EQ',
+      presidencyIds: [],
       ministries: [ministry({ id: 'x', number: 1, companionIds: ['f40', 'm17'], recipientIds: ['hA'] })],
     };
     const s = summarize(odd, members, households, today);
@@ -65,6 +68,7 @@ describe('EQ board', () => {
 describe('RS board', () => {
   const board: Board = {
     organization: 'RS',
+    presidencyIds: [],
     ministries: [
       ministry({ id: 'a', number: 1, companionIds: ['f40'], recipientIds: [] }),
       ministry({ id: 'b', number: 2, companionIds: [], recipientIds: ['f40'] }),
@@ -97,5 +101,23 @@ describe('ministryWarnings / ministryLabel', () => {
   it('labels unnamed ministries with the official wording', () => {
     expect(ministryLabel({ number: 3, name: null })).toBe('성역 동반자 3');
     expect(ministryLabel({ number: 3, name: '북쪽' })).toBe('북쪽');
+  });
+});
+
+describe('supervisionCounts', () => {
+  it('counts ministries per supervisor and null for none', () => {
+    const board: Board = {
+      organization: 'EQ',
+      presidencyIds: ['s1', 's2'],
+      ministries: [
+        ministry({ id: 'a', number: 1, supervisorId: 's1' }),
+        ministry({ id: 'b', number: 2, supervisorId: 's1' }),
+        ministry({ id: 'c', number: 3 }),
+      ],
+    };
+    const counts = supervisionCounts(board);
+    expect(counts.get('s1')).toBe(2);
+    expect(counts.get(null)).toBe(1);
+    expect(counts.get('s2')).toBeUndefined();
   });
 });

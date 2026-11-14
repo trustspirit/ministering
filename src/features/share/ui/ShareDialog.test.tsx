@@ -11,7 +11,7 @@ vi.mock('@/repositories/MinistryRepository', () => ({
 }));
 
 const TOKEN = 'ab'.repeat(32);
-const ministry: BoardMinistry = { id: 'g1', number: 1, name: null, companionIds: [], recipientIds: [] };
+const ministry: BoardMinistry = { id: 'g1', number: 1, name: null, supervisorId: null, companionIds: [], recipientIds: [] };
 
 /** The mocked server: the token the RPC returns, updated by the mocked setShareToken. */
 function open(initial: string | null) {

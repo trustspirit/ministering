@@ -8,6 +8,8 @@ export interface BoardMinistry {
   id: string;
   number: number;
   name: string | null;
+  /** A member of this organization's presidency, or null. */
+  supervisorId: string | null;
   companionIds: string[];
   /** EQ: household ids, RS: member ids */
   recipientIds: string[];
@@ -15,7 +17,16 @@ export interface BoardMinistry {
 
 export interface Board {
   organization: Organization;
+  /** Member ids of this organization's presidency. */
+  presidencyIds: string[];
   ministries: BoardMinistry[];
+}
+
+/** Ministries per supervisor id; the null key counts ministries without a supervisor. */
+export function supervisionCounts(board: Board): Map<string | null, number> {
+  const counts = new Map<string | null, number>();
+  for (const m of board.ministries) counts.set(m.supervisorId, (counts.get(m.supervisorId) ?? 0) + 1);
+  return counts;
 }
 
 export type AssignRole = 'companion' | 'recipient';

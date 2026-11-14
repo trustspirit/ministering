@@ -5,12 +5,13 @@ import { assignOptions, canBeAssigned } from './assignOptions';
 
 const ministry = (over: Partial<BoardMinistry> & { id: string; number: number }): BoardMinistry => ({
   name: null,
+  supervisorId: null,
   companionIds: [],
   recipientIds: [],
   ...over,
 });
-const eq = (ministries: BoardMinistry[]): Board => ({ organization: 'EQ', ministries });
-const rs = (ministries: BoardMinistry[]): Board => ({ organization: 'RS', ministries });
+const eq = (ministries: BoardMinistry[]): Board => ({ organization: 'EQ', presidencyIds: [], ministries });
+const rs = (ministries: BoardMinistry[]): Board => ({ organization: 'RS', presidencyIds: [], ministries });
 const two = [ministry({ id: 'g1', number: 1 }), ministry({ id: 'g2', number: 2, name: '시내' })];
 
 describe('assignOptions', () => {

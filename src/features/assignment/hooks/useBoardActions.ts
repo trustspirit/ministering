@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from 'trust-ui-react';
 import { ministryRepository } from '@/repositories/MinistryRepository';
+import { presidencyRepository } from '@/repositories/PresidencyRepository';
 import type { Organization } from '@/features/ministries/types';
 import { nextMinistryNumber } from '@/features/ministries/domain/nextMinistryNumber';
 import { T } from '@/shared/copy';
@@ -17,6 +18,11 @@ export interface BoardActions {
   perform(ops: Op[]): Promise<void>;
   renameMinistry(id: string, name: string | null): Promise<void>;
   deleteMinistry(id: string): Promise<void>;
+  /** `null` clears the supervisor. The database only accepts a member of this organization's presidency. */
+  setSupervisor(ministryId: string, memberId: string | null): Promise<void>;
+  addPresident(memberId: string): Promise<void>;
+  /** Ministries this person supervised lose their supervisor (database rule). */
+  removePresident(memberId: string): Promise<void>;
   /** `null` switches the public link off. Resolves true when the change was saved (a failure toasts and resolves false). */
   setShareToken(id: string, token: string | null): Promise<boolean>;
   pending: boolean;
@@ -95,7 +101,12 @@ export function useBoardActions(org: Organization): BoardActions {
       }).then(() => saved);
     };
 
-    return { perform, renameMinistry, deleteMinistry, setShareToken };
+    const setSupervisor = (ministryId: string, memberId: string | null) =>
+      simple(() => ministryRepository.update(ministryId, { supervisor_member_id: memberId }));
+    const addPresident = (memberId: string) => simple(() => presidencyRepository.add(org, memberId));
+    const removePresident = (memberId: string) => simple(() => presidencyRepository.remove(org, memberId));
+
+    return { perform, renameMinistry, deleteMinistry, setShareToken, setSupervisor, addPresident, removePresident };
   }, [qc, toast, org, queue]);
 
   const pending = pendingCount > 0;

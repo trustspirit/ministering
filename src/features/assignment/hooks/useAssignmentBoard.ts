@@ -19,14 +19,20 @@ export function useAssignmentBoard(org: Organization): UseQueryResult<Board> {
   return useQuery({
     queryKey: assignmentBoardKey(org),
     queryFn: async (): Promise<Board> => {
-      const { data: ministries, error } = await supabase
-        .from('ministries')
-        .select('id, number, name')
-        .eq('organization', org)
-        .order('number');
-      if (error) throw error;
+      const [ministryRes, presidencyRes] = await Promise.all([
+        supabase
+          .from('ministries')
+          .select('id, number, name, supervisor_member_id')
+          .eq('organization', org)
+          .order('number'),
+        supabase.from('presidency_members').select('member_id').eq('organization', org),
+      ]);
+      if (ministryRes.error) throw ministryRes.error;
+      if (presidencyRes.error) throw presidencyRes.error;
+      const ministries = ministryRes.data;
+      const presidencyIds = (presidencyRes.data ?? []).map((r) => r.member_id).sort();
       const ids = (ministries ?? []).map((m) => m.id);
-      if (ids.length === 0) return { organization: org, ministries: [] };
+      if (ids.length === 0) return { organization: org, presidencyIds, ministries: [] };
 
       const [companions, recipients] = await Promise.all([
         supabase.from('ministry_companions').select('ministry_id, member_id').in('ministry_id', ids),
@@ -55,10 +61,12 @@ export function useAssignmentBoard(org: Organization): UseQueryResult<Board> {
 
       return {
         organization: org,
+        presidencyIds,
         ministries: (ministries ?? []).map((m) => ({
           id: m.id,
           number: m.number,
           name: m.name,
+          supervisorId: m.supervisor_member_id,
           companionIds: companionMap.get(m.id) ?? [],
           recipientIds: recipientMap.get(m.id) ?? [],
         })),

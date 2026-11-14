@@ -32,6 +32,7 @@ const REALTIME_TABLES = [
   'ministry_household_recipients',
   'members',
   'households',
+  'presidency_members',
 ] as const;
 
 export default function AssignmentPage() {

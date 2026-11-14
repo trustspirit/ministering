@@ -14,8 +14,8 @@ const members = [
 ];
 const none = { search: '', gender: 'all', activeStatus: 'all', personality: 'all' } as const;
 const info = buildMinistryInfo(
-  { organization: 'EQ', ministries: [{ id: 'm', number: 2, name: null, companionIds: ['h'], recipientIds: ['h6'] }] },
-  { organization: 'RS', ministries: [{ id: 'r', number: 1, name: null, companionIds: ['w'], recipientIds: ['x'] }] },
+  { organization: 'EQ', presidencyIds: [], ministries: [{ id: 'm', number: 2, name: null, supervisorId: null, companionIds: ['h'], recipientIds: ['h6'] }] },
+  { organization: 'RS', presidencyIds: [], ministries: [{ id: 'r', number: 1, name: null, supervisorId: null, companionIds: ['w'], recipientIds: ['x'] }] },
 );
 
 describe('RosterTable', () => {

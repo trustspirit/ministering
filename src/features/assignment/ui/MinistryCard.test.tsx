@@ -9,7 +9,7 @@ const m1 = member({ id: 'm1', full_name: '김도현', birth_date: '1990-01-25', 
 const h1 = household({ id: 'h1', name: '김도현 가정' });
 
 function ministry(over: Partial<BoardMinistry> = {}): BoardMinistry {
-  return { id: 'g1', number: 1, name: null, companionIds: ['m1'], recipientIds: [], ...over };
+  return { id: 'g1', number: 1, name: null, supervisorId: null, companionIds: ['m1'], recipientIds: [], ...over };
 }
 
 function renderCard(opts: { canEdit?: boolean; ministry?: BoardMinistry; org?: 'EQ' | 'RS' } = {}) {

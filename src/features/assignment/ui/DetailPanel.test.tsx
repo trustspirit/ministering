@@ -37,11 +37,13 @@ const lone = member({ id: 'x', full_name: '독거인', gender: 'F', birth_date: 
 
 const eqBoard: Board = {
   organization: 'EQ',
-  ministries: [{ id: 'm1', number: 1, name: null, companionIds: ['x'], recipientIds: ['h6'] }],
+  presidencyIds: [],
+  ministries: [{ id: 'm1', number: 1, name: null, supervisorId: null, companionIds: ['x'], recipientIds: ['h6'] }],
 };
 const rsBoard: Board = {
   organization: 'RS',
-  ministries: [{ id: 'm2', number: 2, name: null, companionIds: ['w'], recipientIds: ['x'] }],
+  presidencyIds: [],
+  ministries: [{ id: 'm2', number: 2, name: null, supervisorId: null, companionIds: ['w'], recipientIds: ['x'] }],
 };
 
 function open(sel: { kind: 'member' | 'household'; id: string } | null, opts: Parameters<typeof renderWorkspace>[1] = {}) {
@@ -96,7 +98,7 @@ describe('DetailPanel', () => {
   });
 
   it('shows "임무 지명 없음" and 가정 미지정 for an unassigned person without a household', () => {
-    mocks.boards = { EQ: { organization: 'EQ', ministries: [] }, RS: { organization: 'RS', ministries: [] } };
+    mocks.boards = { EQ: { organization: 'EQ', presidencyIds: [], ministries: [] }, RS: { organization: 'RS', presidencyIds: [], ministries: [] } };
     open({ kind: 'member', id: 'x' });
     expect(screen.getByText('임무 지명 없음')).toBeInTheDocument();
     expect(screen.getByText('가정 미지정')).toBeInTheDocument();

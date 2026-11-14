@@ -4,14 +4,16 @@ import { buildMinistryInfo } from './ministryInfo';
 
 const eq: Board = {
   organization: 'EQ',
+  presidencyIds: [],
   ministries: [
-    { id: 'm1', number: 1, name: null, companionIds: ['a', 'b'], recipientIds: ['h1'] },
-    { id: 'm2', number: 2, name: '새벽반', companionIds: ['c'], recipientIds: ['h1', 'h2'] },
+    { id: 'm1', number: 1, name: null, supervisorId: null, companionIds: ['a', 'b'], recipientIds: ['h1'] },
+    { id: 'm2', number: 2, name: '새벽반', supervisorId: null, companionIds: ['c'], recipientIds: ['h1', 'h2'] },
   ],
 };
 const rs: Board = {
   organization: 'RS',
-  ministries: [{ id: 'm3', number: 1, name: null, companionIds: ['s1'], recipientIds: ['s2'] }],
+  presidencyIds: [],
+  ministries: [{ id: 'm3', number: 1, name: null, supervisorId: null, companionIds: ['s1'], recipientIds: ['s2'] }],
 };
 
 describe('buildMinistryInfo', () => {

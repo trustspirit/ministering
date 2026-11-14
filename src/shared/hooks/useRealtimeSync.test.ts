@@ -19,4 +19,8 @@ describe('queryKeysToRefresh', () => {
     expect(queryKeysToRefresh('households', 'DELETE')).toEqual([['households']]);
     expect(queryKeysToRefresh('ministries', 'UPDATE')).toEqual([['assignment-board']]);
   });
+
+  it('refreshes the board when the presidency changes', () => {
+    expect(queryKeysToRefresh('presidency_members', 'DELETE')).toEqual([['assignment-board']]);
+  });
 });

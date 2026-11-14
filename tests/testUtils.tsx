@@ -41,7 +41,7 @@ export function renderWorkspace(
   const households = opts.households ?? [];
   const value: WorkspaceData = {
     org,
-    board: opts.board ?? { organization: org, ministries: [] },
+    board: opts.board ?? { organization: org, presidencyIds: [], ministries: [] },
     canEdit: opts.canEdit ?? true,
     members,
     ...buildLookups(members, households),
@@ -50,6 +50,9 @@ export function renderWorkspace(
       renameMinistry: vi.fn(async () => {}),
       deleteMinistry: vi.fn(async () => {}),
       setShareToken: vi.fn(async () => true),
+      setSupervisor: vi.fn(async () => {}),
+      addPresident: vi.fn(async () => {}),
+      removePresident: vi.fn(async () => {}),
       pending: false,
     },
   };
