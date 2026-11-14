@@ -542,3 +542,18 @@
   border: 1px solid var(--app-bad-line);
 }
 .aw-pd-confirm p { margin: 0; flex: 1 1 100%; color: var(--app-bad-ink); }
+
+/* supervisor line under the ministry title */
+.aw-msup { margin: -2px 0 6px; font-size: 11px; color: var(--app-ink-soft); }
+.aw-msup--none { color: var(--app-mute); }
+.aw .aw-msup-btn {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-bottom: 1px dotted var(--app-rule-strong);
+}
+.aw .aw-msup-btn:hover { color: var(--app-accent); border-bottom-color: var(--app-accent); }
+.aw .aw-msup-btn:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }

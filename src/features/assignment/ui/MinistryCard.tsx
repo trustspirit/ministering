@@ -37,7 +37,7 @@ export function MinistryCard({
   canEdit: boolean;
 }) {
   const workspace = useWorkspace();
-  const { memberById, householdById, familyOf, actions } = workspace;
+  const { board, memberById, householdById, familyOf, actions } = workspace;
   // An optimistic card (not yet saved) is shown but takes no drops or edits until the refetch replaces it.
   const pending = isPendingMinistry(ministry.id);
   const editable = canEdit && !pending;
@@ -57,6 +57,16 @@ export function MinistryCard({
   const editDone = useRef(false);
 
   const label = ministryLabel(ministry);
+  const supervisor = ministry.supervisorId ? memberById.get(ministry.supervisorId) : undefined;
+  const supervisorText = supervisor ? T.presidency.supervisor(supervisor.full_name) : T.presidency.none;
+  const presidents = useMemo(
+    () =>
+      board.presidencyIds
+        .map((id) => memberById.get(id))
+        .filter((m) => m !== undefined)
+        .sort((a, b) => a.full_name.localeCompare(b.full_name, 'ko')),
+    [board.presidencyIds, memberById],
+  );
   const warnings = ministryWarnings(ministry);
   const companionNoun = T.assign.companionNoun[org];
   const recipientNoun = T.assign.recipientNoun[org];
@@ -182,6 +192,32 @@ export function MinistryCard({
             </span>
           )}
         </h3>
+        <div className={clsx('aw-msup', !supervisor && 'aw-msup--none')} onClick={(e) => e.stopPropagation()}>
+          {editable ? (
+            <Menu>
+              <Menu.Trigger>
+                <button
+                  type="button"
+                  className="aw-msup-btn"
+                  aria-label={`${T.presidency.pickLabel}: ${supervisorText}`}
+                  title={T.presidency.pickLabel}
+                >
+                  {supervisorText} <span aria-hidden="true">▾</span>
+                </button>
+              </Menu.Trigger>
+              <Menu.Content align="start">
+                {presidents.map((m) => (
+                  <Menu.Item key={m.id} onClick={() => void actions.setSupervisor(ministry.id, m.id)}>
+                    {m.full_name}
+                  </Menu.Item>
+                ))}
+                <Menu.Item onClick={() => void actions.setSupervisor(ministry.id, null)}>{T.presidency.none}</Menu.Item>
+              </Menu.Content>
+            </Menu>
+          ) : (
+            <span>{supervisorText}</span>
+          )}
+        </div>
         {warnings.tooFewCompanions && <Warning text={T.assign.warnTooFewCompanions} />}
         {warnings.noRecipients && <Warning text={T.assign.warnNoRecipients[org]} soft />}
 

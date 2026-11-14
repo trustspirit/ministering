@@ -7,17 +7,27 @@ import { household, member, renderWorkspace } from '@tests/testUtils';
 
 const m1 = member({ id: 'm1', full_name: '김도현', birth_date: '1990-01-25', household_id: 'h1' });
 const h1 = household({ id: 'h1', name: '김도현 가정' });
+const p1 = member({ id: 'p1', full_name: '임재홍', birth_date: '1980-04-12' });
+const p2 = member({ id: 'p2', full_name: '김유명', birth_date: '1975-01-01' });
 
 function ministry(over: Partial<BoardMinistry> = {}): BoardMinistry {
   return { id: 'g1', number: 1, name: null, supervisorId: null, companionIds: ['m1'], recipientIds: [], ...over };
 }
 
-function renderCard(opts: { canEdit?: boolean; ministry?: BoardMinistry; org?: 'EQ' | 'RS' } = {}) {
+function renderCard(
+  opts: { canEdit?: boolean; ministry?: BoardMinistry; org?: 'EQ' | 'RS'; presidencyIds?: string[] } = {},
+) {
   const org = opts.org ?? 'EQ';
   const canEdit = opts.canEdit ?? true;
   const { wrapper, value } = renderWorkspace(
     <MinistryCard ministry={opts.ministry ?? ministry()} org={org} canEdit={canEdit} />,
-    { org, canEdit, members: [m1], households: [h1] },
+    {
+      org,
+      canEdit,
+      members: [m1, p1, p2],
+      households: [h1],
+      board: { organization: org, presidencyIds: opts.presidencyIds ?? ['p1', 'p2'], ministries: [] },
+    },
   );
   render(wrapper);
   return value;
@@ -119,5 +129,36 @@ describe('MinistryCard', () => {
     expect(useWorkspaceStore.getState().hotMinistryId).toBe('g1');
     fireEvent.click(card);
     expect(useWorkspaceStore.getState().hotMinistryId).toBeNull();
+  });
+
+  it('shows 담당 이름 on the card', () => {
+    renderCard({ canEdit: false, ministry: ministry({ supervisorId: 'p1' }) });
+    expect(screen.getByText('담당 임재홍')).toBeInTheDocument();
+  });
+
+  it('shows 담당 없음 when unset', () => {
+    renderCard({ canEdit: false });
+    expect(screen.getByText('담당 없음')).toBeInTheDocument();
+  });
+
+  it('viewers see the supervisor as plain text', () => {
+    renderCard({ canEdit: false, ministry: ministry({ supervisorId: 'p1' }) });
+    expect(screen.queryByRole('button', { name: /담당 회장단 선택/ })).toBeNull();
+  });
+
+  it('editors pick a supervisor from the presidency only', async () => {
+    const value = renderCard({ presidencyIds: ['p1', 'p2'] });
+    fireEvent.click(screen.getByRole('button', { name: /담당 회장단 선택/ }));
+    const items = await screen.findAllByRole('menuitem');
+    expect(items.map((i) => i.textContent)).toEqual(['김유명', '임재홍', '담당 없음']);
+    fireEvent.click(screen.getByRole('menuitem', { name: '임재홍' }));
+    expect(value.actions.setSupervisor).toHaveBeenCalledWith('g1', 'p1');
+  });
+
+  it('choosing 담당 없음 clears the supervisor', async () => {
+    const value = renderCard({ ministry: ministry({ supervisorId: 'p1' }) });
+    fireEvent.click(screen.getByRole('button', { name: /담당 회장단 선택/ }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: '담당 없음' }));
+    expect(value.actions.setSupervisor).toHaveBeenCalledWith('g1', null);
   });
 });
