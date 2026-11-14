@@ -15,10 +15,19 @@ export interface BoardMinistry {
   recipientIds: string[];
 }
 
+export interface BoardPool {
+  /** Members the board offers as companions. */
+  companionIds: string[];
+  /** EQ: household ids, RS: member ids. */
+  recipientIds: string[];
+}
+
 export interface Board {
   organization: Organization;
   /** Member ids of this organization's presidency. */
   presidencyIds: string[];
+  /** Who the board shows, by role. Everyone assigned is in it too (database rule). */
+  pool: BoardPool;
   ministries: BoardMinistry[];
 }
 
@@ -58,13 +67,50 @@ function orgMembers(board: Board, members: Member[], today?: Date): Member[] {
   return members.filter((m) => isOrgMember(m, board.organization, today));
 }
 
+/**
+ * Ids in the pool for a role. Assigned ids count as pooled too: the database adds them, but an optimistic
+ * assignment can show before the pool row arrives.
+ */
+export function pooledIds(board: Board, role: AssignRole): Set<string> {
+  const listed = role === 'companion' ? board.pool.companionIds : board.pool.recipientIds;
+  return new Set([...listed, ...idsOf(board, role)]);
+}
+
+/** Everyone who may fill a role on this board: adults of the organization, or households for EQ recipients. */
+function eligible(
+  board: Board,
+  role: AssignRole,
+  members: Member[],
+  households: Household[],
+  today?: Date,
+): (Member | Household)[] {
+  return board.organization === 'EQ' && role === 'recipient' ? households : orgMembers(board, members, today);
+}
+
+function pooled(board: Board, role: AssignRole, members: Member[], households: Household[], today?: Date) {
+  const ids = pooledIds(board, role);
+  return eligible(board, role, members, households, today).filter((r) => ids.has(r.id));
+}
+
+/** Who can still be added to the pool for a role. */
+export function poolAddable(
+  board: Board,
+  role: AssignRole,
+  members: Member[],
+  households: Household[],
+  today?: Date,
+): (Member | Household)[] {
+  const ids = pooledIds(board, role);
+  return eligible(board, role, members, households, today).filter((r) => !ids.has(r.id));
+}
+
 export function unassignedCandidates(
   board: Board,
   members: Member[],
   today?: Date,
 ): Member[] {
   const assigned = idsOf(board, 'companion');
-  return orgMembers(board, members, today).filter((m) => !assigned.has(m.id));
+  return (pooled(board, 'companion', members, [], today) as Member[]).filter((m) => !assigned.has(m.id));
 }
 
 export function unassignedRecipients(
@@ -74,9 +120,7 @@ export function unassignedRecipients(
   today?: Date,
 ): (Member | Household)[] {
   const assigned = idsOf(board, 'recipient');
-  const pool: (Member | Household)[] =
-    board.organization === 'EQ' ? households : orgMembers(board, members, today);
-  return pool.filter((r) => !assigned.has(r.id));
+  return pooled(board, 'recipient', members, households, today).filter((r) => !assigned.has(r.id));
 }
 
 export interface BoardSummary {
@@ -93,8 +137,7 @@ export function summarize(
   households: Household[],
   today?: Date,
 ): BoardSummary {
-  const recipientTotal =
-    board.organization === 'EQ' ? households.length : orgMembers(board, members, today).length;
+  const recipientTotal = pooled(board, 'recipient', members, households, today).length;
   return {
     ministryCount: board.ministries.length,
     recipientTotal,

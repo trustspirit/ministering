@@ -12,7 +12,15 @@ afterEach(() => {
 
 describe('empty states', () => {
   it('pool lists with nothing left to assign say so, per organization', () => {
-    const { wrapper } = renderWorkspace(<PoolPanel households={[]} />, { org: 'EQ' });
+    const kim = member({ id: 'm1', full_name: '김도현', household_id: 'h1' });
+    const h1 = household({ id: 'h1', name: '김도현 가정' });
+    const board = {
+      organization: 'EQ' as const,
+      presidencyIds: [],
+      pool: { companionIds: ['m1'], recipientIds: ['h1'] },
+      ministries: [{ id: 'x', number: 1, name: null, supervisorId: null, companionIds: ['m1'], recipientIds: ['h1'] }],
+    };
+    const { wrapper } = renderWorkspace(<PoolPanel households={[h1]} />, { org: 'EQ', board, members: [kim], households: [h1] });
     render(wrapper);
     expect(screen.getByText('모든 형제가 성역 동반자에 속해 있습니다')).toBeInTheDocument();
     expect(screen.getByText('모든 가정에 성역자가 지명되었습니다')).toBeInTheDocument();

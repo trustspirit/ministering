@@ -5,6 +5,7 @@ import { NEW_MINISTRY } from './resolveDrop';
 const base = (): Board => ({
   organization: 'EQ',
   presidencyIds: [],
+  pool: { companionIds: [], recipientIds: [] },
   ministries: [
     { id: 'A', number: 1, name: null, supervisorId: null, companionIds: ['m1'], recipientIds: [] },
     { id: 'B', number: 2, name: null, supervisorId: null, companionIds: [], recipientIds: [] },

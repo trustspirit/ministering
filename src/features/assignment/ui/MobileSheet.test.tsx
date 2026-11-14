@@ -22,6 +22,7 @@ const h3 = household({ id: 'h3', name: '박민수 가정' });
 const board: Board = {
   organization: 'EQ',
   presidencyIds: [],
+  pool: { companionIds: [], recipientIds: [] },
   ministries: [
     { id: 'g1', number: 1, name: null, supervisorId: null, companionIds: ['m1', 'm2'], recipientIds: ['h2'] },
   ],

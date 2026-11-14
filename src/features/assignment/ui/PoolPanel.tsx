@@ -1,14 +1,21 @@
-import { useMemo, type DragEvent } from 'react';
+import { useMemo, useState, type DragEvent } from 'react';
 import clsx from 'clsx';
 import { EmptyState, TextField } from 'trust-ui-react';
 import type { Household } from '@/features/households/types';
 import { T } from '@/shared/copy';
-import { ministryOf, unassignedCandidates, unassignedRecipients, type AssignRole } from '../domain/board';
+import {
+  ministryOf,
+  pooledIds,
+  unassignedCandidates,
+  unassignedRecipients,
+  type AssignRole,
+} from '../domain/board';
 import { dragOf, overKey, useDragStore, useDropHandler } from '../dnd';
 import { useWorkspaceStore } from '../store';
 import { useWorkspace } from '../workspaceContext';
 import { HouseholdCard } from './HouseholdCard';
 import { PersonCard } from './PersonCard';
+import { PoolAddDialog } from './PoolAddDialog';
 
 const byName = (a: string, b: string) => a.localeCompare(b, 'ko');
 
@@ -17,7 +24,8 @@ function CountPill({ n }: { n: number }) {
 }
 
 export function PoolPanel({ households }: { households: Household[] }) {
-  const { org, board, canEdit, members, familyOf } = useWorkspace();
+  const { org, board, canEdit, members, familyOf, actions } = useWorkspace();
+  const [adding, setAdding] = useState<AssignRole | null>(null);
   const search = useWorkspaceStore((s) => s.search);
   const setSearch = useWorkspaceStore((s) => s.setSearch);
   const over = useDragStore((s) => s.over === overKey.pool);
@@ -60,6 +68,27 @@ export function PoolPanel({ households }: { households: Household[] }) {
 
   const companionNoun = T.assign.companionNoun[org];
   const recipientNoun = T.assign.recipientNoun[org];
+  const emptyText = (role: AssignRole) =>
+    q
+      ? T.assign.searchNone
+      : pooledIds(board, role).size === 0
+        ? canEdit
+          ? T.pool.empty
+          : T.pool.emptyViewer
+        : role === 'companion'
+          ? T.assign.poolEmptyCandidates[org]
+          : T.assign.poolEmptyRecipients[org];
+  const addButton = (role: AssignRole, noun: string) =>
+    canEdit && (
+      <button
+        type="button"
+        className="aw-ph-add"
+        aria-label={T.pool.addTitle[role](noun)}
+        onClick={() => setAdding(role)}
+      >
+        + {T.pool.add}
+      </button>
+    );
 
   return (
     <aside
@@ -103,38 +132,51 @@ export function PoolPanel({ households }: { households: Household[] }) {
         <h4 className="aw-ph">
           <span>{T.assign.warnUnassignedCandidates(companionNoun)}</span>
           <CountPill n={candidates.length} />
+          {addButton('companion', companionNoun)}
         </h4>
         {shownCandidates.length === 0 && (
-          <EmptyState
-            className="app-empty"
-            headingLevel={4}
-            title={q ? T.assign.searchNone : T.assign.poolEmptyCandidates[org]}
-          />
+          <EmptyState className="app-empty" headingLevel={4} title={emptyText('companion')} />
         )}
         {shownCandidates.map((m) => (
-          <PersonCard key={m.id} member={m} role="companion" />
+          <PersonCard
+            key={m.id}
+            member={m}
+            role="companion"
+            onRemove={() => void actions.removeFromPool('companion', m.id)}
+            removeLabel={T.pool.remove(m.full_name)}
+          />
         ))}
       </section>
       <section className="aw-plist aw-plist--tgt">
         <h4 className="aw-ph">
           <span>{T.assign.warnUnassignedRecipients(recipientNoun)}</span>
           <CountPill n={recipients.length} />
+          {addButton('recipient', recipientNoun)}
         </h4>
         {shownRecipients.length === 0 && (
-          <EmptyState
-            className="app-empty"
-            headingLevel={4}
-            title={q ? T.assign.searchNone : T.assign.poolEmptyRecipients[org]}
-          />
+          <EmptyState className="app-empty" headingLevel={4} title={emptyText('recipient')} />
         )}
         {shownRecipients.map((r) =>
           'full_name' in r ? (
-            <PersonCard key={r.id} member={r} role="recipient" />
+            <PersonCard
+              key={r.id}
+              member={r}
+              role="recipient"
+              onRemove={() => void actions.removeFromPool('recipient', r.id)}
+              removeLabel={T.pool.remove(r.full_name)}
+            />
           ) : (
-            <HouseholdCard key={r.id} household={r} members={familyOf.get(r.id) ?? []} />
+            <HouseholdCard
+              key={r.id}
+              household={r}
+              members={familyOf.get(r.id) ?? []}
+              onRemove={() => void actions.removeFromPool('recipient', r.id)}
+              removeLabel={T.pool.remove(r.name)}
+            />
           ),
         )}
       </section>
+      <PoolAddDialog role={adding} households={households} onClose={() => setAdding(null)} />
     </aside>
   );
 }

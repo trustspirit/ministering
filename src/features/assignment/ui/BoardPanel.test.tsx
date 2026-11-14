@@ -12,6 +12,7 @@ function ministry(id: string, number: number, supervisorId: string | null): Boar
 const board: Board = {
   organization: 'EQ',
   presidencyIds: ['s1', 's2'],
+  pool: { companionIds: [], recipientIds: [] },
   ministries: [ministry('a', 1, 's1'), ministry('b', 2, 's2'), ministry('c', 3, null)],
 };
 

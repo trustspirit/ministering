@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from 'trust-ui-react';
 import { ministryRepository } from '@/repositories/MinistryRepository';
+import { poolRepository, type PoolRole } from '@/repositories/PoolRepository';
 import { presidencyRepository } from '@/repositories/PresidencyRepository';
 import type { Organization } from '@/features/ministries/types';
 import { nextMinistryNumber } from '@/features/ministries/domain/nextMinistryNumber';
@@ -24,6 +25,10 @@ export interface BoardActions {
   addPresident(memberId: string): Promise<void>;
   /** Ministries this person supervised lose their supervisor (database rule). */
   removePresident(memberId: string): Promise<void>;
+  /** Puts a member (or, for EQ recipients, a household) on the board for that role. */
+  addToPool(role: PoolRole, id: string): Promise<void>;
+  /** Takes someone off the board for that role. Callers only offer this for people not assigned in that role. */
+  removeFromPool(role: PoolRole, id: string): Promise<void>;
   /** `null` switches the public link off. Resolves true when the change was saved (a failure toasts and resolves false). */
   setShareToken(id: string, token: string | null): Promise<boolean>;
   pending: boolean;
@@ -108,8 +113,20 @@ export function useBoardActions(org: Organization): BoardActions {
       simple(() => ministryRepository.update(ministryId, { supervisor_member_id: memberId }));
     const addPresident = (memberId: string) => simple(() => presidencyRepository.add(org, memberId));
     const removePresident = (memberId: string) => simple(() => presidencyRepository.remove(org, memberId));
+    const addToPool = (role: PoolRole, id: string) => simple(() => poolRepository.add(org, role, id));
+    const removeFromPool = (role: PoolRole, id: string) => simple(() => poolRepository.remove(org, role, id));
 
-    return { perform, renameMinistry, deleteMinistry, setShareToken, setSupervisor, addPresident, removePresident };
+    return {
+      perform,
+      renameMinistry,
+      deleteMinistry,
+      setShareToken,
+      setSupervisor,
+      addPresident,
+      removePresident,
+      addToPool,
+      removeFromPool,
+    };
   }, [qc, toast, org, queue]);
 
   const pending = pendingCount > 0;

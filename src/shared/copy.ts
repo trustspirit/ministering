@@ -166,6 +166,22 @@ export const T = {
   ministry: {
     defaultLabel: (number: number) => `성역 동반자 ${number}`,
   },
+  pool: {
+    add: '추가',
+    addTitle: {
+      companion: (noun: string) => `동반자 후보 ${noun} 추가`,
+      recipient: (noun: string) => `성역 대상 ${noun} 추가`,
+    },
+    addNote: '추가한 사람만 지명 대기 목록과 지도에 나옵니다.',
+    addOne: (name: string) => `${name} 추가`,
+    remove: (name: string) => `${name} 목록에서 빼기`,
+    searchPlaceholder: '이름·주소로 검색',
+    none: '추가할 사람이 없습니다',
+    more: (n: number) => `외 ${n}개 — 검색으로 좁혀 보세요`,
+    close: '닫기',
+    empty: '목록이 비어 있습니다. 추가를 눌러 사람을 넣으세요.',
+    emptyViewer: '목록이 비어 있습니다.',
+  },
   presidency: {
     label: '회장단',
     all: '전체',

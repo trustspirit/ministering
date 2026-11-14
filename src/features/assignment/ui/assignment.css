@@ -558,3 +558,21 @@
 }
 .aw .aw-msup-btn:hover { color: var(--app-accent); border-bottom-color: var(--app-accent); }
 .aw .aw-msup-btn:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
+
+/* Ministry pool: "+ 추가" in each pool list header, and the add dialog's note. */
+.aw-ph-add {
+  margin-left: 6px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--app-accent);
+  background: none;
+  border: 1px solid var(--app-rule);
+  padding: 0 8px;
+  height: 22px;
+  cursor: pointer;
+}
+.aw-ph-add:hover { border-color: var(--app-accent); }
+.aw-ph-add:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
+.aw-pd-note { margin: 0; font-size: 12.5px; color: var(--app-mute); }
+.aw-pd-list small { color: var(--app-mute); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

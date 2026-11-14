@@ -8,7 +8,7 @@ import { household, member, renderWorkspace } from '@tests/testUtils';
 const m1 = member({ id: 'm1', full_name: '김도현', gender: 'M', birth_date: '1990-01-25' });
 const board = {
   organization: 'EQ' as Organization,
-  presidencyIds: [] as string[],
+  presidencyIds: [] as string[], pool: { companionIds: [], recipientIds: [] },
   ministries: [{ id: 'g1', number: 1, name: null, supervisorId: null, companionIds: [], recipientIds: [] }],
 };
 

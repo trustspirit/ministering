@@ -17,7 +17,7 @@ function ministry(id: string, number: number, supervisorId: string | null): Boar
 }
 
 function board(ministries: BoardMinistry[], presidencyIds = ['p1', 'p2']): Board {
-  return { organization: 'EQ', presidencyIds, ministries };
+  return { organization: 'EQ', presidencyIds, pool: { companionIds: [], recipientIds: [] }, ministries };
 }
 
 function renderBar(b: Board, canEdit = true) {

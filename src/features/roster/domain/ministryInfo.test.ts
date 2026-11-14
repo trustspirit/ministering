@@ -5,6 +5,7 @@ import { buildMinistryInfo } from './ministryInfo';
 const eq: Board = {
   organization: 'EQ',
   presidencyIds: [],
+  pool: { companionIds: [], recipientIds: [] },
   ministries: [
     { id: 'm1', number: 1, name: null, supervisorId: null, companionIds: ['a', 'b'], recipientIds: ['h1'] },
     { id: 'm2', number: 2, name: '새벽반', supervisorId: null, companionIds: ['c'], recipientIds: ['h1', 'h2'] },
@@ -13,6 +14,7 @@ const eq: Board = {
 const rs: Board = {
   organization: 'RS',
   presidencyIds: [],
+  pool: { companionIds: [], recipientIds: [] },
   ministries: [{ id: 'm3', number: 1, name: null, supervisorId: null, companionIds: ['s1'], recipientIds: ['s2'] }],
 };
 

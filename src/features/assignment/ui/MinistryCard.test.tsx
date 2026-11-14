@@ -26,7 +26,7 @@ function renderCard(
       canEdit,
       members: [m1, p1, p2],
       households: [h1],
-      board: { organization: org, presidencyIds: opts.presidencyIds ?? ['p1', 'p2'], ministries: [] },
+      board: { organization: org, presidencyIds: opts.presidencyIds ?? ['p1', 'p2'], pool: { companionIds: [], recipientIds: [] }, ministries: [] },
     },
   );
   render(wrapper);

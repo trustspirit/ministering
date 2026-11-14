@@ -30,6 +30,8 @@ const hC = household('hC', 37.6, 126.9);
 const hD = household('hD', 37.53, 127.03);
 const hE = household('hE', 37.54, 127.04);
 const hF = household('hF', 37.52, 127.02);
+/** Has coordinates but is not in any pool: never on the map. */
+const hG = household('hG', 37.4, 127.2);
 
 const m42 = member('m42', { gender: 'M', birth_date: '1984-01-01', household_id: 'hA' });
 /** Placed at household hC. */
@@ -44,7 +46,7 @@ const f12 = member('f12', { gender: 'F', birth_date: '2014-01-01', household_id:
 const f50 = member('f50', { gender: 'F', birth_date: '1976-01-01' });
 
 const members = [m42, m50, m30, m17, f40, f35, f12, f50];
-const households = [hA, hB, hC, hD, hE, hF];
+const households = [hA, hB, hC, hD, hE, hF, hG];
 
 const ids = (items: MapItem[]) => items.map((i) => `${i.kind}:${i.id}`);
 
@@ -52,6 +54,7 @@ describe('buildMapItems — EQ', () => {
   const board: Board = {
     organization: 'EQ',
     presidencyIds: [],
+    pool: { companionIds: ['m30'], recipientIds: ['hD', 'hE', 'hF'] },
     ministries: [
       ministry({ id: 'x', number: 1, companionIds: ['m42'], recipientIds: ['hC'] }),
       ministry({ id: 'y', number: 3, companionIds: ['m50'], recipientIds: ['hA', 'hB'] }),
@@ -59,7 +62,7 @@ describe('buildMapItems — EQ', () => {
   };
   const items = buildMapItems({ board, members, households, today });
 
-  it('keeps households and EQ members with coordinates, without throwing on missing ones', () => {
+  it('shows pooled households and EQ members with coordinates, without throwing on missing ones', () => {
     expect(ids(items)).toEqual([
       'household:hA',
       'household:hC',
@@ -92,12 +95,18 @@ describe('buildMapItems — RS', () => {
   const board: Board = {
     organization: 'RS',
     presidencyIds: [],
+    pool: { companionIds: ['f50'], recipientIds: [] },
     ministries: [ministry({ id: 'r', number: 2, companionIds: ['f40'], recipientIds: ['f35'] })],
   };
   const items = buildMapItems({ board, members, households, today });
 
-  it('shows only RS members (no households, men, girls or anyone without a household)', () => {
+  it('shows only pooled RS members (no households, men, girls or anyone without a household)', () => {
     expect(ids(items)).toEqual(['member:f40', 'member:f35']);
+  });
+  it('leaves out RS adults outside the pool', () => {
+    const unpooled = member('f60', { gender: 'F', birth_date: '1966-01-01', household_id: 'hA' });
+    const more = buildMapItems({ board, members: [...members, unpooled], households, today });
+    expect(ids(more)).not.toContain('member:f60');
   });
   it('uses household coordinates and board numbers', () => {
     const f35Item = items.find((i) => i.id === 'f35')!;
@@ -115,6 +124,7 @@ describe('hotLines', () => {
   const board: Board = {
     organization: 'EQ',
     presidencyIds: [],
+    pool: { companionIds: [], recipientIds: [] },
     ministries: [
       ministry({ id: 'x', number: 1, companionIds: ['m42', 'm30'], recipientIds: ['hA', 'hB', 'hC'] }),
       ministry({ id: 'y', number: 2, companionIds: ['m50'], recipientIds: [] }),
@@ -136,6 +146,7 @@ describe('hotLines', () => {
     const rs: Board = {
       organization: 'RS',
       presidencyIds: [],
+      pool: { companionIds: [], recipientIds: [] },
       ministries: [ministry({ id: 'r', number: 2, companionIds: ['f40'], recipientIds: ['f35', 'f12'] })],
     };
     const rsItems = buildMapItems({ board: rs, members, households, today });

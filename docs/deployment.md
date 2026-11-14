@@ -41,6 +41,7 @@ supabase db push
 | `20261113140000_keep_a_bishopric` | 마지막 감독단 계정은 삭제뿐 아니라 **역할 변경**도 차단(`P0001` / `last_bishopric`, 동시에 바꿔도 한 명은 남는다), `get_app_users`의 `has_password` → `invite_pending`(초대 링크를 아직 열지 않음) |
 | `20261114100000_ministry_supervisor` | 조직별 회장단 명단 `presidency_members`, 조의 담당 회장단 `ministries.supervisor_member_id` (같은 조직 회장단만 허용, 회장단에서 빠지거나 삭제되면 담당이 비워짐) |
 | `20261114120000_household_single_source` | 주소·좌표는 가정에만 저장 (`members.address/lat/lng` 삭제), 가정 이름은 저장하지 않고 회원에서 계산 (`households.name` 삭제, `household_display_name()`·`household_list` 뷰), 공유 페이지도 같은 값 사용 |
+| `20261114130000_ministry_pool` | 조직별 편성 대상 목록 `ministry_pool` (역할별: 동반자 후보 / 성역 대상), 배정하면 트리거로 목록에 추가, 적용 시 현재 배정 인원으로 채움 |
 
 RPC 요약:
 

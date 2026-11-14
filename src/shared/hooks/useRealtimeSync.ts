@@ -9,7 +9,8 @@ export type RealtimeTable =
   | 'ministry_companions'
   | 'ministry_member_recipients'
   | 'ministry_household_recipients'
-  | 'presidency_members';
+  | 'presidency_members'
+  | 'ministry_pool';
 
 /**
  * Which cached queries a change in `table` makes stale.
@@ -28,6 +29,7 @@ export function queryKeysToRefresh(table: RealtimeTable, eventType?: string): re
       return [['households']];
     case 'ministries':
     case 'presidency_members':
+    case 'ministry_pool':
       return [['assignment-board']];
     case 'ministry_companions':
     case 'ministry_member_recipients':

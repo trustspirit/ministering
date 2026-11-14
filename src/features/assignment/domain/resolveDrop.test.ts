@@ -24,8 +24,8 @@ const f31 = member('f31', 'F', '1995-01-01');
 const f12 = member('f12', 'F', '2014-01-01');
 const members = [m1, m2, m3, m4, m5, m6, m17, f40, f30, f31, f12];
 
-const eq = (ms: BoardMinistry[]): Board => ({ organization: 'EQ', presidencyIds: [], ministries: ms });
-const rs = (ms: BoardMinistry[]): Board => ({ organization: 'RS', presidencyIds: [], ministries: ms });
+const eq = (ms: BoardMinistry[]): Board => ({ organization: 'EQ', presidencyIds: [], pool: { companionIds: [], recipientIds: [] }, ministries: ms });
+const rs = (ms: BoardMinistry[]): Board => ({ organization: 'RS', presidencyIds: [], pool: { companionIds: [], recipientIds: [] }, ministries: ms });
 const at = (ministryId: string, zone: 'companion' | 'recipient' | null = null): DropTarget => ({
   type: 'ministry',
   ministryId,

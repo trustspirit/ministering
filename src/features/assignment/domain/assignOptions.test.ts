@@ -10,8 +10,8 @@ const ministry = (over: Partial<BoardMinistry> & { id: string; number: number })
   recipientIds: [],
   ...over,
 });
-const eq = (ministries: BoardMinistry[]): Board => ({ organization: 'EQ', presidencyIds: [], ministries });
-const rs = (ministries: BoardMinistry[]): Board => ({ organization: 'RS', presidencyIds: [], ministries });
+const eq = (ministries: BoardMinistry[]): Board => ({ organization: 'EQ', presidencyIds: [], pool: { companionIds: [], recipientIds: [] }, ministries });
+const rs = (ministries: BoardMinistry[]): Board => ({ organization: 'RS', presidencyIds: [], pool: { companionIds: [], recipientIds: [] }, ministries });
 const two = [ministry({ id: 'g1', number: 1 }), ministry({ id: 'g2', number: 2, name: '시내' })];
 
 describe('assignOptions', () => {

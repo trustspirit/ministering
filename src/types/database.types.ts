@@ -292,6 +292,55 @@ export type Database = {
           },
         ]
       }
+      ministry_pool: {
+        Row: {
+          created_at: string
+          household_id: string | null
+          id: string
+          member_id: string | null
+          organization: Database["public"]["Enums"]["organization"]
+          role: Database["public"]["Enums"]["pool_role"]
+        }
+        Insert: {
+          created_at?: string
+          household_id?: string | null
+          id?: string
+          member_id?: string | null
+          organization: Database["public"]["Enums"]["organization"]
+          role: Database["public"]["Enums"]["pool_role"]
+        }
+        Update: {
+          created_at?: string
+          household_id?: string | null
+          id?: string
+          member_id?: string | null
+          organization?: Database["public"]["Enums"]["organization"]
+          role?: Database["public"]["Enums"]["pool_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ministry_pool_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "household_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ministry_pool_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ministry_pool_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       presidency_members: {
         Row: {
           created_at: string
@@ -392,6 +441,7 @@ export type Database = {
       household_role: "husband" | "wife" | "child" | "other"
       organization: "RS" | "EQ"
       personality: "active" | "moderate" | "passive"
+      pool_role: "companion" | "recipient"
       user_role: "rs_president" | "eq_president" | "bishopric" | "viewer"
     }
     CompositeTypes: {
@@ -528,6 +578,7 @@ export const Constants = {
       household_role: ["husband", "wife", "child", "other"],
       organization: ["RS", "EQ"],
       personality: ["active", "moderate", "passive"],
+      pool_role: ["companion", "recipient"],
       user_role: ["rs_president", "eq_president", "bishopric", "viewer"],
     },
   },

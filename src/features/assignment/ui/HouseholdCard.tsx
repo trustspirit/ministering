@@ -14,11 +14,14 @@ export function HouseholdCard({
   household,
   members,
   onRemove,
+  removeLabel = T.assign.unassign,
 }: {
   household: Household;
   /** The household's members, in any order. */
   members: Member[];
   onRemove?: () => void;
+  /** Accessible name of the × button; defaults to unassigning. */
+  removeLabel?: string;
 }) {
   const { canEdit } = useWorkspace();
   const selected = useWorkspaceStore(
@@ -86,8 +89,8 @@ export function HouseholdCard({
         <button
           type="button"
           className="aw-x"
-          aria-label={T.assign.unassign}
-          title={T.assign.unassign}
+          aria-label={removeLabel}
+          title={removeLabel}
           onClick={(e) => {
             e.stopPropagation();
             onRemove();

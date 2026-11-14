@@ -1,6 +1,6 @@
 import type { Household } from '@/features/households/types';
 import type { Member } from '@/features/members/types';
-import { ministryOf, type Board } from './board';
+import { ministryOf, pooledIds, type Board } from './board';
 import { isOrgMember } from './orgMembership';
 
 /** One pin on the assignment map. */
@@ -25,8 +25,8 @@ function coordsOf(c: Coords | undefined): { lat: number; lng: number } | null {
 }
 
 /**
- * Pins for the board's organization: EQ = households + EQ members, RS = RS members. A member stands at their
- * household (the one place an address lives); anything without coordinates is left out.
+ * Pins for the board's pool: EQ = pooled households + pooled brothers, RS = sisters pooled in either role.
+ * A member stands at their household (the one place an address lives); anything without coordinates is left out.
  */
 export function buildMapItems({
   board,
@@ -43,8 +43,13 @@ export function buildMapItems({
   const numberOf = (id: string, role: 'companion' | 'recipient') =>
     ministryOf(board, id, role)?.number ?? null;
 
+  const companions = pooledIds(board, 'companion');
+  const recipients = pooledIds(board, 'recipient');
+  const onBoard = (id: string) => companions.has(id) || (board.organization === 'RS' && recipients.has(id));
+
   if (board.organization === 'EQ') {
     for (const h of households) {
+      if (!recipients.has(h.id)) continue;
       const at = coordsOf(h);
       if (!at) continue;
       items.push({
@@ -62,7 +67,7 @@ export function buildMapItems({
 
   const householdById = new Map(households.map((h) => [h.id, h]));
   for (const m of members) {
-    if (!isOrgMember(m, board.organization, today)) continue;
+    if (!onBoard(m.id) || !isOrgMember(m, board.organization, today)) continue;
     const at = coordsOf(m.household_id ? householdById.get(m.household_id) : undefined);
     if (!at) continue;
     items.push({

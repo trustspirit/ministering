@@ -13,11 +13,14 @@ export function PersonCard({
   member,
   role,
   onRemove,
+  removeLabel = T.assign.unassign,
 }: {
   member: Member;
   /** The list or zone the card sits in; becomes the drag's `from`. */
   role: AssignRole;
   onRemove?: () => void;
+  /** Accessible name of the × button; defaults to unassigning. */
+  removeLabel?: string;
 }) {
   const { org, canEdit, householdById } = useWorkspace();
   const selected = useWorkspaceStore(
@@ -72,8 +75,8 @@ export function PersonCard({
         <button
           type="button"
           className="aw-x"
-          aria-label={T.assign.unassign}
-          title={T.assign.unassign}
+          aria-label={removeLabel}
+          title={removeLabel}
           onClick={(e) => {
             e.stopPropagation();
             onRemove();

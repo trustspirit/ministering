@@ -20,6 +20,10 @@ describe('queryKeysToRefresh', () => {
     expect(queryKeysToRefresh('ministries', 'UPDATE')).toEqual([['assignment-board']]);
   });
 
+  it('refreshes the board when the pool changes', () => {
+    expect(queryKeysToRefresh('ministry_pool', 'INSERT')).toEqual([['assignment-board']]);
+  });
+
   it('refreshes the board when the presidency changes', () => {
     expect(queryKeysToRefresh('presidency_members', 'DELETE')).toEqual([['assignment-board']]);
   });
