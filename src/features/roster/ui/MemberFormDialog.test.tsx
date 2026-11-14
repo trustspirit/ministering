@@ -47,6 +47,13 @@ vi.mock('@/features/members/hooks/useMemberMutations', () => ({
   useUpdateMember: () => ({ mutateAsync: mocks.updateMember, isPending: false }),
   useDeleteMember: () => ({ mutateAsync: mocks.deleteMember, isPending: false }),
 }));
+vi.mock('@/shared/lib/addressSearch', () => ({
+  searchAddresses: async (q: string) =>
+    [
+      { id: '0', address: '서울 중구 세종대로 110', lat: 37.566, lng: 126.978 },
+      { id: '1', address: '서울 강동구 상일로 55', description: '고덕자이아파트', lat: 37.553, lng: 127.168 },
+    ].filter((h) => h.address.includes(q) || h.description?.includes(q)),
+}));
 vi.mock('@/repositories/HouseholdRepository', () => ({
   householdRepository: { remove: mocks.removeHousehold },
 }));
@@ -111,12 +118,13 @@ describe('MemberFormDialog', () => {
     await user.type(screen.getByLabelText('연락처'), '010-5555-6666');
     fireEvent.change(screen.getByLabelText('생년월일'), { target: { value: '1990-05-06' } });
     await choose(user, '소속 가정', '새 가정 만들기');
-    await user.type(screen.getByLabelText('가정 주소'), '서울 중구 세종대로 110');
+    await user.type(screen.getByRole('combobox', { name: '가정 주소' }), '세종대로');
+    await user.click(await screen.findByRole('option', { name: /서울 중구 세종대로 110/ }));
     await user.click(screen.getByRole('button', { name: '저장' }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(mocks.order).toEqual(['household', 'member']);
-    expect(mocks.createHousehold).toHaveBeenCalledWith({ address: '서울 중구 세종대로 110' });
+    expect(mocks.createHousehold).toHaveBeenCalledWith({ address: '서울 중구 세종대로 110', lat: 37.566, lng: 126.978 });
     expect(mocks.createMember).toHaveBeenCalledWith(
       expect.objectContaining({
         full_name: '김새롬',
@@ -132,16 +140,18 @@ describe('MemberFormDialog', () => {
     const user = userEvent.setup();
     const han = member({ id: 'm1', full_name: '한상철', household_id: 'h1', household_role: 'husband' });
     const { onClose } = renderDialog({ member: han });
-    const field = screen.getByLabelText('가정 주소');
+    const field = screen.getByRole('combobox', { name: '가정 주소' });
     expect(field).toHaveValue('서울 은평구 증산로 17');
     await user.clear(field);
-    await user.type(field, '서울 강동구 상일로 55');
+    await user.type(field, '고덕자이');
+    await user.click(await screen.findByRole('option', { name: /서울 강동구 상일로 55/ }));
+    await user.type(screen.getByLabelText('상세 주소'), '111동 205호');
     await user.click(screen.getByRole('button', { name: '저장' }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(mocks.updateHousehold).toHaveBeenCalledWith({
       id: 'h1',
-      patch: { address: '서울 강동구 상일로 55' },
+      patch: { address: '서울 강동구 상일로 55 111동 205호', lat: 37.553, lng: 127.168 },
       previousAddress: '서울 은평구 증산로 17',
     });
     expect(mocks.updateMember.mock.calls[0][0].patch).not.toHaveProperty('address');
@@ -158,7 +168,7 @@ describe('MemberFormDialog', () => {
 
   it('has no address field for a person without a household', () => {
     renderDialog({ member: null });
-    expect(screen.queryByLabelText('가정 주소')).toBeNull();
+    expect(screen.queryByRole('combobox', { name: '가정 주소' })).toBeNull();
   });
 
   it('the household field searches by name and keeps 새 가정 만들기 / 가정 없음 as items', async () => {

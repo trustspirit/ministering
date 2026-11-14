@@ -12,6 +12,7 @@ import {
 import type { ActiveStatus, Gender, HouseholdRole, Member, Personality } from '@/features/members/types';
 import { householdRepository } from '@/repositories/HouseholdRepository';
 import { GENDER_LABEL, PERSONALITY_LABEL, STATUS_LABEL, T } from '@/shared/copy';
+import { AddressField, type AddressValue } from '@/shared/ui/AddressField';
 import { parseIsoDate, toIsoDate } from './dates';
 import './roster.css';
 
@@ -41,11 +42,14 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
   const [personality, setPersonality] = useState<Personality>(member?.personality ?? 'moderate');
   const [householdChoice, setHouseholdChoice] = useState(member?.household_id ?? NONE);
   // The address belongs to the household (one place for every member): this field shows and edits it.
-  const addressOf = (choice: string) => households.find((h) => h.id === choice)?.address ?? '';
-  const [address, setAddress] = useState(() => addressOf(member?.household_id ?? NONE));
+  const placeOf = (choice: string): AddressValue => {
+    const h = households.find((x) => x.id === choice);
+    return { address: h?.address ?? null, lat: h?.lat ?? null, lng: h?.lng ?? null };
+  };
+  const [place, setPlace] = useState<AddressValue>(() => placeOf(member?.household_id ?? NONE));
   const chooseHousehold = (choice: string) => {
     setHouseholdChoice(choice);
-    if (choice !== NEW) setAddress(addressOf(choice));
+    setPlace(placeOf(choice)); // a new household starts without an address
   };
   const [role, setRole] = useState<HouseholdRole>(member?.household_role ?? 'other');
   const [memo, setMemo] = useState(member?.memo ?? '');
@@ -96,22 +100,17 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
     if (!fullName.trim() || !gender || !birthDate) return;
 
     const name = fullName.trim();
-    const trimmedAddress = address.trim() || null;
     let createdHouseholdId: string | null = null;
     try {
       let householdId: string | null = householdChoice === NONE ? null : householdChoice;
       if (householdChoice === NEW) {
-        const created = await createHousehold.mutateAsync({ address: trimmedAddress });
+        const created = await createHousehold.mutateAsync(place);
         createdHouseholdId = created.id;
         householdId = created.id;
       } else if (householdId) {
         const previousAddress = households.find((h) => h.id === householdId)?.address ?? null;
-        if (trimmedAddress !== previousAddress) {
-          await updateHousehold.mutateAsync({
-            id: householdId,
-            patch: { address: trimmedAddress },
-            previousAddress,
-          });
+        if (place.address !== previousAddress) {
+          await updateHousehold.mutateAsync({ id: householdId, patch: place, previousAddress });
         }
       }
       const fields = {
@@ -283,15 +282,14 @@ export function MemberFormDialog({ open, member, households, onClose }: MemberFo
                     />
                   </div>
                   {householdChoice !== NONE && (
-                    <div className="ro-wide">
-                      <TextField
-                        size="sm"
-                        fullWidth
+                    <div className="ro-wide ro-address">
+                      <AddressField
+                        // A different household starts the field over from that household's address.
+                        key={householdChoice}
                         label={F.address}
-                        placeholder={F.addressPlaceholder}
                         helperText={householdChoice === NEW ? undefined : F.addressShared}
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
+                        value={place}
+                        onChange={setPlace}
                       />
                     </div>
                   )}

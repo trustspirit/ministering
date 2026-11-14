@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Button, Dialog, TextArea, TextField } from 'trust-ui-react';
+import { Button, Dialog, TextArea } from 'trust-ui-react';
 import { useUpdateHousehold } from '@/features/households/hooks/useHouseholdMutations';
 import type { Household } from '@/features/households/types';
 import { T } from '@/shared/copy';
+import { AddressField, type AddressValue } from '@/shared/ui/AddressField';
 import './roster.css';
 
 const F = T.householdForm;
@@ -15,7 +16,11 @@ interface HouseholdFormDialogProps {
 
 /** Mount with a `key` per household so every opening starts from that household's values. */
 export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormDialogProps) {
-  const [address, setAddress] = useState(household.address ?? '');
+  const [place, setPlace] = useState<AddressValue>({
+    address: household.address,
+    lat: household.lat,
+    lng: household.lng,
+  });
   const [memo, setMemo] = useState(household.memo ?? '');
   const [error, setError] = useState<string | null>(null);
   const update = useUpdateHousehold();
@@ -27,7 +32,7 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
       await update.mutateAsync({
         id: household.id,
         patch: {
-          address: address.trim() || null,
+          ...place,
           memo: memo.trim() ? memo.trimEnd() : null,
         },
         previousAddress: household.address,
@@ -45,14 +50,8 @@ export function HouseholdFormDialog({ open, household, onClose }: HouseholdFormD
         <p className="ro-form-note">{F.nameNote}</p>
         <form id="household-form" onSubmit={submit} noValidate>
           <div className="ro-form">
-            <div className="ro-wide">
-              <TextField
-                size="sm"
-                fullWidth
-                label={F.address}
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
+            <div className="ro-wide ro-address">
+              <AddressField label={F.address} value={place} onChange={setPlace} />
             </div>
             <div className="ro-wide">
               <TextArea

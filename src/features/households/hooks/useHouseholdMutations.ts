@@ -17,7 +17,8 @@ export function useUpdateHousehold() {
       patch: HouseholdUpdate;
       previousAddress: string | null;
     }) => {
-      const addressChanged = 'address' in patch && patch.address !== previousAddress;
+      // An address picked from the Kakao search arrives with its coordinates; only bare text is geocoded.
+      const addressChanged = 'address' in patch && patch.address !== previousAddress && !('lat' in patch);
       if (addressChanged) {
         const geo = await geocodeAddress(patch.address ?? null);
         return householdRepository.update(id, { ...patch, lat: geo.lat, lng: geo.lng });
@@ -36,6 +37,7 @@ export function useCreateHousehold() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: HouseholdInsert) => {
+      if ('lat' in input) return householdRepository.create(input);
       const geo = await geocodeAddress(input.address);
       return householdRepository.create({ ...input, lat: geo.lat, lng: geo.lng });
     },

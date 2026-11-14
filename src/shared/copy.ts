@@ -327,7 +327,6 @@ export const T = {
     gender: '성별',
     birthDate: '생년월일',
     address: '가정 주소',
-    addressPlaceholder: '서울시 강남구 …',
     addressShared: '같은 가정 모두의 주소가 바뀝니다',
     phone: '연락처',
     status: '상태',
@@ -355,6 +354,15 @@ export const T = {
     rollbackFailed: '가정은 만들어졌지만 사람을 저장하지 못했습니다. 명부에서 가정을 확인해 주세요.',
     deleteFailed: '삭제하지 못했습니다. 다시 시도해 주세요.',
     deleteMissing: '이미 삭제되었거나 찾을 수 없는 사람입니다.',
+  },
+  addressField: {
+    placeholder: '도로명, 지번, 아파트·건물 이름으로 검색',
+    empty: '검색 결과가 없습니다. 도로명이나 건물 이름으로 다시 검색해 보세요.',
+    loading: '주소를 찾는 중…',
+    clear: '주소 지우기',
+    current: '현재 주소',
+    detail: '상세 주소',
+    detailPlaceholder: '동·호수 (예: 111동 205호)',
   },
   householdForm: {
     titleOf: (name: string) => `${name} 수정`,

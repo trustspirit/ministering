@@ -139,6 +139,7 @@
 /* dialogs (portalled outside .ro, so scoped by their own classes) */
 .ro-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
 .ro-form > .ro-wide { grid-column: 1 / -1; }
+.ro-address { display: grid; gap: 8px; }
 /* Every single-line control is 36px tall (also the phone touch-target minimum): trust-ui's small step is 36px in
    its default (comfortable) density, so no token override is needed. Its text input is that height PLUS the
    wrapper's 2px border, so the border is taken off the input to match select and date. */
