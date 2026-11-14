@@ -22,6 +22,13 @@ export interface Board {
   ministries: BoardMinistry[];
 }
 
+/** Ministries matching a supervisor filter: a member id, 'none' (no supervisor), or null (all). */
+export function filterBySupervisor(ministries: BoardMinistry[], filter: string | 'none' | null): BoardMinistry[] {
+  if (filter === null) return ministries;
+  const want = filter === 'none' ? null : filter;
+  return ministries.filter((m) => m.supervisorId === want);
+}
+
 /** Ministries per supervisor id; the null key counts ministries without a supervisor. */
 export function supervisionCounts(board: Board): Map<string | null, number> {
   const counts = new Map<string | null, number>();

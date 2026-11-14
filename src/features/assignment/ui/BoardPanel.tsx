@@ -2,6 +2,8 @@ import clsx from 'clsx';
 import { EmptyState } from 'trust-ui-react';
 import { T } from '@/shared/copy';
 import { dragOf, overKey, useDragStore, useDropHandler } from '../dnd';
+import { filterBySupervisor } from '../domain/board';
+import { useWorkspaceStore } from '../store';
 import { useWorkspace } from '../workspaceContext';
 import { MinistryCard } from './MinistryCard';
 
@@ -10,6 +12,8 @@ export function BoardPanel() {
   const over = useDragStore((s) => s.over === overKey.newMinistry);
   const setOver = useDragStore((s) => s.setOver);
   const handleDrop = useDropHandler(org);
+  const supervisorFilter = useWorkspaceStore((s) => s.supervisorFilter);
+  const shown = filterBySupervisor(board.ministries, supervisorFilter);
 
   return (
     <section className="aw-board">
@@ -22,7 +26,7 @@ export function BoardPanel() {
             description={canEdit ? T.assign.boardEmptyHint : undefined}
           />
         )}
-        {board.ministries.map((m) => (
+        {shown.map((m) => (
           <MinistryCard key={m.id} ministry={m} org={org} canEdit={canEdit} />
         ))}
         {canEdit && (

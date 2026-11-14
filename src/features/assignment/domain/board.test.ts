@@ -5,6 +5,7 @@ import {
   ministryWarnings,
   summarize,
   supervisionCounts,
+  filterBySupervisor,
   unassignedCandidates,
   unassignedRecipients,
   type Board,
@@ -119,5 +120,22 @@ describe('supervisionCounts', () => {
     expect(counts.get('s1')).toBe(2);
     expect(counts.get(null)).toBe(1);
     expect(counts.get('s2')).toBeUndefined();
+  });
+});
+
+describe('filterBySupervisor', () => {
+  const ms = [
+    ministry({ id: 'a', number: 1, supervisorId: 's1' }),
+    ministry({ id: 'b', number: 2, supervisorId: 's2' }),
+    ministry({ id: 'c', number: 3 }),
+  ];
+  it("keeps only that supervisor's ministries", () => {
+    expect(filterBySupervisor(ms, 's1').map((m) => m.id)).toEqual(['a']);
+  });
+  it("'none' keeps unsupervised ministries", () => {
+    expect(filterBySupervisor(ms, 'none').map((m) => m.id)).toEqual(['c']);
+  });
+  it('null keeps all', () => {
+    expect(filterBySupervisor(ms, null)).toBe(ms);
   });
 });

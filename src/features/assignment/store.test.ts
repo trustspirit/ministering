@@ -54,3 +54,21 @@ describe('useWorkspaceStore side width', () => {
     expect(store.getState()).toMatchObject({ selected: null, hotMinistryId: null });
   });
 });
+
+describe('useWorkspaceStore supervisor filter', () => {
+  it('toggles a supervisor on and off', async () => {
+    const { useWorkspaceStore } = await import('./store');
+    useWorkspaceStore.getState().toggleSupervisorFilter('s1');
+    expect(useWorkspaceStore.getState().supervisorFilter).toBe('s1');
+    useWorkspaceStore.getState().toggleSupervisorFilter('s1');
+    expect(useWorkspaceStore.getState().supervisorFilter).toBeNull();
+  });
+
+  it('switching organization clears the supervisor filter', async () => {
+    const { useWorkspaceStore } = await import('./store');
+    useWorkspaceStore.getState().setOrg('EQ');
+    useWorkspaceStore.getState().setSupervisorFilter('s1');
+    useWorkspaceStore.getState().setOrg('RS');
+    expect(useWorkspaceStore.getState().supervisorFilter).toBeNull();
+  });
+});

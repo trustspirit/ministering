@@ -3,6 +3,8 @@ import type { Organization } from '@/features/ministries/types';
 
 export type Selection = { kind: 'member' | 'household'; id: string };
 export type MobileTab = 'pool' | 'board' | 'map';
+/** A presidency member's id, 'none' for ministries without a supervisor, or null for every ministry. */
+export type SupervisorFilter = string | 'none' | null;
 
 export const SIDE_WIDTH_KEY = 'ministering.sideWidth';
 export const DEFAULT_SIDE_WIDTH = '45vw';
@@ -29,7 +31,8 @@ export interface WorkspaceState {
   search: string;
   sideWidth: string;
   mobileTab: MobileTab;
-  /** Switching organization clears the selection and the highlighted ministry. */
+  supervisorFilter: SupervisorFilter;
+  /** Switching organization clears the selection, the highlighted ministry and the supervisor filter. */
   setOrg: (org: Organization) => void;
   setSelected: (selected: Selection | null) => void;
   setHotMinistryId: (id: string | null) => void;
@@ -40,6 +43,9 @@ export interface WorkspaceState {
   /** Sets the width without persisting it (while the resize bar is being dragged). */
   previewSideWidth: (width: string) => void;
   setMobileTab: (tab: MobileTab) => void;
+  setSupervisorFilter: (filter: SupervisorFilter) => void;
+  /** Selecting the active filter again clears it. */
+  toggleSupervisorFilter: (filter: Exclude<SupervisorFilter, null>) => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
@@ -49,8 +55,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   search: '',
   sideWidth: readSideWidth(),
   mobileTab: 'board',
+  supervisorFilter: null,
   setOrg: (org) =>
-    set((s) => (s.org === org ? s : { org, selected: null, hotMinistryId: null })),
+    set((s) => (s.org === org ? s : { org, selected: null, hotMinistryId: null, supervisorFilter: null })),
   setSelected: (selected) => set({ selected }),
   setHotMinistryId: (hotMinistryId) => set({ hotMinistryId }),
   toggleHotMinistry: (id) => set((s) => ({ hotMinistryId: s.hotMinistryId === id ? null : id })),
@@ -66,4 +73,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   },
   previewSideWidth: (width) => set({ sideWidth: parseSideWidth(width) }),
   setMobileTab: (mobileTab) => set({ mobileTab }),
+  setSupervisorFilter: (supervisorFilter) => set({ supervisorFilter }),
+  toggleSupervisorFilter: (filter) =>
+    set((s) => ({ supervisorFilter: s.supervisorFilter === filter ? null : filter })),
 }));
