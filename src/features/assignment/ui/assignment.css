@@ -495,6 +495,7 @@
 .aw .aw-pchip:focus-visible,
 .aw .aw-pres-edit:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 .aw .aw-pres-edit {
+  flex: none;
   margin-left: auto;
   font: inherit;
   font-size: 11px;

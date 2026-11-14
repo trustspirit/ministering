@@ -39,6 +39,7 @@ supabase db push
 | `20261113120000_soft_delete_member_not_found` | 없는 사람을 삭제하면 `P0002` 오류 |
 | `20261113130000_admin_managed_users` | 새 계정의 프로필 트리거 수정(Auth API로 만든 계정이 "Database error saving new user"로 실패하던 문제), `get_app_users`에 `has_password`, 마지막 감독단 계정 삭제 차단 트리거 |
 | `20261113140000_keep_a_bishopric` | 마지막 감독단 계정은 삭제뿐 아니라 **역할 변경**도 차단(`P0001` / `last_bishopric`, 동시에 바꿔도 한 명은 남는다), `get_app_users`의 `has_password` → `invite_pending`(초대 링크를 아직 열지 않음) |
+| `20261114100000_ministry_supervisor` | 조직별 회장단 명단 `presidency_members`, 조의 담당 회장단 `ministries.supervisor_member_id` (같은 조직 회장단만 허용, 회장단에서 빠지거나 삭제되면 담당이 비워짐) |
 
 RPC 요약:
 
