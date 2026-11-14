@@ -8,6 +8,11 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # Unit tests and the build import the Supabase client, which throws without
+    # these. Nothing here talks to a real project.
+    env:
+      VITE_SUPABASE_URL: https://placeholder.supabase.co
+      VITE_SUPABASE_ANON_KEY: placeholder
     steps:
       - uses: actions/checkout@v4
 
@@ -29,7 +34,4 @@ jobs:
         run: npm test
 
       - name: Build
-        env:
-          VITE_SUPABASE_URL: https://placeholder.supabase.co
-          VITE_SUPABASE_ANON_KEY: placeholder
         run: npm run build
