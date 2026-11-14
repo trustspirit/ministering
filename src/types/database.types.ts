@@ -164,6 +164,7 @@ export type Database = {
           number: number
           organization: Database["public"]["Enums"]["organization"]
           share_token: string | null
+          supervisor_member_id: string | null
           updated_at: string
         }
         Insert: {
@@ -173,6 +174,7 @@ export type Database = {
           number: number
           organization: Database["public"]["Enums"]["organization"]
           share_token?: string | null
+          supervisor_member_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -182,9 +184,18 @@ export type Database = {
           number?: number
           organization?: Database["public"]["Enums"]["organization"]
           share_token?: string | null
+          supervisor_member_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ministries_supervisor_fk"
+            columns: ["organization", "supervisor_member_id"]
+            isOneToOne: false
+            referencedRelation: "presidency_members"
+            referencedColumns: ["organization", "member_id"]
+          },
+        ]
       }
       ministry_companions: {
         Row: {
@@ -275,6 +286,32 @@ export type Database = {
             columns: ["ministry_id"]
             isOneToOne: false
             referencedRelation: "ministries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      presidency_members: {
+        Row: {
+          created_at: string
+          member_id: string
+          organization: Database["public"]["Enums"]["organization"]
+        }
+        Insert: {
+          created_at?: string
+          member_id: string
+          organization: Database["public"]["Enums"]["organization"]
+        }
+        Update: {
+          created_at?: string
+          member_id?: string
+          organization?: Database["public"]["Enums"]["organization"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presidency_members_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
             referencedColumns: ["id"]
           },
         ]

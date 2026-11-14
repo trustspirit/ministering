@@ -7,7 +7,7 @@ import type {
 } from '@/features/ministries/types';
 
 /** Explicit columns: share_token is deliberately never selected (no column privilege for API roles). */
-const COLUMNS = 'id, organization, number, name, created_at, updated_at';
+const COLUMNS = 'id, organization, number, name, supervisor_member_id, created_at, updated_at';
 
 export interface MinistryRepository {
   listByOrganization(org: Organization): Promise<Ministry[]>;
